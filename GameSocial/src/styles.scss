@@ -93,7 +93,37 @@ a {
   }
 }
 
-/* Forms */
+/* Forms — one standard text input/textarea/select look, applied globally
+   (not opt-in via a wrapper class) so every field in the app matches by
+   default, including a bare <input> dropped into a table cell with no
+   surrounding markup. A component only needs its own CSS when it genuinely
+   differs from a plain field (a chip-styled tag input, a borderless search
+   box) — never to reproduce this base look. Checkboxes/radios opt out since
+   they're a different control shape entirely. */
+input:not([type='checkbox']):not([type='radio']),
+textarea,
+select {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  border: 1px solid $color-border;
+  background-color: $color-bg-primary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 0.92rem;
+  transition: border-color $transition-speed-fast, box-shadow $transition-speed-fast;
+
+  &::placeholder {
+    color: $color-text-secondary;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-accent-primary;
+    box-shadow: 0 0 0 3px $color-accent-glow;
+  }
+}
+
 .form-group {
   margin-bottom: $spacing-md;
 
@@ -103,24 +133,6 @@ a {
     font-size: 0.9rem;
     font-weight: 500;
     color: $color-text-secondary;
-  }
-
-  input, textarea, select {
-    width: 100%;
-    padding: $spacing-sm $spacing-md;
-    border-radius: $border-radius-md;
-    border: 1px solid $color-border;
-    background-color: $color-bg-secondary;
-    color: $color-text-primary;
-    font-family: $font-family-primary;
-    font-size: 1rem;
-    transition: border-color $transition-speed-fast, box-shadow $transition-speed-fast;
-
-    &:focus {
-      outline: none;
-      border-color: $color-accent-primary;
-      box-shadow: 0 0 0 3px $color-accent-glow;
-    }
   }
 }
 

@@ -70,22 +70,11 @@
     border: 0;
   }
 
-  // ─── Shared field primitives (the design's dark "boxes") ────────
+  // ─── Shared field primitives — height tweak only, everything else
+  // (color/border/bg/focus) comes from the app-wide default in styles.scss ──
   .field-box {
     height: 38px;
     padding: 0 $spacing-md;
-    border-radius: $border-radius-md;
-    border: 1px solid $color-border;
-    background-color: $color-bg-primary;
-    color: $color-text-primary;
-    font-family: $font-family-primary;
-    font-size: 0.88rem;
-    width: 100%;
-
-    &:focus {
-      outline: none;
-      border-color: $color-accent-primary;
-    }
   }
 
   textarea.field-box {
@@ -362,26 +351,18 @@
   gap: $spacing-sm;
   margin-bottom: $spacing-sm;
 
-  input,
-  select {
-    padding: $spacing-xs $spacing-sm;
-    border-radius: $border-radius-md;
-    border: 1px solid $color-border;
-    background-color: $color-bg-primary;
-    color: $color-text-primary;
-    font-family: $font-family-primary;
-    font-size: 0.9rem;
-
-    &:focus {
-      outline: none;
-      border-color: $color-accent-primary;
-    }
-  }
-
   input {
     flex: 1;
     min-width: 0;
   }
+}
+
+// The status dropdown sits alongside a flex:1 text input — without a fixed
+// width it would inherit the app-wide default's 100% width and swallow the row.
+.patch-line-row select {
+  flex: none;
+  width: auto;
+  min-width: 130px;
 }
 
 .poll-option-remove {

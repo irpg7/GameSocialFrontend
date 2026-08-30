@@ -440,18 +440,6 @@
     textarea {
       flex-grow: 1;
       resize: none;
-      padding: $spacing-sm $spacing-md;
-      border-radius: $border-radius-md;
-      border: 1px solid $color-border;
-      background-color: $color-bg-primary;
-      color: $color-text-primary;
-      font-family: $font-family-primary;
-      font-size: 0.9rem;
-
-      &:focus {
-        outline: none;
-        border-color: $color-accent-primary;
-      }
     }
   }
 
