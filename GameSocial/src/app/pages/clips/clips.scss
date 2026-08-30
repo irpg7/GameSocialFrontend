@@ -1,0 +1,45 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/form-controls';
+
+.clips-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.clips-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
+.clips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $spacing-md;
+  align-items: start;
+}
+
+.feed-status {
+  text-align: center;
+  padding: $spacing-lg;
+}
+
+.empty-feed {
+  text-align: center;
+  padding: $spacing-2xl;
+  font-size: 1rem;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+}
+
+.load-more {
+  align-self: center;
+}

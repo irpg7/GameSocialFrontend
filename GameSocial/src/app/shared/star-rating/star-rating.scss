@@ -1,0 +1,24 @@
+@use '../../../styles/variables' as *;
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star {
+  flex-shrink: 0;
+
+  &-full {
+    color: #facc15;
+  }
+
+  &-half {
+    color: #facc15;
+    opacity: 0.5;
+  }
+
+  &-empty {
+    color: $color-border;
+  }
+}

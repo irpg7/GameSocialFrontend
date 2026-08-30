@@ -1,0 +1,97 @@
+<div class="reviews-page">
+  <div class="reviews-main">
+    <div class="reviews-header">
+      <h2>Reviews</h2>
+      <button type="button" class="btn btn-primary" (click)="openReviewSheet()">Write a review</button>
+    </div>
+
+    <div class="filter-row">
+      <button type="button" class="chip" [class.active]="isFilterActive('following')" (click)="toggleFilter('following')">Following</button>
+      <button type="button" class="chip" [class.active]="isFilterActive('noSpoilers')" (click)="toggleFilter('noSpoilers')">No spoilers</button>
+      <button type="button" class="chip" [class.active]="isFilterActive('longPlaytime')" (click)="toggleFilter('longPlaytime')">20h+ played</button>
+    </div>
+
+    <div class="posts-list">
+      @for (post of filteredPosts(); track post.id) {
+        <app-post-card [post]="post" />
+      }
+
+      @if (isLoadingFeed()) {
+        <p class="text-muted feed-status">Loading reviews...</p>
+      } @else if (filteredPosts().length === 0) {
+        <div class="empty-feed">
+          <p class="text-muted">No reviews match yet.</p>
+        </div>
+      }
+
+      @if (hasMore() && !isLoadingFeed()) {
+        <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+          {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <aside class="reviews-rail">
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <h4>Waiting for your review</h4>
+      </div>
+      @if (waitingGames().length > 0) {
+        <ul class="waiting-list">
+          @for (game of waitingGames(); track game.gameId) {
+            <li class="waiting-row">
+              <span class="waiting-name">{{ game.gameName }}</span>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="openReviewSheet(game.gameId)">Rate</button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted">You're all caught up.</p>
+      }
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <h4>Trusted reviewers</h4>
+      </div>
+      @if (trustedReviewers().length > 0) {
+        <ul class="reviewer-list">
+          @for (reviewer of trustedReviewers(); track reviewer.userId) {
+            <li class="reviewer-row">
+              <span class="reviewer-icon">{{ reviewer.username.charAt(0).toUpperCase() }}</span>
+              <span class="reviewer-info">
+                <span class="reviewer-name">{{ reviewer.username }}</span>
+                <span class="text-muted reviewer-meta">Lv {{ reviewer.level }} · {{ reviewer.totalUsefulVotesReceived }} useful votes</span>
+              </span>
+              <button
+                type="button"
+                class="follow-toggle"
+                [class.following]="reviewer.isFollowedByCurrentUser"
+                (click)="toggleFollowReviewer(reviewer)">
+                {{ reviewer.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted">No trusted reviewers yet.</p>
+      }
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <h4>How scores work</h4>
+      </div>
+      <p class="text-muted info-text">Reviewers rate a game 0-10 based on their own experience — self-reported hours played and a Finished / Still playing / Dropped status. A "spoiler-free" tag means the reviewer avoided spoilers on purpose.</p>
+    </div>
+  </aside>
+</div>
+
+@if (isReviewSheetOpen()) {
+  <app-review-sheet
+    [games]="games()"
+    [preselectedGameId]="preselectedGameId()"
+    (closed)="isReviewSheetOpen.set(false)"
+    (posted)="onReviewPosted($event)" />
+}

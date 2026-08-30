@@ -1,0 +1,106 @@
+<div class="admin-page">
+  <h1>Languages & Translations</h1>
+  <p class="text-muted mb-lg">Manage supported languages and their localized text.</p>
+
+  <div class="card mb-lg">
+    <h2>Add a language</h2>
+    <div class="inline-form-row">
+      <div class="form-group">
+        <label for="new-lang-code">Code</label>
+        <input id="new-lang-code" type="text" [ngModel]="newLanguageCode()" (ngModelChange)="newLanguageCode.set($event)" placeholder="e.g. tr, en">
+      </div>
+      <div class="form-group">
+        <label for="new-lang-name">Name</label>
+        <input id="new-lang-name" type="text" [ngModel]="newLanguageName()" (ngModelChange)="newLanguageName.set($event)" placeholder="e.g. Türkçe">
+      </div>
+      <button type="button" class="btn btn-primary" [disabled]="isCreatingLanguage()" (click)="createLanguage()">
+        {{ isCreatingLanguage() ? 'Adding...' : 'Add language' }}
+      </button>
+    </div>
+    @if (languageError()) {
+      <p class="form-error">{{ languageError() }}</p>
+    }
+  </div>
+
+  @if (isLoadingLanguages()) {
+    <p class="text-muted">Loading languages...</p>
+  } @else {
+    <div class="toggle-group mb-lg">
+      @for (language of languages(); track language.code) {
+        <button type="button" class="toggle-btn" [class.active]="selectedLanguageCode() === language.code" (click)="selectLanguage(language.code)">
+          {{ language.name }} ({{ language.code }})
+          @if (language.isDefault) {
+            <span class="text-muted"> · default</span>
+          }
+        </button>
+      }
+
+      @if (languages().length === 0) {
+        <p class="text-muted">No languages yet — add one above.</p>
+      }
+    </div>
+
+    @if (selectedLanguageCode()) {
+      <div class="card mb-lg">
+        <h2>Add a translation key</h2>
+        <div class="inline-form-row">
+          <div class="form-group">
+            <label for="new-key">Key</label>
+            <input id="new-key" type="text" [ngModel]="newKey()" (ngModelChange)="newKey.set($event)" placeholder="e.g. Validation.BodyRequired">
+          </div>
+          <div class="form-group">
+            <label for="new-value">Value</label>
+            <input id="new-value" type="text" [ngModel]="newValue()" (ngModelChange)="newValue.set($event)">
+          </div>
+          <button type="button" class="btn btn-primary" [disabled]="isAddingKey()" (click)="addKey()">
+            {{ isAddingKey() ? 'Adding...' : 'Add key' }}
+          </button>
+        </div>
+        @if (newKeyError()) {
+          <p class="form-error">{{ newKeyError() }}</p>
+        }
+      </div>
+
+      @if (isLoadingTranslations()) {
+        <p class="text-muted">Loading translations...</p>
+      } @else {
+        <div class="table-wrapper card">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.key) {
+                <tr>
+                  <td>{{ row.key }}</td>
+                  <td>
+                    <input type="text" [ngModel]="row.value" (ngModelChange)="updateRowValue(row, $event)">
+                  </td>
+                  <td class="admin-table-actions">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-sm"
+                      [disabled]="row.isSaving || row.value === row.savedValue"
+                      (click)="saveTranslation(row)">
+                      {{ row.isSaving ? 'Saving...' : 'Save' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+
+              @if (rows().length === 0) {
+                <tr>
+                  <td colspan="3" class="text-muted">No translation keys yet for this language.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</div>

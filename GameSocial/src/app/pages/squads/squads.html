@@ -1,0 +1,98 @@
+<div class="squads-page">
+  <div class="squads-header">
+    <div>
+      <h2>Squads</h2>
+      <p class="text-muted">Squads you're already in. There's no browse/discover yet — you can create one, or a captain can add you by username.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreateSheet()">Create a squad</button>
+  </div>
+
+  @if (isLoading()) {
+    <p class="text-muted">Loading...</p>
+  } @else if (mySquads().length > 0) {
+    <ul class="squads-grid">
+      @for (squad of mySquads(); track squad.id) {
+        <li>
+          <a [routerLink]="['/squads', squad.id]" class="squad-tile card">
+            <span class="squad-tile-icon">{{ squad.name.charAt(0).toUpperCase() }}</span>
+            <span class="squad-tile-name">{{ squad.name }}</span>
+            <span class="squad-tile-meta">{{ squad.memberCount }} member{{ squad.memberCount === 1 ? '' : 's' }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="card squads-empty">
+      <p class="text-muted">You're not in any squads yet.</p>
+    </div>
+  }
+</div>
+
+@if (isCreateSheetOpen()) {
+  <app-sheet-modal title="Create a squad" (closed)="closeCreateSheet()">
+    <div class="form-group">
+      <label for="squad-name">Name</label>
+      <input id="squad-name" type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" [maxlength]="maxNameLength" placeholder="Squad name">
+    </div>
+
+    <div class="form-group">
+      <label for="squad-description">Description <span class="text-muted">(optional)</span></label>
+      <textarea id="squad-description" rows="3" [ngModel]="description()" (ngModelChange)="description.set($event)" [maxlength]="maxDescriptionLength" placeholder="What's this squad about?"></textarea>
+      <span class="char-count">{{ description().length }}/{{ maxDescriptionLength }}</span>
+    </div>
+
+    <div class="option-group">
+      <label for="squad-game">Main game <span class="text-muted">(optional)</span></label>
+      <select id="squad-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
+        <option [ngValue]="null">— No main game —</option>
+        @for (game of games(); track game.id) {
+          <option [ngValue]="game.id">{{ game.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Join policy</label>
+      <div class="chip-row">
+        <button type="button" class="chip" [class.active]="joinPolicy() === 'InviteOnly'" (click)="joinPolicy.set('InviteOnly')">Invite only</button>
+        <button type="button" class="chip" [class.active]="joinPolicy() === 'AskToJoin'" (click)="joinPolicy.set('AskToJoin')">Ask to join</button>
+        <button type="button" class="chip" [class.active]="joinPolicy() === 'Open'" (click)="joinPolicy.set('Open')">Open</button>
+      </div>
+      <p class="hint text-muted">Only "Invite only" is functionally different today — the captain adds members by username. Ask-to-join/Open are stored but have no request-inbox or self-serve join flow yet.</p>
+    </div>
+
+    <div class="form-group">
+      <label>Starter channels</label>
+      <div class="starter-channels">
+        <span class="chip active" aria-disabled="true">#general</span>
+        <span class="chip active" aria-disabled="true">#clips</span>
+        @for (channelName of additionalChannelNames(); track channelName; let i = $index) {
+          <span class="chip active removable-chip">
+            #{{ channelName }}
+            <button type="button" aria-label="Remove channel" (click)="removeChannelName(i)">&times;</button>
+          </span>
+        }
+      </div>
+      <div class="add-channel-row">
+        <input
+          type="text"
+          [ngModel]="newChannelName()"
+          (ngModelChange)="newChannelName.set($event)"
+          [maxlength]="maxChannelNameLength"
+          placeholder="Add another channel"
+          (keydown.enter)="$event.preventDefault(); addChannelName()">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addChannelName()">Add</button>
+      </div>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="composer-footer">
+      <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submitCreate()">
+        {{ isSubmitting() ? 'Creating...' : 'Create squad' }}
+      </button>
+    </div>
+  </app-sheet-modal>
+}

@@ -1,0 +1,63 @@
+<header class="topbar-container">
+  <div class="topbar-brand">
+    <a routerLink="/feed" class="brand-logo">GameSocial</a>
+  </div>
+
+  <nav class="topbar-nav">
+    <a routerLink="/feed" routerLinkActive="active" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Feed
+    </a>
+    <a routerLink="/clips" routerLinkActive="active" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>
+      Clips
+    </a>
+    <a routerLink="/reviews" routerLinkActive="active" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.63 22 9.24 17 14.14 18.18 21 12 17.77 5.82 21 7 14.14 2 9.24 8.91 8.63 12 2"/></svg>
+      Reviews
+    </a>
+    <a routerLink="/squads" routerLinkActive="active" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Squads
+    </a>
+    <a routerLink="/trophies" routerLinkActive="active" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h2a2 2 0 0 1 2 2 4 4 0 0 1-4 4M7 5H5a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg>
+      Trophies
+    </a>
+  </nav>
+
+  <div class="topbar-actions">
+    @if (meService.me(); as me) {
+      <div class="xp-pill" [attr.title]="me.xp + ' XP · ' + me.xpToNextLevel + ' to next level'">
+        <span class="xp-level">LV {{ me.level }}</span>
+        <span class="xp-bar">
+          <span class="xp-bar-fill" [style.width.%]="me.xpProgressPercent"></span>
+        </span>
+      </div>
+    }
+
+    <div class="user-menu">
+      <button
+        type="button"
+        class="user-avatar"
+        aria-haspopup="true"
+        [attr.aria-expanded]="isMenuOpen()"
+        [attr.aria-label]="'Account menu for ' + (authService.currentUser()?.username ?? '')"
+        (click)="toggleMenu(); $event.stopPropagation()">
+        {{ (authService.currentUser()?.username ?? '?').charAt(0).toUpperCase() }}
+      </button>
+
+      @if (isMenuOpen()) {
+        <div class="user-dropdown card">
+          <span class="user-dropdown-name">{{ authService.currentUser()?.username }}</span>
+
+          @if (authService.permissions().length > 0) {
+            <a routerLink="/backoffice" class="user-dropdown-link" (click)="isMenuOpen.set(false)">Backoffice</a>
+          }
+
+          <button type="button" class="user-dropdown-link user-dropdown-logout" (click)="logout()">Logout</button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

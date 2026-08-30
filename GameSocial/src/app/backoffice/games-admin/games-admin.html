@@ -1,0 +1,95 @@
+<div class="admin-page">
+  <h1>Games</h1>
+  <p class="text-muted mb-lg">Manage the games catalogue used across posts.</p>
+
+  <div class="card mb-lg">
+    <h2>New game</h2>
+    <div class="form-group">
+      <label for="new-game-name">Name</label>
+      <input id="new-game-name" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Game name">
+    </div>
+    <div class="form-group">
+      <label for="new-game-poster">Poster <span class="text-muted">(optional, jpg/png/webp, max 5MB)</span></label>
+      <input id="new-game-poster" type="file" accept="image/jpeg,image/png,image/webp" (change)="onNewPosterSelected($event)">
+    </div>
+    @if (createError()) {
+      <p class="form-error">{{ createError() }}</p>
+    }
+    <button type="button" class="btn btn-primary" [disabled]="isCreating()" (click)="createGame()">
+      {{ isCreating() ? 'Creating...' : 'Add game' }}
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <p class="text-muted">Loading games...</p>
+  } @else {
+    <div class="table-wrapper card">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Poster</th>
+            <th>Name</th>
+            <th>Slug</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (game of games(); track game.id) {
+            @if (editingId() === game.id) {
+              <tr>
+                <td>
+                  @if (game.coverImageUrl) {
+                    <img class="poster-thumb" [src]="game.coverImageUrl" [alt]="game.name" />
+                  } @else {
+                    <div class="poster-thumb poster-thumb-empty">🎮</div>
+                  }
+                  <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onEditPosterSelected($event)">
+                </td>
+                <td colspan="2">
+                  <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)">
+                  @if (editError()) {
+                    <p class="form-error">{{ editError() }}</p>
+                  }
+                </td>
+                <td class="admin-table-actions">
+                  <button type="button" class="btn btn-primary btn-sm" [disabled]="isSaving()" (click)="saveEdit(game)">
+                    {{ isSaving() ? 'Saving...' : 'Save' }}
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
+                </td>
+              </tr>
+            } @else {
+              <tr>
+                <td>
+                  @if (game.coverImageUrl) {
+                    <img class="poster-thumb" [src]="game.coverImageUrl" [alt]="game.name" />
+                  } @else {
+                    <div class="poster-thumb poster-thumb-empty">🎮</div>
+                  }
+                </td>
+                <td>{{ game.name }}</td>
+                <td class="text-muted">{{ game.slug }}</td>
+                <td class="admin-table-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="startEdit(game)">Edit</button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    [disabled]="deletingId() === game.id"
+                    (click)="deleteGame(game)">
+                    {{ deletingId() === game.id ? 'Deleting...' : 'Delete' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+
+          @if (games().length === 0) {
+            <tr>
+              <td colspan="4" class="text-muted">No games yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

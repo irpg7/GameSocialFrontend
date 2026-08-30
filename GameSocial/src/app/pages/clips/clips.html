@@ -1,0 +1,26 @@
+<div class="clips-page">
+  <div class="clips-header">
+    <h2>Clips</h2>
+    <button type="button" class="chip" [class.active]="followingOnly()" (click)="toggleFollowingOnly()">Following</button>
+  </div>
+
+  <div class="clips-grid">
+    @for (post of filteredPosts(); track post.id) {
+      <app-post-card [post]="post" />
+    }
+  </div>
+
+  @if (isLoadingFeed()) {
+    <p class="text-muted feed-status">Loading clips...</p>
+  } @else if (filteredPosts().length === 0) {
+    <div class="empty-feed">
+      <p class="text-muted">No clips yet.</p>
+    </div>
+  }
+
+  @if (hasMore() && !isLoadingFeed()) {
+    <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+      {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+    </button>
+  }
+</div>

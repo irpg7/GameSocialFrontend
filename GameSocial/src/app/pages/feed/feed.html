@@ -1,0 +1,33 @@
+<div class="feed-page">
+  <aside class="feed-col feed-col-sidebar">
+    <app-feed-sidebar />
+  </aside>
+
+  <div class="feed-col feed-col-center">
+    <app-post-composer [games]="games()" (posted)="onPosted($event)" />
+
+    <div class="posts-list">
+      @for (post of posts(); track post.id) {
+        <app-post-card [post]="post" [mySquads]="mySquads()" />
+      }
+
+      @if (isLoadingFeed()) {
+        <p class="text-muted feed-status">Loading feed...</p>
+      } @else if (posts().length === 0) {
+        <div class="empty-feed">
+          <p class="text-muted">No posts yet. Be the first to share something!</p>
+        </div>
+      }
+
+      @if (hasMore() && !isLoadingFeed()) {
+        <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+          {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <aside class="feed-col feed-col-rail">
+    <app-feed-right-rail />
+  </aside>
+</div>

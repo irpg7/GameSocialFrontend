@@ -1,0 +1,349 @@
+<div class="composer card">
+  <div class="composer-header">
+    <div class="avatar">{{ (authService.currentUser()?.username ?? '?').charAt(0).toUpperCase() }}</div>
+
+    <div class="toggle-group" role="tablist" aria-label="Post type">
+      <button type="button" class="toggle-btn" [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip'" (click)="selectTab('clip')">
+        🎬 Clip
+      </button>
+      <button type="button" class="toggle-btn" [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots'" (click)="selectTab('screenshots')">
+        🖼️ Screenshots
+      </button>
+      <button type="button" class="toggle-btn" [class.active]="isReviewSheetOpen()" (click)="openReviewSheet()">
+        ⭐ Review
+      </button>
+      <button type="button" class="toggle-btn" [class.active]="openSheet() === 'poll'" (click)="openSheetFor('poll')">
+        📊 Poll
+      </button>
+      @if (isDevlogAllowed()) {
+        <button type="button" class="toggle-btn" [class.active]="openSheet() === 'devlog'" (click)="openSheetFor('devlog')">
+          📝 Devlog
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip') {
+    <div class="composer-panel">
+      <div class="panel-row">
+        <div
+          class="dropzone"
+          [class.drag-over]="isDraggingClip()"
+          [class.has-file]="!!previewUrl()"
+          role="button"
+          tabindex="0"
+          aria-label="Drop a clip here or browse for a video file"
+          (click)="triggerClipBrowse()"
+          (keydown.enter)="triggerClipBrowse()"
+          (dragover)="onDragOverClip($event)"
+          (dragleave)="onDragLeaveClip()"
+          (drop)="onDropClip($event)">
+          @if (previewUrl(); as preview) {
+            <video class="dropzone-preview" [src]="preview" muted></video>
+            <button type="button" class="dropzone-remove" aria-label="Remove video" (click)="clearFile($event)">&times;</button>
+          } @else {
+            <span class="dropzone-icon">▲</span>
+            <span class="dropzone-label">Drop your clip or browse</span>
+            <span class="dropzone-hint">mp4/mov/webm, max 100MB</span>
+          }
+          <input
+            #fileInput
+            class="visually-hidden"
+            id="composer-file"
+            type="file"
+            tabindex="-1"
+            accept="video/mp4,video/quicktime,video/webm"
+            (click)="$event.stopPropagation()"
+            (change)="onFileSelected($event)">
+        </div>
+
+        <div class="panel-fields">
+          <textarea
+            class="field-box"
+            id="composer-caption"
+            rows="2"
+            [ngModel]="caption()"
+            (ngModelChange)="caption.set($event)"
+            [maxlength]="maxCaptionLength"
+            placeholder="Say something about this clip..."
+            aria-label="Caption"></textarea>
+
+          <div class="field-row">
+            <select class="field-box" id="composer-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+              <option [ngValue]="null">— Select a game —</option>
+              @for (game of games(); track game.id) {
+                <option [ngValue]="game.id">{{ game.name }}</option>
+              }
+            </select>
+
+            @if (mySquads().length > 0) {
+              <select class="field-box" id="composer-squad" aria-label="Tag a squad (optional)" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
+                <option [ngValue]="null">＋ Tag squad</option>
+                @for (squad of mySquads(); track squad.id) {
+                  <option [ngValue]="squad.id">{{ squad.name }}</option>
+                }
+              </select>
+            }
+          </div>
+        </div>
+      </div>
+
+      <p class="char-count">{{ caption().length }}/{{ maxCaptionLength }}</p>
+      <p class="xp-hint">Posting a clip is worth <span class="xp-value">+120 XP</span></p>
+    </div>
+  }
+
+  @if (openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots') {
+    <div class="composer-panel">
+      <div
+        class="screenshot-dropzone"
+        [class.drag-over]="isDraggingScreenshots()"
+        (dragover)="onDragOverScreenshots($event)"
+        (dragleave)="onDragLeaveScreenshots()"
+        (drop)="onDropScreenshots($event)">
+        <div class="screenshot-grid">
+          @for (entry of screenshotFiles(); track entry.previewUrl; let i = $index) {
+            <div class="screenshot-thumb">
+              <img [src]="entry.previewUrl" alt="Screenshot preview" />
+              <button type="button" class="screenshot-remove" aria-label="Remove photo" (click)="removeScreenshot(i)">&times;</button>
+            </div>
+          }
+          @if (screenshotFiles().length < maxScreenshots) {
+            <button type="button" class="screenshot-add" aria-label="Add photos" (click)="triggerScreenshotBrowse()">
+              <span class="dropzone-icon">＋</span>
+            </button>
+          }
+        </div>
+        <p class="dropzone-hint">Drop photos here or browse — jpg/png/webp, max 5MB each, up to {{ maxScreenshots }} ({{ screenshotFiles().length }}/{{ maxScreenshots }}).</p>
+        <input
+          #screenshotsInput
+          class="visually-hidden"
+          id="composer-ss-files"
+          type="file"
+          tabindex="-1"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          [disabled]="screenshotFiles().length >= maxScreenshots"
+          (change)="onScreenshotFilesSelected($event)">
+      </div>
+
+      <textarea
+        class="field-box"
+        id="composer-ss-caption"
+        rows="2"
+        [ngModel]="caption()"
+        (ngModelChange)="caption.set($event)"
+        [maxlength]="maxCaptionLength"
+        placeholder="Caption — where is this, any spoilers?"
+        aria-label="Caption"></textarea>
+      <p class="char-count">{{ caption().length }}/{{ maxCaptionLength }}</p>
+
+      <div class="field-row">
+        <select class="field-box" id="composer-ss-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+          <option [ngValue]="null">— Select a game —</option>
+          @for (game of games(); track game.id) {
+            <option [ngValue]="game.id">{{ game.name }}</option>
+          }
+        </select>
+
+        <div class="chip-row screenshot-chip-row" role="radiogroup" aria-label="Photo type">
+          <button type="button" class="chip" [class.active]="photoType() === PostPhotoType.Screenshot" (click)="photoType.set(PostPhotoType.Screenshot)">Screenshot</button>
+          <button type="button" class="chip" [class.active]="photoType() === PostPhotoType.ConceptArt" (click)="photoType.set(PostPhotoType.ConceptArt)">Concept art</button>
+        </div>
+
+        @if (mySquads().length > 0) {
+          <select class="field-box" id="composer-ss-squad" aria-label="Tag a squad (optional)" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
+            <option [ngValue]="null">＋ Tag squad</option>
+            @for (squad of mySquads(); track squad.id) {
+              <option [ngValue]="squad.id">{{ squad.name }}</option>
+            }
+          </select>
+        }
+      </div>
+    </div>
+  }
+
+  @if (errorMessage() && openSheet() === null) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  @if (openSheet() === null && !isReviewSheetOpen()) {
+    <div class="composer-footer">
+      <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
+        {{ isSubmitting() ? 'Posting...' : 'Post' }}
+      </button>
+    </div>
+  }
+</div>
+
+@if (isReviewSheetOpen()) {
+  <app-review-sheet [games]="games()" (closed)="isReviewSheetOpen.set(false)" (posted)="onReviewPosted($event)" />
+}
+
+@if (openSheet() === 'poll') {
+  <app-sheet-modal title="New poll" (closed)="closeSheet()">
+    <div class="form-group">
+      <label for="poll-question">Question</label>
+      <input
+        id="poll-question"
+        type="text"
+        [ngModel]="pollQuestion()"
+        (ngModelChange)="pollQuestion.set($event)"
+        [maxlength]="maxTitleLength"
+        placeholder="Ask your followers something...">
+    </div>
+
+    <div class="form-group">
+      <label>Options ({{ pollOptions().length }}/{{ maxPollOptions }})</label>
+      @for (option of pollOptions(); track $index; let i = $index) {
+        <div class="poll-option-row">
+          <input
+            type="text"
+            [ngModel]="option"
+            (ngModelChange)="updatePollOption(i, $event)"
+            [maxlength]="maxPollOptionLength"
+            [placeholder]="'Option ' + (i + 1)">
+          @if (pollOptions().length > minPollOptions) {
+            <button type="button" class="poll-option-remove" aria-label="Remove option" (click)="removePollOption(i)">&times;</button>
+          }
+        </div>
+      }
+      @if (pollOptions().length < maxPollOptions) {
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addPollOption()">Add option</button>
+      }
+    </div>
+
+    <div class="option-group">
+      <label for="poll-duration">Duration</label>
+      <select id="poll-duration" [ngModel]="pollDuration()" (ngModelChange)="pollDuration.set($event)">
+        <option value="24h">24 hours</option>
+        <option value="3d">3 days</option>
+        <option value="1w">1 week</option>
+      </select>
+    </div>
+
+    <div class="option-group">
+      <label for="poll-game">Game <span class="text-muted">(optional)</span></label>
+      <select id="poll-game" [ngModel]="pollGameId()" (ngModelChange)="pollGameId.set($event)">
+        <option [ngValue]="null">— No game —</option>
+        @for (game of games(); track game.id) {
+          <option [ngValue]="game.id">{{ game.name }}</option>
+        }
+      </select>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" [ngModel]="pollHideResults()" (ngModelChange)="pollHideResults.set($event)">
+      Hide results until you vote
+    </label>
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="composer-footer">
+      <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
+        {{ isSubmitting() ? 'Creating...' : 'Create poll' }}
+      </button>
+    </div>
+  </app-sheet-modal>
+}
+
+@if (openSheet() === 'devlog') {
+  <app-sheet-modal title="New devlog" (closed)="closeSheet()">
+    <div class="chip-row devlog-tag-row">
+      <input
+        class="tag-input"
+        type="text"
+        [ngModel]="buildTag()"
+        (ngModelChange)="buildTag.set($event)"
+        [maxlength]="maxTagLength"
+        aria-label="Build tag"
+        placeholder="BUILD 0.9.5">
+      <input
+        class="tag-input"
+        type="text"
+        [ngModel]="branchTag()"
+        (ngModelChange)="branchTag.set($event)"
+        [maxlength]="maxTagLength"
+        aria-label="Branch tag"
+        placeholder="TEST BRANCH">
+      <select class="tag-input tag-game-select" id="devlog-game" aria-label="Game" [ngModel]="devlogGameId()" (ngModelChange)="devlogGameId.set($event)">
+        <option [ngValue]="null">— No game —</option>
+        @for (game of games(); track game.id) {
+          <option [ngValue]="game.id">{{ game.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="devlog-title">Title</label>
+      <input
+        id="devlog-title"
+        type="text"
+        [ngModel]="devlogTitle()"
+        (ngModelChange)="devlogTitle.set($event)"
+        [maxlength]="maxTitleLength"
+        placeholder="Devlog title">
+    </div>
+
+    <div class="form-group">
+      <label for="devlog-body">Body</label>
+      <textarea
+        id="devlog-body"
+        rows="5"
+        [ngModel]="devlogBody()"
+        (ngModelChange)="devlogBody.set($event)"
+        [maxlength]="maxBodyLength"
+        placeholder="What's new in development?"></textarea>
+      <span class="char-count">{{ devlogBody().length }}/{{ maxBodyLength }}</span>
+    </div>
+
+    <div class="form-group">
+      <label>Patch lines</label>
+      @for (line of patchLines(); track $index; let i = $index) {
+        <div class="patch-line-row">
+          <input
+            type="text"
+            [ngModel]="line.text"
+            (ngModelChange)="updatePatchLineText(i, $event)"
+            placeholder="What changed?">
+          <select [ngModel]="line.status" (ngModelChange)="updatePatchLineStatus(i, $event)">
+            <option [ngValue]="PatchLineStatus.Shipped">Shipped</option>
+            <option [ngValue]="PatchLineStatus.Fixed">Fixed</option>
+            <option [ngValue]="PatchLineStatus.Investigating">Investigating</option>
+          </select>
+          <button type="button" class="poll-option-remove" aria-label="Remove patch line" (click)="removePatchLine(i)">&times;</button>
+        </div>
+      }
+      <button type="button" class="btn btn-secondary btn-sm" (click)="addPatchLine()">Add patch line</button>
+    </div>
+
+    <div class="form-group composer-media">
+      <label for="devlog-file">Attach image <span class="text-muted">(optional)</span></label>
+      <input
+        #devlogFileInput
+        id="devlog-file"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        (change)="onDevlogFileSelected($event)">
+
+      @if (devlogPreviewUrl(); as preview) {
+        <div class="composer-preview">
+          <img [src]="preview" alt="Selected media preview">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="clearDevlogFile()">Remove</button>
+        </div>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="composer-footer">
+      <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
+        {{ isSubmitting() ? 'Publishing...' : 'Publish devlog' }}
+      </button>
+    </div>
+  </app-sheet-modal>
+}

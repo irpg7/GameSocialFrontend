@@ -1,1 +1,140 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'styles/variables' as *;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: $color-bg-primary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-secondary;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  line-height: 1.2;
+}
+
+/* Links */
+a {
+  color: $color-accent-primary;
+  text-decoration: none;
+  transition: color $transition-speed-fast;
+
+  &:hover {
+    color: $color-accent-secondary;
+  }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-md;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+  border: none;
+  outline: none;
+
+  &-primary {
+    background-color: $color-accent-primary;
+    color: #fff;
+
+    &:hover {
+      background-color: $color-accent-secondary;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px $color-accent-glow;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &-secondary {
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+    border: 1px solid $color-border;
+
+    &:hover {
+      background-color: color-mix(in srgb, $color-bg-tertiary 90%, white);
+      border-color: $color-text-secondary;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: $spacing-md;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-xs;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $color-text-secondary;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-md;
+    border: 1px solid $color-border;
+    background-color: $color-bg-secondary;
+    color: $color-text-primary;
+    font-family: $font-family-primary;
+    font-size: 1rem;
+    transition: border-color $transition-speed-fast, box-shadow $transition-speed-fast;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+      box-shadow: 0 0 0 3px $color-accent-glow;
+    }
+  }
+}
+
+/* Cards */
+.card {
+  background-color: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-border;
+  padding: $spacing-lg;
+}
+
+/* Utilities */
+.text-accent { color: $color-accent-primary; }
+.text-muted   { color: $color-text-secondary; }
+.mt-md { margin-top: $spacing-md; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }

@@ -1,0 +1,151 @@
+<div class="trophies-page">
+  <div class="trophies-main">
+    <div class="trophies-header">
+      <div>
+        <h2>Trophies</h2>
+        <p class="text-muted">{{ earnedCount() }} earned · {{ inProgressList().length }} in progress</p>
+      </div>
+      <button type="button" class="btn btn-secondary" (click)="toggleEditMode()">
+        {{ editMode() ? 'Done editing' : 'Edit showcase' }}
+      </button>
+    </div>
+
+    <div class="filter-row">
+      <button type="button" class="chip" [class.active]="gameFilter() === 'all'" (click)="setGameFilter('all')">All games</button>
+      @for (game of games(); track game.id) {
+        <button type="button" class="chip" [class.active]="gameFilter() === game.id" (click)="setGameFilter(game.id)">{{ game.name }}</button>
+      }
+      <button type="button" class="chip sort-chip" [class.active]="sortMode() === 'rarest'" (click)="toggleSort()">Rarest first</button>
+    </div>
+
+    @if (isLoading()) {
+      <p class="text-muted">Loading trophies...</p>
+    } @else {
+      <section class="trophy-section">
+        <h3>Showcase</h3>
+        @if (showcased().length > 0) {
+          <div class="showcase-grid">
+            @for (achievement of showcased(); track achievement.id) {
+              <div class="trophy-card showcase-card" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
+                <span class="trophy-icon">{{ achievement.icon }}</span>
+                <span class="trophy-name">{{ achievement.name }}</span>
+                <span class="text-muted trophy-desc">{{ achievement.description }}</span>
+                <span class="trophy-rarity">{{ achievement.rarityPercent }}% of players</span>
+                @if (editMode()) {
+                  <span class="trophy-unpin">Unpin</span>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-muted trophy-empty">No achievements showcased yet — earn one and pin it here.</p>
+        }
+      </section>
+
+      <section class="trophy-section">
+        <h3>In progress</h3>
+        @if (inProgressList().length > 0) {
+          <div class="progress-list">
+            @for (achievement of inProgressList(); track achievement.id) {
+              <div class="trophy-card progress-card">
+                <span class="trophy-icon">{{ achievement.icon }}</span>
+                <div class="progress-card-body">
+                  <div class="progress-card-header">
+                    <span class="trophy-name">{{ achievement.name }}</span>
+                    <span class="text-muted">{{ progressPercent(achievement) }}%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-bar-fill" [style.width.%]="progressPercent(achievement)"></div>
+                  </div>
+                  <span class="text-muted trophy-to-go">{{ progressToGo(achievement) }} to go</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-muted trophy-empty">No achievements in progress yet.</p>
+        }
+      </section>
+
+      <section class="trophy-section">
+        <h3>Recently earned</h3>
+        @if (recentlyEarned().length > 0) {
+          <div class="showcase-grid">
+            @for (achievement of recentlyEarned(); track achievement.id) {
+              <div class="trophy-card" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
+                <span class="trophy-icon">{{ achievement.icon }}</span>
+                <span class="trophy-name">{{ achievement.name }}</span>
+                <span class="text-muted trophy-desc">{{ achievement.description }}</span>
+                <span class="trophy-rarity">{{ achievement.rarityPercent }}% of players</span>
+                @if (editMode()) {
+                  <span class="trophy-unpin">{{ achievement.showcaseSlot != null ? 'Unpin' : 'Pin to showcase' }}</span>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-muted trophy-empty">No trophies earned yet.</p>
+        }
+      </section>
+    }
+  </div>
+
+  <aside class="trophies-rail">
+    <div class="panel-card profile-card">
+      <div class="profile-avatar">{{ (authService.currentUser()?.username ?? '?').charAt(0).toUpperCase() }}</div>
+      <span class="profile-username">{{ authService.currentUser()?.username }}</span>
+      @if (meService.me(); as me) {
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <span class="profile-stat-value">{{ me.level }}</span>
+            <span class="profile-stat-label">Level</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat-value">{{ earnedCount() }}</span>
+            <span class="profile-stat-label">Trophies</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat-value">{{ me.currentStreakDays }}</span>
+            <span class="profile-stat-label">Streak</span>
+          </div>
+        </div>
+        <p class="text-muted profile-xp-hint">{{ me.xpToNextLevel }} XP to level {{ me.level + 1 }}</p>
+      }
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <h4>Squad leaderboard</h4>
+      </div>
+      @if (mySquad(); as squad) {
+        <p class="text-muted squad-leaderboard-caption">{{ squad.name }} · all-time XP</p>
+        <ol class="leaderboard-list">
+          @for (entry of leaderboard(); track entry.userId; let i = $index) {
+            <li class="leaderboard-row" [class.self]="isCurrentUser(entry.userId)">
+              <span class="leaderboard-rank">{{ i + 1 }}</span>
+              <span class="leaderboard-name">{{ entry.username }}</span>
+              <span class="text-muted">{{ entry.xp }} XP</span>
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="text-muted">Join a squad to see a leaderboard here.</p>
+        <a routerLink="/squads" class="btn btn-secondary btn-sm">Find a squad</a>
+      }
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <h4>Where XP comes from</h4>
+      </div>
+      <ul class="xp-source-list">
+        @for (award of xpAwards; track award.label) {
+          <li>
+            <span>{{ award.label }}</span>
+            <span class="xp-source-amount">+{{ award.amount }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,47 @@
+<div class="feed-right-rail">
+  @if (meService.me(); as me) {
+    <div class="panel-card xp-card">
+      <div class="xp-card-header">
+        <span class="xp-card-level">Level {{ me.level }}</span>
+        <span class="xp-card-total">{{ me.xp }} XP</span>
+      </div>
+      <div class="xp-card-bar">
+        <div class="xp-card-bar-fill" [style.width.%]="me.xpProgressPercent"></div>
+      </div>
+      <p class="xp-card-hint">{{ me.xpToNextLevel }} XP to level {{ me.level + 1 }} — post, review, or get a useful vote to earn more.</p>
+    </div>
+  }
+
+  <div class="panel-card activity-card">
+    <div class="panel-card-header">
+      <h4>Squad activity</h4>
+    </div>
+
+    @if (isLoadingActivity()) {
+      <p class="text-muted activity-empty">Loading...</p>
+    } @else if (activityItems().length > 0) {
+      <ul class="activity-list">
+        @for (item of activityItems(); track item.squadId + '-' + item.createdAt + '-' + item.username) {
+          <li>
+            <a [routerLink]="['/squads', item.squadId]" class="activity-row">
+              <span class="activity-squad">{{ item.squadName }}</span>
+              <span class="activity-text">
+                <strong>{{ item.username }}</strong>
+                @if (item.body) {
+                  {{ item.body }}
+                } @else if (item.sharedPostType) {
+                  shared a {{ item.sharedPostType }}
+                } @else {
+                  sent a message
+                }
+              </span>
+              <span class="activity-time">{{ item.createdAt | date: 'short' }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="text-muted activity-empty">No squad activity yet — join or create a squad to see it here.</p>
+    }
+  </div>
+</div>

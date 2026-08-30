@@ -1,0 +1,79 @@
+@use '../../../styles/variables' as *;
+
+.backoffice-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.backoffice-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: $color-bg-secondary;
+  border-right: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-xl $spacing-md;
+  gap: $spacing-xl;
+}
+
+.backoffice-brand {
+  font-family: $font-family-secondary;
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  .backoffice-label {
+    display: block;
+    font-size: 0.7rem;
+    color: $color-text-secondary;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+}
+
+.backoffice-nav {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  flex-grow: 1;
+
+  .backoffice-nav-link {
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-md;
+    color: $color-text-secondary;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all $transition-speed-fast;
+
+    &:hover {
+      color: $color-text-primary;
+      background-color: $color-bg-tertiary;
+    }
+
+    &.active {
+      color: $color-accent-primary;
+      background-color: rgba($color-accent-primary, 0.1);
+    }
+  }
+}
+
+.backoffice-back-link {
+  font-size: 0.85rem;
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-accent-primary;
+  }
+}
+
+.backoffice-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: $spacing-xl $spacing-2xl;
+}

@@ -1,0 +1,245 @@
+<div class="post-card card">
+  <div class="post-header">
+    <div class="avatar">{{ post().username.charAt(0).toUpperCase() }}</div>
+    <div class="post-meta">
+      <span class="author">{{ post().username }}</span>
+      <div class="post-tags">
+        <span class="tag tag-type">{{ post().postType }}</span>
+        @if (post().gameName) {
+          <span class="tag tag-game">{{ post().gameName }}</span>
+        }
+        @if (squadName(); as name) {
+          <a [routerLink]="['/squads', post().squadId]" class="tag tag-squad">Posted to {{ name }}</a>
+        }
+      </div>
+      <span class="date">{{ post().createdAt | date: 'medium' }}</span>
+    </div>
+  </div>
+
+  @if (post().devlog?.title) {
+    <div class="post-devlog-title">
+      <h3>{{ post().devlog!.title }}</h3>
+    </div>
+  }
+
+  @if (post().postType === 'Poll') {
+    @if (post().caption) {
+      <div class="post-poll-question">
+        <h3>{{ post().caption }}</h3>
+      </div>
+    }
+  } @else if (post().postType === 'Review') {
+    @if (post().caption) {
+      <div class="post-review-headline">
+        <h3>{{ post().caption }}</h3>
+      </div>
+    }
+  } @else if (post().caption) {
+    <div class="post-content">
+      <p>{{ post().caption }}</p>
+    </div>
+  }
+
+  @if (post().devlog?.body) {
+    <div class="post-devlog-body">
+      <p>{{ post().devlog!.body }}</p>
+    </div>
+  }
+
+  @if (post().devlog; as devlog) {
+    @if (devlog.buildTag || devlog.branchTag) {
+      <div class="devlog-build-tags">
+        @if (devlog.buildTag) {
+          <span class="tag tag-build">Build {{ devlog.buildTag }}</span>
+        }
+        @if (devlog.branchTag) {
+          <span class="tag tag-branch">{{ devlog.branchTag }}</span>
+        }
+      </div>
+    }
+
+    @if (devlog.patchLines.length > 0) {
+      <ul class="patch-lines">
+        @for (line of devlog.patchLines; track line.id) {
+          <li class="patch-line">
+            @switch (line.status) {
+              @case ('Shipped') {
+                <span class="patch-icon patch-shipped" title="Shipped">✓</span>
+              }
+              @case ('Fixed') {
+                <span class="patch-icon patch-fixed" title="Fixed">✓</span>
+              }
+              @case ('Investigating') {
+                <span class="patch-icon patch-investigating" title="Investigating">◷</span>
+              }
+            }
+            <span>{{ line.text }}</span>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  @if (post().review; as review) {
+    <div class="post-review">
+      <app-star-rating [score]="review.score" />
+      <span class="review-score">{{ review.score }}/10</span>
+      @switch (review.playStatus) {
+        @case ('Finished') {
+          <span class="badge status-finished">Finished</span>
+        }
+        @case ('StillPlaying') {
+          <span class="badge status-playing">Still playing</span>
+        }
+        @case ('Dropped') {
+          <span class="badge status-dropped">Dropped</span>
+        }
+      }
+      <span class="text-muted">{{ review.hoursPlayed }}h played</span>
+      @if (review.spoilerFree) {
+        <span class="badge status-spoiler-free">Spoiler-free</span>
+      }
+    </div>
+
+    @if (review.body) {
+      <div class="post-review-body">
+        <p>{{ review.body }}</p>
+      </div>
+    }
+  }
+
+  @if (post().postType === 'Screenshots' && post().media.length > 0) {
+    <div class="post-screenshot-grid">
+      @for (media of visibleScreenshots(); track media.id; let i = $index; let last = $last) {
+        <div class="post-screenshot-tile">
+          <img [src]="media.url" [alt]="post().caption || 'Screenshot'" />
+          @if (last && hiddenScreenshotCount() > 0) {
+            <div class="post-screenshot-more">+{{ hiddenScreenshotCount() }}</div>
+          }
+        </div>
+      }
+    </div>
+  } @else if (post().media.length > 0) {
+    <div class="post-media">
+      @for (media of post().media; track media.id) {
+        @if (media.mediaType === 'Photo') {
+          <img [src]="media.url" [alt]="post().caption || 'Post media'" />
+        } @else if (media.mediaType === 'Video') {
+          <video [src]="media.url" controls></video>
+        }
+      }
+    </div>
+  }
+
+  @if (poll(); as pollState) {
+    <div class="post-poll">
+      @for (option of pollState.options; track option.id) {
+        <button
+          type="button"
+          class="poll-option"
+          [class.selected]="pollState.currentUserOptionId === option.id"
+          [disabled]="isVotingPoll() || pollState.hasCurrentUserVoted || pollState.isExpired"
+          (click)="votePoll(option.id)">
+          <span class="poll-option-text">{{ option.text }}</span>
+          @if (showPollResults()) {
+            <span class="poll-option-bar">
+              <span class="poll-option-bar-fill" [style.width.%]="pollOptionPercent(option.voteCount)"></span>
+            </span>
+            <span class="poll-option-count">{{ option.voteCount ?? 0 }} ({{ pollOptionPercent(option.voteCount) }}%)</span>
+          }
+        </button>
+      }
+      <p class="text-muted poll-footer">
+        {{ pollState.totalVotes }} vote{{ pollState.totalVotes === 1 ? '' : 's' }}
+        @if (pollState.isExpired) {
+          · Poll closed
+        } @else {
+          · Ends {{ pollState.expiresAt | date: 'medium' }}
+        }
+      </p>
+    </div>
+  }
+
+  <div class="post-interactions">
+    <button
+      type="button"
+      class="interaction-btn"
+      [class.active]="liked()"
+      [disabled]="isTogglingLike()"
+      [attr.aria-label]="(isUseful() ? 'Useful' : 'Like') + ' · ' + likeCount()"
+      (click)="toggleLike()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="liked() ? 'currentColor' : 'none'"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+      </svg>
+      {{ isUseful() ? (liked() ? 'Useful' : 'Mark useful') : (liked() ? 'Liked' : 'Like') }} · {{ likeCount() }}
+    </button>
+    <button type="button" class="interaction-btn" [class.active]="isCommentsOpen()" (click)="toggleComments()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+      Comment · {{ commentCount() }}
+    </button>
+    <!-- Share is out of scope — backend has no share/repost feature yet. -->
+    <button type="button" class="interaction-btn" disabled title="Share — coming soon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+        <polyline points="16 6 12 2 8 6" />
+        <line x1="12" x2="12" y1="2" y2="15" />
+      </svg>
+      Share
+    </button>
+  </div>
+
+  @if (isCommentsOpen()) {
+    <div class="post-comments">
+      @if (isLoadingComments() && comments().length === 0) {
+        <p class="text-muted comments-status">Loading comments...</p>
+      }
+
+      @for (comment of comments(); track comment.id) {
+        <div class="comment">
+          <div class="comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</div>
+          <div class="comment-body">
+            <div class="comment-meta">
+              <span class="comment-author">{{ comment.username }}</span>
+              <span class="comment-date">{{ comment.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <p>{{ comment.body }}</p>
+          </div>
+          @if (isOwnComment(comment)) {
+            <button type="button" class="comment-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
+          }
+        </div>
+      }
+
+      @if (comments().length === 0 && !isLoadingComments()) {
+        <p class="text-muted comments-status">No comments yet. Be the first to comment.</p>
+      }
+
+      @if (hasMoreComments()) {
+        <button type="button" class="btn btn-secondary btn-sm" [disabled]="isLoadingComments()" (click)="loadMoreComments()">
+          {{ isLoadingComments() ? 'Loading...' : 'Load more comments' }}
+        </button>
+      }
+
+      <div class="comment-form">
+        <textarea
+          rows="2"
+          [ngModel]="newCommentBody()"
+          (ngModelChange)="newCommentBody.set($event)"
+          placeholder="Write a comment..."></textarea>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          [disabled]="!newCommentBody().trim() || isSubmittingComment()"
+          (click)="submitComment()">
+          {{ isSubmittingComment() ? 'Posting...' : 'Comment' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

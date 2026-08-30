@@ -1,0 +1,120 @@
+@use 'variables' as *;
+
+// Shared form primitives used by PostComposer's Poll/Devlog sheets AND the
+// standalone ReviewSheet component (Phase 3 extracted Review out of
+// PostComposer so the Reviews page can reuse it — Angular's per-component
+// style encapsulation means each still needs its own copy of these rules,
+// hence a shared partial rather than duplicated CSS or relying on a
+// `.composer` ancestor class that doesn't exist outside the composer's own
+// inline panel).
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  select {
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-md;
+    border: 1px solid $color-border;
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+    }
+  }
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.form-error {
+  margin-top: $spacing-sm;
+  font-size: 0.9rem;
+  color: $color-accent-primary;
+}
+
+.composer-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.chip {
+  border: 1px solid $color-border;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $border-radius-full;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.15);
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+
+  &:hover:not(.active) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+}
+
+.score-preview {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: 0.9rem;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  cursor: pointer;
+
+  input {
+    width: auto;
+  }
+}

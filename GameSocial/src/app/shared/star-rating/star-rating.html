@@ -1,0 +1,6 @@
+@for (star of stars(); track $index) {
+  <svg class="star" [class.star-full]="star === 'full'" [class.star-half]="star === 'half'" [class.star-empty]="star === 'empty'"
+    xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <polygon points="12 2 15.09 8.63 22 9.24 17 14.14 18.18 21 12 17.77 5.82 21 7 14.14 2 9.24 8.91 8.63 12 2"/>
+  </svg>
+}

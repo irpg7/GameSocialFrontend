@@ -1,0 +1,37 @@
+<div class="auth-container">
+  <div class="auth-card card">
+    <div class="auth-header">
+      <h2><span class="text-accent">Game</span>Social</h2>
+      <p class="text-muted">Welcome back, gamer.</p>
+    </div>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" placeholder="Enter your email">
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          <span class="field-error">Enter a valid email address.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" placeholder="Enter your password">
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <span class="field-error">Password is required.</span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p class="text-muted">Don't have an account? <a routerLink="/register">Register here</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+@use '../../../styles/variables' as *;
+@use '../admin-shared' as *;
+
+.inline-form-row {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  .form-group {
+    margin-bottom: 0;
+    min-width: 180px;
+  }
+}
+
+.toggle-group {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  color: $color-text-secondary;
+  padding: $spacing-xs $spacing-md;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+  font-family: $font-family-primary;
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.15);
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+
+  &:hover:not(.active) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+}

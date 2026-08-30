@@ -1,0 +1,24 @@
+<div class="backoffice-wrapper">
+  <aside class="backoffice-sidebar">
+    <div class="backoffice-brand">
+      <span class="text-accent">Game</span>Social
+      <span class="backoffice-label">Backoffice</span>
+    </div>
+
+    <nav class="backoffice-nav">
+      @for (section of sections; track section.path) {
+        @if (authService.permissions().includes(section.permission)) {
+          <a [routerLink]="'/backoffice/' + section.path" routerLinkActive="active" class="backoffice-nav-link">
+            {{ section.label }}
+          </a>
+        }
+      }
+    </nav>
+
+    <a routerLink="/feed" class="backoffice-back-link">&larr; Back to app</a>
+  </aside>
+
+  <div class="backoffice-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+// GameSocial Parametric Theme
+// All design tokens are defined here.
+// Changing a value cascades through the entire application.
+
+// ─── Color Palette ───────────────────────────────────────────────────────────
+// Lighter, "elevated" dark-theme grays instead of near-black — same red/black
+// identity, just less crushed-blacks and more depth between surfaces.
+$color-bg-primary:   #131316;
+$color-bg-secondary: #1c1c22;
+$color-bg-tertiary:  #26262e;
+
+$color-text-primary:   #f8f8f2;
+$color-text-secondary: #a1a1aa;
+
+$color-accent-primary:   #e50914;
+$color-accent-secondary: #b8070e;
+$color-accent-glow:      rgba(229, 9, 20, 0.4);
+
+$color-border: #323139;
+
+// ─── Typography ──────────────────────────────────────────────────────────────
+$font-family-primary:   'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$font-family-secondary: 'Outfit', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+// ─── Spacing ─────────────────────────────────────────────────────────────────
+$spacing-xs:  0.25rem;
+$spacing-sm:  0.5rem;
+$spacing-md:  1rem;
+$spacing-lg:  1.5rem;
+$spacing-xl:  2rem;
+$spacing-2xl: 3rem;
+
+// ─── Border Radius ───────────────────────────────────────────────────────────
+$border-radius-sm:   4px;
+$border-radius-md:   8px;
+$border-radius-lg:   12px;
+$border-radius-xl:   16px;
+$border-radius-full: 9999px;
+
+// ─── Transitions ─────────────────────────────────────────────────────────────
+$transition-speed-fast:   0.15s ease-in-out;
+$transition-speed-normal: 0.3s ease-in-out;

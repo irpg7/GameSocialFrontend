@@ -1,0 +1,117 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/form-controls';
+
+.squads-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.squads-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  p {
+    max-width: 52ch;
+  }
+}
+
+.hint {
+  font-size: 0.78rem;
+  margin-top: $spacing-xs;
+}
+
+.starter-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.removable-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  cursor: default;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+}
+
+.add-channel-row {
+  display: flex;
+  gap: $spacing-sm;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-md;
+    border: 1px solid $color-border;
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+    font-family: $font-family-primary;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+    }
+  }
+}
+
+.squads-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-md;
+}
+
+.squad-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  text-align: center;
+  transition: border-color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+  }
+}
+
+.squad-tile-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.squad-tile-name {
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.squad-tile-meta {
+  font-size: 0.8rem;
+  color: $color-text-secondary;
+}
+
+.squads-empty {
+  text-align: center;
+}

@@ -1,0 +1,49 @@
+<div class="admin-page">
+  <h1>Users</h1>
+  <p class="text-muted mb-lg">Grant or revoke backoffice permissions.</p>
+
+  @if (isLoading()) {
+    <p class="text-muted">Loading users...</p>
+  } @else {
+    <div class="table-wrapper card">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Developer</th>
+            @for (permission of permissionKeys; track permission) {
+              <th>{{ permission }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr [class.current-user-row]="isCurrentUser(user)">
+              <td>{{ user.username }}</td>
+              <td class="text-muted">{{ user.email }}</td>
+              <td>{{ user.isDeveloper ? 'Yes' : 'No' }}</td>
+              @for (permission of permissionKeys; track permission) {
+                <td>
+                  <input
+                    type="checkbox"
+                    [checked]="hasPermission(user, permission)"
+                    [disabled]="isCurrentUser(user) || isPending(user, permission)"
+                    [attr.aria-label]="permission + ' for ' + user.username"
+                    [attr.title]="isCurrentUser(user) ? 'You cannot change your own permissions' : null"
+                    (change)="togglePermission(user, permission)">
+                </td>
+              }
+            </tr>
+          }
+
+          @if (users().length === 0) {
+            <tr>
+              <td [attr.colspan]="3 + permissionKeys.length" class="text-muted">No users found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

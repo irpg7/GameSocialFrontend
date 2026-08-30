@@ -1,0 +1,268 @@
+@use '../../../../styles/variables' as *;
+
+.feed-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  position: sticky;
+  top: 0;
+}
+
+.panel-card {
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+}
+
+.panel-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+
+  h4 {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+}
+
+// ─── Follow card ─────────────────────────────────────────────
+.follow-tabs {
+  display: flex;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  background-color: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  padding: 3px;
+}
+
+.follow-tab {
+  flex: 1;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &.active {
+    background-color: $color-accent-primary;
+    color: #fff;
+  }
+}
+
+.follow-filter {
+  width: 100%;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+  border: 1px solid $color-border;
+  background-color: $color-bg-primary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 0.85rem;
+  margin-bottom: $spacing-md;
+
+  &:focus {
+    outline: none;
+    border-color: $color-accent-primary;
+  }
+}
+
+.follow-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.follow-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-xs;
+  border-radius: $border-radius-md;
+
+  &:hover {
+    background-color: $color-bg-tertiary;
+  }
+}
+
+.follow-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: $border-radius-sm;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.follow-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dev-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #818cf8;
+  background-color: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: $border-radius-full;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+
+.follow-toggle {
+  flex-shrink: 0;
+  border: 1px solid $color-border;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 3px $spacing-sm;
+  border-radius: $border-radius-full;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+
+  &.following {
+    background-color: rgba($color-accent-primary, 0.12);
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.follow-empty {
+  font-size: 0.82rem;
+}
+
+// ─── Squads card ─────────────────────────────────────────────
+.squads-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.squad-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs;
+  border-radius: $border-radius-md;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-bg-tertiary;
+  }
+}
+
+.squad-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.squad-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.squad-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.squad-meta {
+  font-size: 0.72rem;
+  color: $color-text-secondary;
+}
+
+.squads-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $color-border;
+}
+
+.squads-action-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+// ─── Streak card ─────────────────────────────────────────────
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  background: linear-gradient(135deg, rgba($color-accent-primary, 0.14), rgba($color-accent-primary, 0.04));
+  border-color: rgba($color-accent-primary, 0.3);
+}
+
+.streak-flame {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.streak-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.streak-days {
+  font-weight: 700;
+  color: $color-text-primary;
+  font-size: 0.92rem;
+}
+
+.streak-hint {
+  font-size: 0.78rem;
+  color: $color-text-secondary;
+}

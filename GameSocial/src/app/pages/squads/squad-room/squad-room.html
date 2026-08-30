@@ -1,0 +1,279 @@
+@if (isLoading()) {
+  <p class="text-muted">Loading squad...</p>
+} @else if (notFound()) {
+  <div class="card squad-room-empty">
+    <p class="text-muted">Squad not found, or you don't have access to it.</p>
+    <a routerLink="/squads" class="btn btn-secondary mt-md">Back to squads</a>
+  </div>
+} @else if (squad(); as squad) {
+  <div class="squad-room-page">
+    <div class="squad-room-banner card">
+      <span class="squad-room-icon">{{ squad.name.charAt(0).toUpperCase() }}</span>
+      <div class="squad-room-info">
+        <h2>{{ squad.name }}</h2>
+        @if (squad.description) {
+          <p class="text-muted squad-room-description">{{ squad.description }}</p>
+        }
+        <span class="text-muted">{{ squad.memberCount }} member{{ squad.memberCount === 1 ? '' : 's' }}</span>
+      </div>
+      <div class="squad-room-actions">
+        @if (isCaptain()) {
+          <button type="button" class="btn btn-secondary btn-sm" (click)="toggleAddMemberForm()">Add member</button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="toggleAddChannelForm()">Add channel</button>
+        }
+        <a routerLink="/feed" class="btn btn-secondary btn-sm">Back to feed</a>
+      </div>
+    </div>
+
+    @if (showAddMemberForm()) {
+      <div class="card inline-form">
+        <label for="add-member-username">Add member by username</label>
+        <div class="inline-form-row">
+          <input
+            id="add-member-username"
+            type="text"
+            [ngModel]="newMemberUsername()"
+            (ngModelChange)="newMemberUsername.set($event)"
+            placeholder="username"
+            (keydown.enter)="$event.preventDefault(); addMember()">
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="isAddingMember()" (click)="addMember()">
+            {{ isAddingMember() ? 'Adding...' : 'Add' }}
+          </button>
+        </div>
+        @if (addMemberError()) {
+          <p class="form-error">{{ addMemberError() }}</p>
+        }
+      </div>
+    }
+
+    @if (showAddChannelForm()) {
+      <div class="card inline-form">
+        <label for="add-channel-name">Add a channel</label>
+        <div class="inline-form-row">
+          <input
+            id="add-channel-name"
+            type="text"
+            [ngModel]="newChannelName()"
+            (ngModelChange)="newChannelName.set($event)"
+            placeholder="channel-name"
+            (keydown.enter)="$event.preventDefault(); addChannel()">
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="isAddingChannel()" (click)="addChannel()">
+            {{ isAddingChannel() ? 'Adding...' : 'Add' }}
+          </button>
+        </div>
+        @if (addChannelError()) {
+          <p class="form-error">{{ addChannelError() }}</p>
+        }
+      </div>
+    }
+
+    <div class="squad-room-body">
+      <aside class="squad-room-nav">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h4>Channels</h4>
+          </div>
+          <ul class="channel-list">
+            @for (channel of squad.channels; track channel.id) {
+              <li>
+                <button type="button" class="channel-row" [class.active]="channel.id === activeChannelId()" (click)="selectChannel(channel.id)">
+                  #{{ channel.name }}
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h4>Your squads</h4>
+          </div>
+          <ul class="my-squads-list">
+            @for (mine of mySquads(); track mine.id) {
+              <li>
+                <a [routerLink]="['/squads', mine.id]" class="my-squad-row" [class.active]="mine.id === squad.id">{{ mine.name }}</a>
+              </li>
+            }
+          </ul>
+        </div>
+      </aside>
+
+      <div class="squad-room-main">
+        <div class="tab-row" role="tablist">
+          <button type="button" class="tab-btn" [class.active]="activeTab() === 'chat'" (click)="selectTab('chat')">Chat</button>
+          <button type="button" class="tab-btn" [class.active]="activeTab() === 'clips'" (click)="selectTab('clips')">Clips</button>
+          <button type="button" class="tab-btn" [class.active]="activeTab() === 'screens'" (click)="selectTab('screens')">Screens</button>
+          <button type="button" class="tab-btn" [class.active]="activeTab() === 'pinned'" (click)="selectTab('pinned')">Pinned</button>
+        </div>
+
+        @if (activeTab() === 'chat') {
+          <div class="chat-panel card">
+            @if (activeChannel(); as channel) {
+              <p class="chat-channel-label text-muted">#{{ channel.name }}</p>
+            }
+
+            <div class="message-list">
+              @if (isLoadingMessages() && messages().length === 0) {
+                <p class="text-muted">Loading messages...</p>
+              } @else if (messages().length === 0) {
+                <p class="text-muted">No messages yet — say something!</p>
+              }
+
+              @for (message of messages(); track message.id) {
+                <div class="message-row">
+                  <div class="message-avatar">{{ message.username.charAt(0).toUpperCase() }}</div>
+                  <div class="message-body">
+                    <div class="message-meta">
+                      <span class="message-author">{{ message.username }}</span>
+                      <span class="message-date">{{ message.createdAt | date: 'short' }}</span>
+                    </div>
+                    @if (message.body) {
+                      <p>{{ message.body }}</p>
+                    } @else if (message.sharedPost; as sharedPost) {
+                      <div class="shared-post-preview">
+                        @if (sharedPost.thumbnailUrl) {
+                          <img [src]="sharedPost.thumbnailUrl" alt="" />
+                        }
+                        <div class="shared-post-info">
+                          <span class="shared-post-type">Shared a {{ sharedPost.postType }}</span>
+                          @if (sharedPost.gameName) {
+                            <span class="text-muted">{{ sharedPost.gameName }}</span>
+                          }
+                          @if (sharedPost.caption) {
+                            <span class="text-muted">{{ sharedPost.caption }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  <button type="button" class="pin-btn" [class.pinned]="message.isPinned" (click)="togglePin(message)" [attr.aria-label]="message.isPinned ? 'Unpin message' : 'Pin message'">
+                    📌
+                  </button>
+                </div>
+              }
+            </div>
+
+            @if (hasMoreMessages()) {
+              <button type="button" class="btn btn-secondary btn-sm load-more-messages" [disabled]="isLoadingMessages()" (click)="loadMoreMessages()">
+                {{ isLoadingMessages() ? 'Loading...' : 'Load more' }}
+              </button>
+            }
+
+            @if (isMember()) {
+              <div class="send-box">
+                <textarea
+                  rows="2"
+                  [ngModel]="newMessageBody()"
+                  (ngModelChange)="newMessageBody.set($event)"
+                  placeholder="Message #{{ activeChannel()?.name }}"></textarea>
+                <button type="button" class="btn btn-primary btn-sm" [disabled]="!newMessageBody().trim() || isSendingMessage()" (click)="sendMessage()">
+                  {{ isSendingMessage() ? 'Sending...' : 'Send' }}
+                </button>
+              </div>
+            } @else {
+              <p class="text-muted not-member-notice">You're not a member of this squad, so you can't post here.</p>
+            }
+          </div>
+        }
+
+        @if (activeTab() === 'clips') {
+          <div class="posts-tab">
+            @if (isLoadingClips()) {
+              <p class="text-muted">Loading clips...</p>
+            } @else if (clipPosts().length === 0) {
+              <p class="text-muted">No clips posted to this squad yet.</p>
+            } @else {
+              @for (post of clipPosts(); track post.id) {
+                <app-post-card [post]="post" />
+              }
+            }
+          </div>
+        }
+
+        @if (activeTab() === 'screens') {
+          <div class="posts-tab">
+            @if (isLoadingScreens()) {
+              <p class="text-muted">Loading screenshots...</p>
+            } @else if (screenPosts().length === 0) {
+              <p class="text-muted">No screenshots posted to this squad yet.</p>
+            } @else {
+              @for (post of screenPosts(); track post.id) {
+                <app-post-card [post]="post" />
+              }
+            }
+          </div>
+        }
+
+        @if (activeTab() === 'pinned') {
+          <div class="chat-panel card">
+            @if (isLoadingPinned()) {
+              <p class="text-muted">Loading pinned messages...</p>
+            } @else if (pinnedMessages().length === 0) {
+              <p class="text-muted">No pinned messages yet.</p>
+            } @else {
+              <div class="message-list">
+                @for (message of pinnedMessages(); track message.id) {
+                  <div class="message-row">
+                    <div class="message-avatar">{{ message.username.charAt(0).toUpperCase() }}</div>
+                    <div class="message-body">
+                      <div class="message-meta">
+                        <span class="message-author">{{ message.username }}</span>
+                        <span class="tag tag-channel">#{{ message.channelName }}</span>
+                        <span class="message-date">{{ message.createdAt | date: 'short' }}</span>
+                      </div>
+                      @if (message.body) {
+                        <p>{{ message.body }}</p>
+                      } @else if (message.sharedPost; as sharedPost) {
+                        <div class="shared-post-preview">
+                          @if (sharedPost.thumbnailUrl) {
+                            <img [src]="sharedPost.thumbnailUrl" alt="" />
+                          }
+                          <div class="shared-post-info">
+                            <span class="shared-post-type">Shared a {{ sharedPost.postType }}</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    <button type="button" class="pin-btn pinned" (click)="togglePin(message)" aria-label="Unpin message">📌</button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <aside class="squad-room-rail">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h4>Roster</h4>
+          </div>
+          <ul class="roster-list">
+            @for (member of members(); track member.userId) {
+              <li class="roster-row" [class.self]="isCurrentUser(member.userId)">
+                <span class="roster-name">{{ member.username }}</span>
+                <span class="badge" [class.badge-captain]="member.role === 'Captain'">{{ member.role }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h4>Leaderboard</h4>
+          </div>
+          <p class="text-muted leaderboard-caption">All-time XP</p>
+          <ol class="leaderboard-list">
+            @for (entry of leaderboard(); track entry.userId; let i = $index) {
+              <li class="leaderboard-row" [class.self]="isCurrentUser(entry.userId)">
+                <span class="leaderboard-rank">{{ i + 1 }}</span>
+                <span class="leaderboard-name">{{ entry.username }}</span>
+                <span class="text-muted">{{ entry.xp }} XP</span>
+              </li>
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </div>
+}

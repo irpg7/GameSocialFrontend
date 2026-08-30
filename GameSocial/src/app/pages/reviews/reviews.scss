@@ -1,0 +1,185 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/form-controls';
+
+.reviews-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 680px) 288px;
+  gap: $spacing-lg;
+  align-items: start;
+
+  @media (max-width: 960px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.reviews-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  min-width: 0;
+}
+
+.reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.feed-status {
+  text-align: center;
+  padding: $spacing-lg;
+}
+
+.empty-feed {
+  text-align: center;
+  padding: $spacing-2xl;
+  font-size: 1rem;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+}
+
+.load-more {
+  align-self: center;
+}
+
+// ─── Right rail ───────────────────────────────────────────────
+.reviews-rail {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  position: sticky;
+  top: 0;
+}
+
+.panel-card {
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+}
+
+.panel-card-header {
+  margin-bottom: $spacing-md;
+
+  h4 {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+}
+
+.waiting-list,
+.reviewer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.waiting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.waiting-name {
+  font-size: 0.88rem;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewer-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.reviewer-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.reviewer-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.reviewer-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewer-meta {
+  font-size: 0.72rem;
+}
+
+.follow-toggle {
+  flex-shrink: 0;
+  border: 1px solid $color-border;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 3px $spacing-sm;
+  border-radius: $border-radius-full;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+
+  &.following {
+    background-color: rgba($color-accent-primary, 0.12);
+    border-color: $color-accent-primary;
+    color: $color-accent-primary;
+  }
+}
+
+.info-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}

@@ -1,0 +1,87 @@
+// Shared partial for the four backoffice admin screens. Angular's per-component
+// style encapsulation means this gets compiled into each consumer's stylesheet
+// (via `@use '../admin-shared' as *;`) rather than shared at runtime — kept as
+// a single source of truth so the four screens stay visually consistent.
+@use '../../styles/variables' as *;
+
+.admin-page {
+  max-width: 960px;
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: $spacing-xs;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.table-wrapper {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $color-border;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  th {
+    color: $color-text-secondary;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  input[type='text'] {
+    width: 100%;
+  }
+}
+
+.admin-table-actions {
+  display: flex;
+  gap: $spacing-xs;
+  white-space: nowrap;
+}
+
+.poster-thumb {
+  width: 56px;
+  height: 32px;
+  border-radius: $border-radius-sm;
+  object-fit: cover;
+  display: block;
+  background-color: $color-bg-tertiary;
+
+  &.poster-thumb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+}
+
+.form-error {
+  margin-top: $spacing-sm;
+  font-size: 0.85rem;
+  color: $color-accent-primary;
+}
+
+.btn-sm {
+  padding: $spacing-xs $spacing-md;
+  font-size: 0.82rem;
+}

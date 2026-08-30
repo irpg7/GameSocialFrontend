@@ -1,0 +1,488 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/form-controls';
+
+.squad-room-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.squad-room-empty {
+  max-width: 480px;
+  margin: $spacing-2xl auto 0;
+  text-align: center;
+}
+
+// ─── Banner ─────────────────────────────────────────────────────
+.squad-room-banner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.squad-room-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: $border-radius-lg;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.squad-room-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    margin-bottom: 2px;
+  }
+}
+
+.squad-room-description {
+  font-size: 0.88rem;
+  margin-bottom: $spacing-xs;
+}
+
+.squad-room-actions {
+  display: flex;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+}
+
+// ─── Captain inline forms ────────────────────────────────────────
+.inline-form {
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.inline-form-row {
+  display: flex;
+  gap: $spacing-sm;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-md;
+    border: 1px solid $color-border;
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+    font-family: $font-family-primary;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+    }
+  }
+}
+
+// ─── 3-column body ────────────────────────────────────────────────
+.squad-room-body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: $spacing-lg;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 220px minmax(0, 1fr);
+
+    .squad-room-rail {
+      display: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .squad-room-nav {
+      display: none;
+    }
+  }
+}
+
+.panel-card {
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+}
+
+.panel-card-header {
+  margin-bottom: $spacing-md;
+
+  h4 {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+}
+
+// ─── Left nav ─────────────────────────────────────────────────────
+.squad-room-nav {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  position: sticky;
+  top: 0;
+}
+
+.channel-list,
+.my-squads-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.channel-row,
+.my-squad-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.15);
+    color: $color-accent-primary;
+    font-weight: 600;
+  }
+}
+
+// ─── Main area ───────────────────────────────────────────────────
+.squad-room-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.tab-row {
+  display: flex;
+  gap: $spacing-xs;
+  border-bottom: 1px solid $color-border;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: $spacing-sm $spacing-md;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+
+  &.active {
+    color: $color-accent-primary;
+    border-bottom-color: $color-accent-primary;
+  }
+}
+
+.posts-tab {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+// ─── Chat panel ───────────────────────────────────────────────────
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.chat-channel-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.message-body {
+  flex: 1;
+  min-width: 0;
+
+  p {
+    color: $color-text-primary;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.message-meta {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+  margin-bottom: 2px;
+}
+
+.message-author {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: $color-text-primary;
+}
+
+.message-date {
+  font-size: 0.72rem;
+  color: $color-text-secondary;
+}
+
+.tag-channel {
+  font-size: 0.68rem;
+  padding: 1px 8px;
+  border-radius: $border-radius-full;
+  font-weight: 600;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
+}
+
+.shared-post-preview {
+  display: flex;
+  gap: $spacing-sm;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  padding: $spacing-sm;
+  margin-top: $spacing-xs;
+
+  img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: $border-radius-sm;
+    flex-shrink: 0;
+  }
+}
+
+.shared-post-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+
+.shared-post-type {
+  font-weight: 700;
+  color: $color-accent-primary;
+}
+
+.pin-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0.35;
+  transition: opacity $transition-speed-fast;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.pinned {
+    opacity: 1;
+  }
+}
+
+.load-more-messages {
+  align-self: center;
+}
+
+.send-box {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-start;
+  border-top: 1px solid $color-border;
+  padding-top: $spacing-md;
+
+  textarea {
+    flex-grow: 1;
+    resize: none;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-md;
+    border: 1px solid $color-border;
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+    font-family: $font-family-primary;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: $color-accent-primary;
+    }
+  }
+}
+
+.not-member-notice {
+  font-size: 0.85rem;
+  border-top: 1px solid $color-border;
+  padding-top: $spacing-md;
+}
+
+// ─── Right rail ───────────────────────────────────────────────────
+.squad-room-rail {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  position: sticky;
+  top: 0;
+}
+
+.roster-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+
+  &.self {
+    background-color: rgba($color-accent-primary, 0.1);
+  }
+}
+
+.roster-name {
+  font-size: 0.86rem;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
+  flex-shrink: 0;
+
+  &.badge-captain {
+    background-color: rgba($color-accent-primary, 0.15);
+    color: $color-accent-primary;
+    border-color: rgba($color-accent-primary, 0.3);
+  }
+}
+
+.leaderboard-caption {
+  font-size: 0.78rem;
+  margin-bottom: $spacing-sm;
+}
+
+.leaderboard-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+  font-size: 0.85rem;
+
+  &.self {
+    background-color: rgba($color-accent-primary, 0.12);
+  }
+
+  .leaderboard-rank {
+    width: 18px;
+    color: $color-text-secondary;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+
+  .leaderboard-name {
+    flex: 1;
+    min-width: 0;
+    color: $color-text-primary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

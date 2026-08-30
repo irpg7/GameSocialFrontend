@@ -1,0 +1,98 @@
+<div class="feed-sidebar">
+  <div class="panel-card follow-card">
+    <div class="follow-tabs">
+      <button type="button" class="follow-tab" [class.active]="activeTab() === 'games'" (click)="selectTab('games')">
+        Games
+      </button>
+      <button type="button" class="follow-tab" [class.active]="activeTab() === 'people'" (click)="selectTab('people')">
+        People
+      </button>
+    </div>
+
+    <input
+      type="search"
+      class="follow-filter"
+      placeholder="Filter what you follow"
+      [(ngModel)]="filterQuery"
+      [attr.aria-label]="'Filter followed ' + activeTab()" />
+
+    @if (activeTab() === 'games') {
+      @if (filteredGames().length > 0) {
+        <ul class="follow-list">
+          @for (game of filteredGames(); track game.id) {
+            <li class="follow-row">
+              <span class="follow-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
+              <span class="follow-name" [title]="game.name">{{ game.name }}</span>
+              <button
+                type="button"
+                class="follow-toggle"
+                [class.following]="isGameFollowed(game.id)"
+                [disabled]="togglingGameId() === game.id"
+                (click)="toggleGameFollow(game)">
+                {{ isGameFollowed(game.id) ? 'Following' : 'Follow' }}
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted follow-empty">No games match.</p>
+      }
+    } @else {
+      @if (filteredPeople().length > 0) {
+        <ul class="follow-list">
+          @for (person of filteredPeople(); track person.userId) {
+            <li class="follow-row">
+              <span class="follow-icon">{{ person.username.charAt(0).toUpperCase() }}</span>
+              <span class="follow-name" [title]="person.username">{{ person.username }}</span>
+              @if (person.isDeveloper) {
+                <span class="dev-tag">Dev</span>
+              }
+              <button type="button" class="follow-toggle following" (click)="unfollowUser(person)">Following</button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted follow-empty">You aren't following anyone yet.</p>
+      }
+    }
+  </div>
+
+  <div class="panel-card squads-card">
+    <div class="panel-card-header">
+      <h4>Squads</h4>
+    </div>
+
+    @if (mySquads().length > 0) {
+      <ul class="squads-list">
+        @for (squad of mySquads(); track squad.id) {
+          <li>
+            <a [routerLink]="['/squads', squad.id]" class="squad-row">
+              <span class="squad-icon">{{ squad.name.charAt(0).toUpperCase() }}</span>
+              <span class="squad-info">
+                <span class="squad-name">{{ squad.name }}</span>
+                <span class="squad-meta">{{ squad.memberCount }} member{{ squad.memberCount === 1 ? '' : 's' }}</span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="text-muted follow-empty">No squads yet.</p>
+    }
+
+    <div class="squads-actions">
+      <a routerLink="/squads" class="squads-action-link">Create a squad</a>
+      <a routerLink="/squads" class="squads-action-link">Find a squad</a>
+    </div>
+  </div>
+
+  @if (meService.me(); as me) {
+    <div class="panel-card streak-card">
+      <span class="streak-flame">🔥</span>
+      <div class="streak-copy">
+        <span class="streak-days">{{ me.currentStreakDays }} day{{ me.currentStreakDays === 1 ? '' : 's' }} streak</span>
+        <span class="streak-hint">Post today to keep it going.</span>
+      </div>
+    </div>
+  }
+</div>

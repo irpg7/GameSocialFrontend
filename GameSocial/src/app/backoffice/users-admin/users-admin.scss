@@ -1,0 +1,18 @@
+@use '../../../styles/variables' as *;
+@use '../admin-shared' as *;
+
+.admin-table {
+  input[type='checkbox'] {
+    width: auto;
+    accent-color: $color-accent-primary;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.current-user-row {
+  opacity: 0.6;
+}

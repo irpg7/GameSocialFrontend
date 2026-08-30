@@ -1,0 +1,58 @@
+@use '../../../styles/variables' as *;
+
+.feed-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 680px) 280px;
+  gap: $spacing-lg;
+  align-items: start;
+  justify-content: center;
+
+  @media (max-width: 1240px) {
+    grid-template-columns: 260px minmax(0, 680px);
+
+    .feed-col-rail {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 680px);
+
+    .feed-col-sidebar {
+      display: none;
+    }
+  }
+}
+
+.feed-col-center {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  min-width: 0;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.feed-status {
+  text-align: center;
+  padding: $spacing-lg;
+}
+
+.empty-feed {
+  text-align: center;
+  padding: $spacing-2xl;
+  font-size: 1rem;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+}
+
+.load-more {
+  align-self: center;
+}
