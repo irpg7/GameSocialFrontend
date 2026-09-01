@@ -92,7 +92,7 @@ export class PostCard {
     });
   }
 
-  votePoll(optionId: number): void {
+  votePoll(optionId: string): void {
     const poll = this.poll();
     if (!poll || this.isVotingPoll() || poll.isExpired) {
       return;

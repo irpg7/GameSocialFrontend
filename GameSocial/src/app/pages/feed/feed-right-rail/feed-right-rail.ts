@@ -10,7 +10,7 @@ const MAX_ACTIVITY_SQUADS = 3;
 const MAX_ACTIVITY_ITEMS = 6;
 
 interface ActivityItem {
-  squadId: number;
+  squadId: string;
   squadName: string;
   username: string;
   body?: string;

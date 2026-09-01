@@ -17,7 +17,7 @@ export class AchievementService {
    * Pins the achievement to showcase slot 1-3, or unpins when slot is null.
    * Pinning an achievement the user hasn't earned yet is rejected server-side.
    */
-  setShowcaseSlot(achievementId: number, showcaseSlot: number | null): Observable<AchievementModel> {
+  setShowcaseSlot(achievementId: string, showcaseSlot: number | null): Observable<AchievementModel> {
     return this.http.post<AchievementModel>(`${this.apiUrl}/${achievementId}/showcase`, { showcaseSlot });
   }
 }

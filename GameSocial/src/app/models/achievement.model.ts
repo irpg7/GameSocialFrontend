@@ -15,7 +15,7 @@ export type AchievementRuleTypeName =
  * "definition" vs "progress" shape.
  */
 export interface AchievementModel {
-  id: number;
+  id: string;
   key: string;
   name: string;
   description: string;

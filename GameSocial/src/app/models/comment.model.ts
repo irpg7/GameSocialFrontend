@@ -2,8 +2,8 @@
  * Corresponds to Domain.Responses.CommentResponse.
  */
 export interface CommentModel {
-  id: number;
-  postId: number;
+  id: string;
+  postId: string;
   userId: string;
   username: string;
   body: string;

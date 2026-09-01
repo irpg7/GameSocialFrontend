@@ -7,7 +7,7 @@ import { PagedResult } from '../../models/paged-result.model';
 export interface PostListFilters {
   postType?: PostTypeName;
   gameId?: number;
-  squadId?: number;
+  squadId?: string;
 }
 
 @Service()
@@ -52,7 +52,7 @@ export class PostService {
    * PollService exists — polls have no CRUD beyond voting; creation goes
    * through the normal create-post flow.
    */
-  votePoll(postId: number, optionId: number): Observable<PostPollModel> {
+  votePoll(postId: string, optionId: string): Observable<PostPollModel> {
     return this.http.post<PostPollModel>(`${this.apiUrl}/${postId}/poll-votes`, { optionId });
   }
 }

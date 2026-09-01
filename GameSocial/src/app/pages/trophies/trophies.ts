@@ -153,7 +153,7 @@ export class Trophies implements OnInit {
     this.setShowcaseSlot(achievement.id, freeSlot);
   }
 
-  private setShowcaseSlot(achievementId: number, showcaseSlot: number | null): void {
+  private setShowcaseSlot(achievementId: string, showcaseSlot: number | null): void {
     this.achievementService.setShowcaseSlot(achievementId, showcaseSlot).subscribe({
       next: (updated) => {
         this.achievements.update((list) => list.map((a) => (a.id === updated.id ? updated : a)));

@@ -3,7 +3,7 @@ import { Service, signal } from '@angular/core';
 export type ToastType = 'error' | 'success' | 'info';
 
 export interface Toast {
-  id: number;
+  id: string;
   type: ToastType;
   message: string;
 }
@@ -30,13 +30,13 @@ export class NotificationService {
     this.push('info', message);
   }
 
-  dismiss(id: number): void {
+  dismiss(id: string): void {
     this.toastsState.update((toasts) => toasts.filter((toast) => toast.id !== id));
   }
 
   private push(type: ToastType, message: string): void {
     const id = ++nextToastId;
-    this.toastsState.update((toasts) => [...toasts, { id, type, message }]);
-    setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
+    this.toastsState.update((toasts) => [...toasts, { id: id.toString(), type, message }]);
+    setTimeout(() => this.dismiss(id.toString()), AUTO_DISMISS_MS);
   }
 }

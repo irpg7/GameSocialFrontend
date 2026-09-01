@@ -25,7 +25,7 @@ export type PlayStatusName = 'Finished' | 'StillPlaying' | 'Dropped';
 export type PatchLineStatusName = 'Shipped' | 'Fixed' | 'Investigating';
 
 export interface PostMediaModel {
-  id: number;
+  id: string;
   mediaType: PostMediaTypeName;
   url: string;
   durationSeconds?: number;
@@ -34,7 +34,7 @@ export interface PostMediaModel {
 }
 
 export interface PostDevlogPatchLineModel {
-  id: number;
+  id: string;
   text: string;
   status: PatchLineStatusName;
   sortOrder: number;
@@ -61,7 +61,7 @@ export interface PostReviewModel {
 
 /** Corresponds to Domain.Responses.PostPollOptionResponse. */
 export interface PostPollOptionModel {
-  id: number;
+  id: string;
   text: string;
   sortOrder: number;
   /** null when results are hidden from the current viewer (see PostPollModel.hideResultsUntilVoted). */
@@ -74,7 +74,7 @@ export interface PostPollModel {
   hideResultsUntilVoted: boolean;
   isExpired: boolean;
   hasCurrentUserVoted: boolean;
-  currentUserOptionId?: number;
+  currentUserOptionId?: string;
   /** Always visible, even when the per-option breakdown is hidden. */
   totalVotes: number;
   options: PostPollOptionModel[];
@@ -82,14 +82,14 @@ export interface PostPollModel {
 
 /** Corresponds to Domain.Responses.PostResponse. */
 export interface PostModel {
-  id: number;
+  id: string;
   userId: string;
   username: string;
   postType: PostTypeName;
   gameId?: number;
   gameName?: string;
   /** Set when the post was tagged "also post to squad" at creation (Clip/Screenshots only). */
-  squadId?: number;
+  squadId?: string;
   caption?: string;
   createdAt: string;
   media: PostMediaModel[];

@@ -62,7 +62,7 @@ export class SquadRoom implements OnInit {
 
   protected readonly mySquads = signal<SquadModel[]>([]);
   protected readonly activeTab = signal<SquadTab>('chat');
-  protected readonly activeChannelId = signal<number | null>(null);
+  protected readonly activeChannelId = signal<string | null>(null);
 
   protected readonly isCaptain = computed(() => this.squad()?.currentUserRole === 'Captain');
   protected readonly isMember = computed(() => this.squad()?.currentUserRole != null);
@@ -101,10 +101,10 @@ export class SquadRoom implements OnInit {
   protected readonly isAddingChannel = signal(false);
   protected readonly addChannelError = signal<string | null>(null);
 
-  private squadId = 0;
+  private squadId = "";
 
   ngOnInit(): void {
-    this.squadId = Number(this.route.snapshot.paramMap.get('id'));
+    this.squadId = this.route.snapshot.paramMap.get('id') ?? "";
     this.loadSquad();
 
     this.squadService.getMine().subscribe({
@@ -124,7 +124,7 @@ export class SquadRoom implements OnInit {
     }
   }
 
-  selectChannel(channelId: number): void {
+  selectChannel(channelId: string): void {
     if (channelId === this.activeChannelId()) {
       return;
     }

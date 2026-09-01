@@ -6,7 +6,7 @@ export type SquadRoleName = 'Captain' | 'Member';
 
 /** Corresponds to Domain.Responses.SquadChannelResponse. */
 export interface SquadChannelModel {
-  id: number;
+  id: string;
   name: string;
   sortOrder: number;
 }
@@ -17,7 +17,7 @@ export interface SquadChannelModel {
  * places). Does NOT embed members or messages; fetch those separately.
  */
 export interface SquadModel {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description?: string;
@@ -42,7 +42,7 @@ export interface SquadMemberModel {
 
 /** Corresponds to Domain.Responses.SharedPostPreviewResponse. */
 export interface SharedPostPreviewModel {
-  id: number;
+  id: string;
   postType: string;
   caption?: string;
   gameName?: string;
@@ -51,8 +51,8 @@ export interface SharedPostPreviewModel {
 
 /** Corresponds to Domain.Responses.SquadMessageResponse. */
 export interface SquadMessageModel {
-  id: number;
-  channelId: number;
+  id: string;
+  channelId: string;
   userId: string;
   username: string;
   body?: string;

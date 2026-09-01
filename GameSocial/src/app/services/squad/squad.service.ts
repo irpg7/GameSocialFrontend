@@ -25,38 +25,38 @@ export class SquadService {
     return this.http.get<SquadModel[]>(`${this.apiUrl}/mine`);
   }
 
-  getById(squadId: number): Observable<SquadModel> {
+  getById(squadId: string): Observable<SquadModel> {
     return this.http.get<SquadModel>(`${this.apiUrl}/${squadId}`);
   }
 
-  listMembers(squadId: number): Observable<SquadMemberModel[]> {
+  listMembers(squadId: string): Observable<SquadMemberModel[]> {
     return this.http.get<SquadMemberModel[]>(`${this.apiUrl}/${squadId}/members`);
   }
 
   /** Captain-only in practice — only InviteOnly squads have a working join path today (add-by-username). */
-  addMember(squadId: number, username: string): Observable<SquadMemberModel> {
+  addMember(squadId: string, username: string): Observable<SquadMemberModel> {
     return this.http.post<SquadMemberModel>(`${this.apiUrl}/${squadId}/members`, { username });
   }
 
-  createChannel(squadId: number, name: string): Observable<SquadChannelModel> {
+  createChannel(squadId: string, name: string): Observable<SquadChannelModel> {
     return this.http.post<SquadChannelModel>(`${this.apiUrl}/${squadId}/channels`, { name });
   }
 
-  listMessages(squadId: number, channelId: number, page = 1, pageSize = 30): Observable<PagedResult<SquadMessageModel>> {
+  listMessages(squadId: string, channelId: string, page = 1, pageSize = 30): Observable<PagedResult<SquadMessageModel>> {
     return this.http.get<PagedResult<SquadMessageModel>>(`${this.apiUrl}/${squadId}/channels/${channelId}/messages`, {
       params: { page, pageSize },
     });
   }
 
   /** Exactly one of body/sharedPostId must be provided — enforced server-side. */
-  sendMessage(squadId: number, channelId: number, body?: string, sharedPostId?: number): Observable<SquadMessageModel> {
+  sendMessage(squadId: string, channelId: string, body?: string, sharedPostId?: string): Observable<SquadMessageModel> {
     return this.http.post<SquadMessageModel>(`${this.apiUrl}/${squadId}/channels/${channelId}/messages`, {
       body,
       sharedPostId,
     });
   }
 
-  toggleMessagePin(squadId: number, channelId: number, messageId: number): Observable<SquadMessageModel> {
+  toggleMessagePin(squadId: string, channelId: string, messageId: string): Observable<SquadMessageModel> {
     return this.http.post<SquadMessageModel>(
       `${this.apiUrl}/${squadId}/channels/${channelId}/messages/${messageId}/pin`,
       {},
@@ -64,7 +64,7 @@ export class SquadService {
   }
 
   /** Ranked by current all-time XP — there is no weekly-XP tracking, despite the mock's "weekly" framing. */
-  getLeaderboard(squadId: number): Observable<SquadLeaderboardEntryModel[]> {
+  getLeaderboard(squadId: string): Observable<SquadLeaderboardEntryModel[]> {
     return this.http.get<SquadLeaderboardEntryModel[]>(`${this.apiUrl}/${squadId}/leaderboard`);
   }
 }
