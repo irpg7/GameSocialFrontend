@@ -91,7 +91,7 @@
           <ul class="my-squads-list">
             @for (mine of mySquads(); track mine.id) {
               <li>
-                <a [routerLink]="['/squads', mine.id]" class="my-squad-row" [class.active]="mine.id === squad.id">{{ mine.name }}</a>
+                <a [routerLink]="['/squads', mine.id]" class="my-squad-row" [class.active]="mine.id === squad.id" (click)="squadChanged(mine)">{{ mine.name }}</a>
               </li>
             }
           </ul>

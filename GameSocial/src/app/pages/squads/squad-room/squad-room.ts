@@ -301,4 +301,8 @@ export class SquadRoom implements OnInit {
       error: () => void 0,
     });
   }
+  squadChanged(squad:SquadModel){
+    this.squadId = squad.id;
+    this.loadSquad();
+  }
 }
