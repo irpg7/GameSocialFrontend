@@ -251,7 +251,7 @@
           <ul class="roster-list">
             @for (member of members(); track member.userId) {
               <li class="roster-row" [class.self]="isCurrentUser(member.userId)">
-                <span class="roster-name">{{ member.username }}</span>
+                <a [routerLink]="['/profile', member.userId]" class="roster-name">{{ member.username }}</a>
                 <span class="badge" [class.badge-captain]="member.role === 'Captain'">{{ member.role }}</span>
               </li>
             }

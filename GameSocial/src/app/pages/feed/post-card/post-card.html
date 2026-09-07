@@ -1,8 +1,8 @@
 <div class="post-card card">
   <div class="post-header">
-    <div class="avatar">{{ post().username.charAt(0).toUpperCase() }}</div>
+    <a [routerLink]="['/profile', post().userId]" class="avatar">{{ post().username.charAt(0).toUpperCase() }}</a>
     <div class="post-meta">
-      <span class="author">{{ post().username }}</span>
+      <a [routerLink]="['/profile', post().userId]" class="author">{{ post().username }}</a>
       <div class="post-tags">
         <span class="tag tag-type">{{ post().postType }}</span>
         @if (post().gameName) {
@@ -202,10 +202,10 @@
 
       @for (comment of comments(); track comment.id) {
         <div class="comment">
-          <div class="comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</div>
+          <a [routerLink]="['/profile', comment.userId]" class="comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</a>
           <div class="comment-body">
             <div class="comment-meta">
-              <span class="comment-author">{{ comment.username }}</span>
+              <a [routerLink]="['/profile', comment.userId]" class="comment-author">{{ comment.username }}</a>
               <span class="comment-date">{{ comment.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
             <p>{{ comment.body }}</p>

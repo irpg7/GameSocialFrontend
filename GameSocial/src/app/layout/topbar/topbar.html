@@ -51,6 +51,10 @@
         <div class="user-dropdown card">
           <span class="user-dropdown-name">{{ authService.currentUser()?.username }}</span>
 
+          @if (authService.currentUser(); as user) {
+            <a [routerLink]="['/profile', user.id]" class="user-dropdown-link" (click)="isMenuOpen.set(false)">My profile</a>
+          }
+
           @if (authService.permissions().length > 0) {
             <a routerLink="/backoffice" class="user-dropdown-link" (click)="isMenuOpen.set(false)">Backoffice</a>
           }

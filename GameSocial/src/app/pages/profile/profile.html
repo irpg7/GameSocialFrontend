@@ -1,0 +1,62 @@
+@if (isLoading()) {
+  <p class="text-muted">Loading profile...</p>
+} @else if (notFound()) {
+  <div class="card profile-empty">
+    <p class="text-muted">User not found.</p>
+    <a routerLink="/feed" class="btn btn-secondary mt-md">Back to feed</a>
+  </div>
+} @else if (profile(); as profile) {
+  <div class="profile-page">
+    <div class="profile-banner card">
+      <span class="profile-avatar">{{ profile.username.charAt(0).toUpperCase() }}</span>
+
+      <div class="profile-info">
+        <div class="profile-name-row">
+          <h2>{{ profile.username }}</h2>
+          @if (profile.isDeveloper) {
+            <span class="badge badge-dev">Dev</span>
+          }
+          @if (profile.isPremium) {
+            <span class="badge badge-premium">Premium</span>
+          }
+        </div>
+        <span class="text-muted">Joined {{ profile.createdAt | date: 'MMMM yyyy' }}</span>
+
+        <div class="profile-xp">
+          <span class="xp-level">LV {{ profile.level }}</span>
+          <span class="xp-bar">
+            <span class="xp-bar-fill" [style.width.%]="profile.xpProgressPercent"></span>
+          </span>
+          <span class="text-muted xp-caption">{{ profile.xp }} XP</span>
+        </div>
+      </div>
+
+      @if (!profile.isCurrentUser) {
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="!profile.isFollowedByCurrentUser"
+          [class.btn-secondary]="profile.isFollowedByCurrentUser"
+          [disabled]="isTogglingFollow()"
+          (click)="toggleFollow()">
+          {{ profile.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
+        </button>
+      }
+    </div>
+
+    <div class="profile-stats card">
+      <div class="stat">
+        <span class="stat-value">{{ profile.followersCount }}</span>
+        <span class="stat-label">Follower{{ profile.followersCount === 1 ? '' : 's' }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ profile.followingCount }}</span>
+        <span class="stat-label">Following</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ profile.currentStreakDays }}</span>
+        <span class="stat-label">Day streak</span>
+      </div>
+    </div>
+  </div>
+}

@@ -42,8 +42,8 @@
         <ul class="follow-list">
           @for (person of filteredPeople(); track person.userId) {
             <li class="follow-row">
-              <span class="follow-icon">{{ person.username.charAt(0).toUpperCase() }}</span>
-              <span class="follow-name" [title]="person.username">{{ person.username }}</span>
+              <a [routerLink]="['/profile', person.userId]" class="follow-icon">{{ person.username.charAt(0).toUpperCase() }}</a>
+              <a [routerLink]="['/profile', person.userId]" class="follow-name" [title]="person.username">{{ person.username }}</a>
               @if (person.isDeveloper) {
                 <span class="dev-tag">Dev</span>
               }

@@ -1,0 +1,134 @@
+@use '../../../styles/variables' as *;
+
+.profile-page {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.profile-empty {
+  max-width: 480px;
+  margin: $spacing-2xl auto 0;
+  text-align: center;
+}
+
+// ─── Banner ─────────────────────────────────────────────────────
+.profile-banner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: $border-radius-full;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.badge-dev {
+  color: #818cf8;
+  background-color: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.badge-premium {
+  color: #fbbf24;
+  background-color: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.profile-xp {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-xs;
+}
+
+.xp-level {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: $color-text-primary;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.xp-bar {
+  display: block;
+  width: 120px;
+  height: 6px;
+  border-radius: $border-radius-full;
+  background-color: $color-bg-tertiary;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  display: block;
+  height: 100%;
+  background-color: $color-accent-primary;
+  border-radius: $border-radius-full;
+  transition: width $transition-speed-normal;
+}
+
+.xp-caption {
+  font-size: 0.78rem;
+}
+
+// ─── Stats ──────────────────────────────────────────────────────
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: $color-text-primary;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: $color-text-secondary;
+}
