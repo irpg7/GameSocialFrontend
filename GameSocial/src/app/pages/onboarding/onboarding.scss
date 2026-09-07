@@ -1,0 +1,69 @@
+@use '../../../styles/variables' as *;
+
+.onboarding-page {
+  max-width: 640px;
+  margin: $spacing-2xl auto 0;
+}
+
+.onboarding-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xl;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  border: 1px solid $color-border;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-full;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+  }
+
+  &.selected {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+  }
+}
+
+.game-chip-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.onboarding-actions-right {
+  display: flex;
+  gap: $spacing-sm;
+}

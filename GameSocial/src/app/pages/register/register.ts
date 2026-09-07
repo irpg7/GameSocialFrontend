@@ -39,7 +39,7 @@ export class Register {
       .register(username, email, password, isDeveloper)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/feed'),
+        next: () => this.router.navigateByUrl('/onboarding'),
         error: () => this.errorMessage.set('Registration failed. Please check your details and try again.'),
       });
   }

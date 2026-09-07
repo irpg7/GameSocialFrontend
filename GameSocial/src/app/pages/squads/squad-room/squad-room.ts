@@ -14,35 +14,11 @@ import { PostCard } from '../../feed/post-card/post-card';
 
 const MESSAGE_PAGE_SIZE = 50;
 const POST_PAGE_SIZE = 12;
-/** Max page size the backend allows — used as the pinned-message scan window per channel (see loadPinned). */
 const PINNED_SCAN_PAGE_SIZE = 100;
 
 type SquadTab = 'chat' | 'clips' | 'screens' | 'pinned';
 type PinnedMessage = SquadMessageModel & { channelName: string };
 
-/**
- * Real squad room (Phase 4), replacing the Phase 1 placeholder.
- *
- * Notable confirmed-by-reading-source facts baked into this component:
- * - Add-member and create-channel are Captain-only server-side (400
- *   otherwise) — those forms are hidden entirely for non-captains rather
- *   than shown-then-rejected.
- * - Pin/unpin is allowed for ANY member, not just the captain.
- * - `GET .../messages` is paginated oldest-first; there is no "start at the
- *   newest message" fetch, so this simply appends forward page by page
- *   (same load-more mechanics as Comments/Feed) — chat starts at the
- *   oldest messages, not the newest. Acceptable given the spec's own
- *   scope cut on real-time chat (poll/refetch only, no websockets).
- * - There is no dedicated "list pinned messages" endpoint — the Pinned tab
- *   is derived client-side by scanning each channel's most recent 100
- *   messages (the max page size) for `isPinned`. A pin older than that
- *   window in a very active channel won't surface; documented, not a bug.
- * - The spec's "Push to main feed" chat action has no backing endpoint —
- *   and turns out to be unnecessary anyway: `ListPostsQueryHandler` only
- *   filters by SquadId when a caller explicitly passes one, so a
- *   squad-tagged post is ALREADY visible on the main feed by default,
- *   there is no squad-only visibility scoping to "push" out of.
- */
 @Component({
   selector: 'app-squad-room',
   imports: [RouterLink, FormsModule, DatePipe, PostCard],

@@ -9,6 +9,17 @@
       <input id="new-game-name" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Game name">
     </div>
     <div class="form-group">
+      <label>Genres</label>
+      <div class="genre-checkbox-grid">
+        @for (genre of genres; track genre.value) {
+          <label class="genre-checkbox">
+            <input type="checkbox" [checked]="isNewGenreSelected(genre.value)" (change)="toggleNewGenre(genre.value)">
+            {{ genre.label }}
+          </label>
+        }
+      </div>
+    </div>
+    <div class="form-group">
       <label for="new-game-poster">Poster <span class="text-muted">(optional, jpg/png/webp, max 5MB)</span></label>
       <input id="new-game-poster" type="file" accept="image/jpeg,image/png,image/webp" (change)="onNewPosterSelected($event)">
     </div>
@@ -29,6 +40,7 @@
           <tr>
             <th>Poster</th>
             <th>Name</th>
+            <th>Genre</th>
             <th>Slug</th>
             <th></th>
           </tr>
@@ -45,11 +57,21 @@
                   }
                   <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onEditPosterSelected($event)">
                 </td>
-                <td colspan="2">
+                <td>
                   <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)">
                   @if (editError()) {
                     <p class="form-error">{{ editError() }}</p>
                   }
+                </td>
+                <td colspan="2">
+                  <div class="genre-checkbox-grid">
+                    @for (genre of genres; track genre.value) {
+                      <label class="genre-checkbox">
+                        <input type="checkbox" [checked]="isEditGenreSelected(genre.value)" (change)="toggleEditGenre(genre.value)">
+                        {{ genre.label }}
+                      </label>
+                    }
+                  </div>
                 </td>
                 <td class="admin-table-actions">
                   <button type="button" class="btn btn-primary btn-sm" [disabled]="isSaving()" (click)="saveEdit(game)">
@@ -68,6 +90,7 @@
                   }
                 </td>
                 <td>{{ game.name }}</td>
+                <td class="text-muted">{{ game.genres.join(', ') }}</td>
                 <td class="text-muted">{{ game.slug }}</td>
                 <td class="admin-table-actions">
                   <button type="button" class="btn btn-secondary btn-sm" (click)="startEdit(game)">Edit</button>
@@ -85,7 +108,7 @@
 
           @if (games().length === 0) {
             <tr>
-              <td colspan="4" class="text-muted">No games yet.</td>
+              <td colspan="5" class="text-muted">No games yet.</td>
             </tr>
           }
         </tbody>

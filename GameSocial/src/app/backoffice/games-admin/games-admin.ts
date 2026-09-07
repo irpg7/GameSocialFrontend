@@ -3,11 +3,21 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { GameService } from '../../services/game/game.service';
 import { NotificationService } from '../../services/notification/notification.service';
-import { GameModel } from '../../models/game.model';
+import { GAME_GENRES, GameGenreName, GameModel } from '../../models/game.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 const POSTER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
+  const next = new Set(set);
+  if (next.has(value)) {
+    next.delete(value);
+  } else {
+    next.add(value);
+  }
+  return next;
+}
 
 @Component({
   selector: 'app-games-admin',
@@ -21,14 +31,17 @@ export class GamesAdmin implements OnInit {
 
   protected readonly games = signal<GameModel[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly genres = GAME_GENRES;
 
   protected readonly newName = signal('');
+  protected readonly newGenres = signal<Set<GameGenreName>>(new Set());
   private newPosterFile = signal<File | null>(null);
   protected readonly isCreating = signal(false);
   protected readonly createError = signal<string | null>(null);
 
   protected readonly editingId = signal<number | null>(null);
   protected readonly editName = signal('');
+  protected readonly editGenres = signal<Set<GameGenreName>>(new Set());
   private editPosterFile = signal<File | null>(null);
   protected readonly isSaving = signal(false);
   protected readonly editError = signal<string | null>(null);
@@ -61,6 +74,9 @@ export class GamesAdmin implements OnInit {
     this.isCreating.set(true);
     const formData = new FormData();
     formData.append('Name', name);
+    for (const genre of this.newGenres()) {
+      formData.append('Genres', genre);
+    }
     if (file) {
       formData.append('Poster', file);
     }
@@ -72,15 +88,33 @@ export class GamesAdmin implements OnInit {
         next: (game) => {
           this.games.update((existing) => [...existing, game].sort((a, b) => a.name.localeCompare(b.name)));
           this.newName.set('');
+          this.newGenres.set(new Set());
           this.newPosterFile.set(null);
         },
         error: (err) => this.createError.set(extractApiErrorMessage(err, 'Failed to create game.')),
       });
   }
 
+  toggleNewGenre(genre: GameGenreName): void {
+    this.newGenres.update((current) => toggleInSet(current, genre));
+  }
+
+  isNewGenreSelected(genre: GameGenreName): boolean {
+    return this.newGenres().has(genre);
+  }
+
+  toggleEditGenre(genre: GameGenreName): void {
+    this.editGenres.update((current) => toggleInSet(current, genre));
+  }
+
+  isEditGenreSelected(genre: GameGenreName): boolean {
+    return this.editGenres().has(genre);
+  }
+
   startEdit(game: GameModel): void {
     this.editingId.set(game.id);
     this.editName.set(game.name);
+    this.editGenres.set(new Set(game.genres));
     this.editPosterFile.set(null);
     this.editError.set(null);
   }
@@ -111,6 +145,9 @@ export class GamesAdmin implements OnInit {
     this.isSaving.set(true);
     const formData = new FormData();
     formData.append('Name', name);
+    for (const genre of this.editGenres()) {
+      formData.append('Genres', genre);
+    }
     if (file) {
       formData.append('Poster', file);
     }

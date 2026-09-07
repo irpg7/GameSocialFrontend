@@ -35,6 +35,16 @@ export class PostService {
   }
 
   /**
+   * "Takip Ettiklerim" feed sekmesi — `GET /api/posts/following` (ayrı bir
+   * backend command/endpoint, `ListPostsQuery`'ye bayrak eklenerek değil,
+   * bkz. ListFollowingPostsQuery). Kendi sayfalaması var.
+   */
+  getFollowingPosts(page = 1, pageSize = 10): Observable<PagedResult<PostModel>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<PagedResult<PostModel>>(`${this.apiUrl}/following`, { params });
+  }
+
+  /**
    * Backend expects multipart/form-data with PascalCase fields
    * (PostType, GameId, Caption/Title+Body, MediaType, PhotoType, Media,
    * SquadId, Score/PlayStatus/HoursPlayed/SpoilerFree, PollOptions/

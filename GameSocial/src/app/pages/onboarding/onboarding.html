@@ -1,0 +1,49 @@
+<div class="onboarding-page">
+  <div class="card onboarding-card">
+    @if (step() === 1) {
+      <h2>İlgi alanlarını seç</h2>
+      <p class="text-muted mb-lg">Hangi oyun türleriyle ilgileniyorsun? Sana uygun oyunları önerelim.</p>
+
+      <div class="chip-grid">
+        @for (genre of genres; track genre.value) {
+          <button type="button" class="chip" [class.selected]="isGenreSelected(genre.value)" (click)="toggleGenre(genre.value)">
+            {{ genre.label }}
+          </button>
+        }
+      </div>
+
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-secondary" (click)="skip()">Atla</button>
+        <button type="button" class="btn btn-primary" (click)="goToGameStep()">Devam et</button>
+      </div>
+    } @else {
+      <h2>Takip etmek istediğin oyunları seç</h2>
+      <p class="text-muted mb-lg">Seçtiğin türlere göre öneriler aşağıda. İstediğin kadar seç, sonra da değiştirebilirsin.</p>
+
+      @if (isLoadingGames()) {
+        <p class="text-muted">Loading games...</p>
+      } @else if (filteredGames().length === 0) {
+        <p class="text-muted mb-lg">Bu türlerde henüz oyun yok.</p>
+      } @else {
+        <div class="chip-grid">
+          @for (game of filteredGames(); track game.id) {
+            <button type="button" class="chip game-chip" [class.selected]="isGameSelected(game)" (click)="toggleGame(game)">
+              <span class="game-chip-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
+              {{ game.name }}
+            </button>
+          }
+        </div>
+      }
+
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-secondary" (click)="backToGenreStep()">Geri</button>
+        <div class="onboarding-actions-right">
+          <button type="button" class="btn btn-secondary" (click)="skip()">Atla</button>
+          <button type="button" class="btn btn-primary" [disabled]="isFinishing()" (click)="finish()">
+            {{ isFinishing() ? 'Kaydediliyor...' : 'Bitir' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

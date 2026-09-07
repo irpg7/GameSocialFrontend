@@ -33,6 +33,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/squads/squad-room/squad-room').then((m) => m.SquadRoom),
       },
       { path: 'profile/:id', loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile) },
+      { path: 'onboarding', loadComponent: () => import('./pages/onboarding/onboarding').then((m) => m.Onboarding) },
     ],
   },
   {

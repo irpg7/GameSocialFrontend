@@ -15,6 +15,8 @@ import { FeedRightRail } from './feed-right-rail/feed-right-rail';
 
 const PAGE_SIZE = 10;
 
+export type FeedTab = 'following' | 'discover';
+
 @Component({
   selector: 'app-feed',
   imports: [PostComposer, PostCard, FeedSidebar, FeedRightRail],
@@ -28,6 +30,7 @@ export class Feed implements OnInit {
   private notificationService = inject(NotificationService);
   private meService = inject(MeService);
 
+  protected readonly activeTab = signal<FeedTab>('following');
   protected readonly posts = signal<PostModel[]>([]);
   protected readonly games = signal<GameModel[]>([]);
   /** Fetched once here (not per-card) and passed down so PostCard can resolve a squad-tagged post's name client-side. */
@@ -57,6 +60,15 @@ export class Feed implements OnInit {
     this.meService.refresh().subscribe({ error: () => void 0 });
   }
 
+  selectTab(tab: FeedTab): void {
+    if (tab === this.activeTab()) {
+      return;
+    }
+    this.activeTab.set(tab);
+    this.posts.set([]);
+    this.loadPosts(1);
+  }
+
   loadMore(): void {
     this.loadPosts(this.page() + 1, true);
   }
@@ -64,16 +76,17 @@ export class Feed implements OnInit {
   private loadPosts(page: number, append = false): void {
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
     loadingSignal.set(true);
-    this.postService
-      .getPosts(page, PAGE_SIZE)
-      .pipe(finalize(() => loadingSignal.set(false)))
-      .subscribe({
-        next: (result) => {
-          this.posts.update((existing) => (append ? [...existing, ...result.items] : result.items));
-          this.page.set(result.page);
-          this.hasMore.set(result.hasMore);
-        },
-        error: () => this.notificationService.error('Failed to load feed.'),
-      });
+    const request =
+      this.activeTab() === 'following'
+        ? this.postService.getFollowingPosts(page, PAGE_SIZE)
+        : this.postService.getPosts(page, PAGE_SIZE);
+    request.pipe(finalize(() => loadingSignal.set(false))).subscribe({
+      next: (result) => {
+        this.posts.update((existing) => (append ? [...existing, ...result.items] : result.items));
+        this.page.set(result.page);
+        this.hasMore.set(result.hasMore);
+      },
+      error: () => this.notificationService.error('Failed to load feed.'),
+    });
   }
 }
