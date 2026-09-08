@@ -24,12 +24,20 @@ export type PlayStatusName = 'Finished' | 'StillPlaying' | 'Dropped';
  */
 export type PatchLineStatusName = 'Shipped' | 'Fixed' | 'Investigating';
 
+/**
+ * Corresponds to Domain.Enums.VideoProcessingStatus as serialized by the backend.
+ * Only meaningful for mediaType === 'Video' — a background job re-encodes uploaded
+ * videos down to 720p; while Pending, `url` still points at the original file.
+ */
+export type VideoProcessingStatusName = 'Pending' | 'Completed' | 'Failed';
+
 export interface PostMediaModel {
   id: string;
   mediaType: PostMediaTypeName;
   url: string;
   durationSeconds?: number;
   photoType?: PostPhotoTypeName;
+  processingStatus?: VideoProcessingStatusName;
   sortOrder: number;
 }
 

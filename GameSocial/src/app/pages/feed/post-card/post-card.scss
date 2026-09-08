@@ -105,6 +105,10 @@
     }
   }
 
+  .post-video-wrapper {
+    position: relative;
+  }
+
   // ─── Screenshots grid ──────────────────────────────────────────
   .post-screenshot-grid {
     display: grid;
@@ -243,6 +247,16 @@
       background-color: rgba(234, 179, 8, 0.15);
       color: #facc15;
       border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+
+    &.badge-processing {
+      position: absolute;
+      top: $spacing-sm;
+      left: $spacing-sm;
+      z-index: 1;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
   }
 

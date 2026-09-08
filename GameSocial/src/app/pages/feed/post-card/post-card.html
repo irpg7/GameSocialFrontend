@@ -125,7 +125,12 @@
         @if (media.mediaType === 'Photo') {
           <img [src]="media.url" [alt]="post().caption || 'Post media'" />
         } @else if (media.mediaType === 'Video') {
-          <video [src]="media.url" controls></video>
+          <div class="post-video-wrapper">
+            @if (media.processingStatus === 'Pending') {
+              <span class="badge badge-processing">Processing…</span>
+            }
+            <video [src]="media.url" controls></video>
+          </div>
         }
       }
     </div>
