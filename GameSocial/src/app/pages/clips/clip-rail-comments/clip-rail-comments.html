@@ -1,0 +1,43 @@
+<div class="rail-comments-list">
+  @if (isLoading() && comments().length === 0) {
+    <p class="text-muted rail-status">Yorumlar yükleniyor…</p>
+  }
+
+  @for (comment of comments(); track comment.id) {
+    <div class="rail-comment">
+      <div class="rail-comment-head">
+        <a [routerLink]="['/profile', comment.userId]" class="rail-comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</a>
+        <a [routerLink]="['/profile', comment.userId]" class="rail-comment-author">{{ comment.username }}</a>
+        <span class="rail-comment-ago">{{ timeAgo(comment.createdAt) }}</span>
+        @if (isOwn(comment)) {
+          <button type="button" class="rail-comment-delete" aria-label="Yorumu sil" (click)="remove(comment)">&times;</button>
+        }
+      </div>
+      <p class="rail-comment-text">{{ comment.body }}</p>
+    </div>
+  }
+
+  @if (comments().length === 0 && !isLoading()) {
+    <p class="text-muted rail-status">Henüz yorum yok. İlk yorumu sen yaz.</p>
+  }
+
+  @if (hasMore()) {
+    <button type="button" class="rail-more" [disabled]="isLoading()" (click)="loadMore()">
+      {{ isLoading() ? 'Yükleniyor…' : 'Daha fazla yorum' }}
+    </button>
+  }
+</div>
+
+<div class="rail-composer">
+  <input
+    type="text"
+    class="rail-input"
+    placeholder="Yorum yaz…"
+    aria-label="Yorum yaz"
+    [ngModel]="draft()"
+    (ngModelChange)="draft.set($event)"
+    (keydown.enter)="submit()" />
+  <button type="button" class="rail-send" [class.ready]="draft().trim().length > 0" [disabled]="!draft().trim() || isSubmitting()" (click)="submit()">
+    {{ isSubmitting() ? '…' : 'Gönder' }}
+  </button>
+</div>

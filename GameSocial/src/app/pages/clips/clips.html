@@ -1,26 +1,76 @@
 <div class="clips-page">
-  <div class="clips-header">
-    <h2>Clips</h2>
-    <button type="button" class="chip" [class.active]="followingOnly()" (click)="toggleFollowingOnly()">Following</button>
-  </div>
-
-  <div class="clips-grid">
-    @for (post of filteredPosts(); track post.id) {
-      <app-post-card [post]="post" />
-    }
-  </div>
-
-  @if (isLoadingFeed()) {
-    <p class="text-muted feed-status">Loading clips...</p>
-  } @else if (filteredPosts().length === 0) {
-    <div class="empty-feed">
-      <p class="text-muted">No clips yet.</p>
+  <div class="clips-head">
+    <div class="clips-head-text">
+      <h2>Clips</h2>
+      <p class="clips-sub">Only clips — nothing else in this feed.</p>
     </div>
-  }
+    <a routerLink="/feed" class="clips-upload">＋ Upload a clip</a>
+  </div>
 
-  @if (hasMore() && !isLoadingFeed()) {
-    <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
-      {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
-    </button>
-  }
+  <div class="clips-filters">
+    <button type="button" class="clips-chip" [class.active]="filter() === 'hot'" (click)="setFilter('hot')">Hot</button>
+    <button type="button" class="clips-chip" [class.active]="filter() === 'following'" (click)="setFilter('following')">Following</button>
+    <button type="button" class="clips-chip" [class.active]="filter() === 'new'" (click)="setFilter('new')">New</button>
+    <span class="clips-count">{{ countLabel() }}</span>
+  </div>
+
+  <div class="clips-body">
+    <div class="clips-stage">
+      @if (hero(); as heroPost) {
+        <app-clip-stage
+          [post]="heroPost"
+          variant="hero"
+          [rankLabel]="heroRank()"
+          [autoplay]="true"
+          [commentCount]="heroCommentCount()"
+          [commentsActive]="rail() === 'comments'"
+          (toggleComments)="setRail(rail() === 'comments' ? 'next' : 'comments')"
+          (ended)="onHeroEnded()" />
+      } @else if (isLoadingFeed()) {
+        <p class="text-muted clips-status">Loading clips...</p>
+      } @else {
+        <p class="text-muted clips-status">No clips yet.</p>
+      }
+    </div>
+
+    <!--
+      The rail's content is absolutely positioned inside the aside so the row's
+      height is set by the 16:9 player alone — the queue then scrolls inside
+      exactly that height, the way the design's fixed-height page behaves.
+    -->
+    <aside class="clips-rail">
+      <div class="rail-inner">
+      <div class="rail-tabs">
+        <button type="button" class="rail-tab" [class.active]="rail() === 'next'" (click)="setRail('next')">Up next</button>
+        <button type="button" class="rail-tab" [class.active]="rail() === 'comments'" (click)="setRail('comments')">
+          Yorumlar <span class="rail-tab-count">{{ heroCommentCount() }}</span>
+        </button>
+        <button type="button" class="rail-autoplay" [class.on]="autoplay()" [attr.aria-pressed]="autoplay()" (click)="toggleAutoplay()">
+          <span class="rail-autoplay-label">AUTOPLAY</span>
+          <span class="rail-switch" aria-hidden="true"><span class="rail-knob"></span></span>
+        </button>
+      </div>
+
+      @if (rail() === 'next') {
+        <div class="rail-queue">
+          @for (post of upNext(); track post.id) {
+            <app-clip-queue-card [post]="post" (play)="selectClip(post)" (openComments)="openComments(post)" />
+          }
+
+          @if (upNext().length === 0 && !isLoadingFeed()) {
+            <p class="text-muted rail-empty">Sırada başka klip yok.</p>
+          }
+
+          @if (hasMore()) {
+            <button type="button" class="rail-load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+              {{ isLoadingMore() ? 'Yükleniyor…' : 'Daha fazla klip' }}
+            </button>
+          }
+        </div>
+      } @else if (hero(); as heroPost) {
+        <app-clip-rail-comments [postId]="heroPost.id" (countChanged)="onCommentCountChanged(heroPost.id, $event)" />
+      }
+      </div>
+    </aside>
+  </div>
 </div>

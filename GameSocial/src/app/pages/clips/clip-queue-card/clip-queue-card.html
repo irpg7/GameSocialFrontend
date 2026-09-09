@@ -1,0 +1,32 @@
+<div class="queue-card" (mouseenter)="onEnter()" (mouseleave)="onLeave()">
+  <button type="button" class="queue-main" (click)="play.emit()" (focus)="onEnter()" (blur)="onLeave()">
+    <span class="queue-thumb">
+      <video #video class="queue-video" [src]="src()" muted playsinline preload="metadata" (timeupdate)="onPreviewTime()"></video>
+
+      @if (!previewing() && !active()) {
+        <span class="queue-play" aria-hidden="true">▶</span>
+      }
+      @if (previewing()) {
+        <span class="queue-preview-badge"><span class="queue-preview-dot" aria-hidden="true"></span>ÖN İZLEME · 🔇</span>
+      }
+
+      <span class="queue-time">{{ timeLabel() }}</span>
+      <span class="queue-progress" aria-hidden="true"><span class="queue-progress-fill" [style.width.%]="progressPercent()"></span></span>
+    </span>
+
+    <span class="queue-body">
+      <span class="queue-title">{{ title() }}</span>
+      <span class="queue-author-row">
+        <span class="queue-avatar">{{ initial() }}</span>
+        <span class="queue-author">{{ post().username }}</span>
+      </span>
+    </span>
+  </button>
+
+  <div class="queue-stats">
+    <button type="button" class="queue-chip queue-vote" [class.active]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike($event)">
+      ▲ {{ likeCount() }}
+    </button>
+    <button type="button" class="queue-chip" (click)="onOpenComments($event)">💬 {{ post().commentCount }}</button>
+  </div>
+</div>

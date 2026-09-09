@@ -1,45 +1,285 @@
 @use '../../../styles/variables' as *;
-@use '../../../styles/form-controls';
+
+// Layout numbers (1020px column, 330px rail, 16/18px gaps, 22px hero radius,
+// chip and tab metrics) come from Gamer Feed.dc.html's `onClipsPage` state.
 
 .clips-page {
-  max-width: 1200px;
+  // The design's clips column is 1020px inside a 1440px canvas with no app
+  // chrome; this app already spends width on the shell, so the column runs a
+  // little wider to keep the player from shrinking.
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 18px;
+  min-height: 0;
 }
 
-.clips-header {
+.clips-head {
+  flex: none;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
 
   h2 {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.6px;
     margin-bottom: 0;
   }
 }
 
-.clips-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: $spacing-md;
-  align-items: start;
+.clips-sub {
+  font-size: 14px;
+  line-height: 21px;
+  color: $color-text-secondary;
+  margin-top: 2px;
 }
 
-.feed-status {
-  text-align: center;
-  padding: $spacing-lg;
+.clips-upload {
+  margin-left: auto;
+  flex: none;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 700;
+
+  &:hover {
+    background-color: $color-accent-secondary;
+    color: #fff;
+  }
 }
 
-.empty-feed {
-  text-align: center;
-  padding: $spacing-2xl;
-  font-size: 1rem;
+.clips-filters {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clips-chip {
+  padding: 8px 13px;
+  border-radius: 12px;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-speed-fast;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.clips-count {
+  margin-left: auto;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.clips-body {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  min-height: 0;
+}
+
+// The design's hero fills a tall fixed-height page. Real clips are 16:9, so
+// the panel takes that ratio instead of cropping the frame to a near-square,
+// and the rail stretches to whatever height the player ends up with.
+.clips-stage {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 22px;
+  overflow: hidden;
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-radius: $border-radius-lg;
+  display: flex;
+  flex-direction: column;
+
+  app-clip-stage {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
-.load-more {
-  align-self: center;
+.clips-status {
+  margin: auto;
+  padding: $spacing-lg;
+  text-align: center;
+}
+
+.clips-rail {
+  position: relative;
+  width: 330px;
+  flex: none;
+  min-height: 0;
+}
+
+.rail-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-height: 0;
+}
+
+.rail-tabs {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rail-tab {
+  padding: 7px 12px;
+  border-radius: 11px;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.active {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.rail-tab-count {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+}
+
+.rail-autoplay {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rail-autoplay-label {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  color: $color-text-secondary;
+}
+
+.rail-autoplay.on .rail-autoplay-label {
+  color: $color-accent-primary;
+}
+
+.rail-switch {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 19px;
+  border-radius: 10px;
+  background-color: $color-bg-tertiary;
+  transition: background-color $transition-speed-fast;
+}
+
+.rail-autoplay.on .rail-switch {
+  background-color: $color-accent-primary;
+}
+
+.rail-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: left 0.15s;
+}
+
+.rail-autoplay.on .rail-knob {
+  left: 15px;
+}
+
+.rail-queue {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding-right: 2px;
+}
+
+.rail-empty {
+  font-size: 0.85rem;
+  padding: $spacing-md 0;
+}
+
+.rail-load-more {
+  flex: none;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $color-text-primary;
+  }
+}
+
+// Below the design's two-column breakpoint the rail drops under the player.
+@media (max-width: 900px) {
+  .clips-body {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .clips-stage {
+    width: 100%;
+  }
+
+  .clips-rail {
+    position: static;
+    width: 100%;
+  }
+
+  .rail-inner {
+    position: static;
+    max-height: none;
+  }
+
+  .rail-queue {
+    overflow: visible;
+  }
 }

@@ -1,5 +1,42 @@
 @use '../../../../styles/variables' as *;
 
+// The clip card is the design's full-bleed article: no padding, everything
+// lives on the stage overlay, and the thread hangs off the bottom edge.
+.post-card-clip {
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: 26px;
+  overflow: hidden;
+}
+
+.post-card.post-card-clip .post-comments {
+  margin-top: 0;
+  padding: 16px 20px 18px;
+}
+
+.clip-thread-head {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  .clip-thread-title {
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: $color-text-secondary;
+  }
+
+  .clip-thread-link {
+    margin-left: auto;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 700;
+    color: $color-accent-primary;
+  }
+}
+
 .post-card {
   transition: border-color $transition-speed-fast;
 

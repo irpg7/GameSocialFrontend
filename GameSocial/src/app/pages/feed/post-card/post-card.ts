@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { PostModel } from '../../../models/post.model';
@@ -13,12 +13,13 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { MeService } from '../../../services/me/me.service';
 import { StarRating } from '../../../shared/star-rating/star-rating';
+import { ClipStage } from '../../../shared/clip-stage/clip-stage';
 
 const MAX_VISIBLE_SCREENSHOTS = 4;
 
 @Component({
   selector: 'app-post-card',
-  imports: [DatePipe, RouterLink, FormsModule, StarRating],
+  imports: [DatePipe, RouterLink, FormsModule, StarRating, ClipStage],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
 })
@@ -29,6 +30,7 @@ export class PostCard {
   protected readonly authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private meService = inject(MeService);
+  private router = inject(Router);
 
   post = input.required<PostModel>();
   /** Squads the current viewer is a member of — resolved client-side to render a "posted to X" badge, see Feed. */
@@ -54,6 +56,16 @@ export class PostCard {
   /** Review posts vote "Useful" instead of "Like" — same PostInteraction toggle, different route/label. */
   protected readonly isUseful = computed(() => this.post().postType === 'Review');
 
+  /**
+   * Clip posts that actually carry a video render as the design's full-bleed
+   * clip stage instead of the standard card. A Clip post whose video is
+   * missing (a failed upload) falls back to the normal chrome rather than
+   * showing an empty black stage.
+   */
+  protected readonly isClipCard = computed(
+    () => this.post().postType === 'Clip' && this.post().media.some((media) => media.mediaType === 'Video'),
+  );
+
   protected readonly visibleScreenshots = computed(() => this.post().media.slice(0, MAX_VISIBLE_SCREENSHOTS));
   protected readonly hiddenScreenshotCount = computed(() => Math.max(0, this.post().media.length - MAX_VISIBLE_SCREENSHOTS));
 
@@ -70,6 +82,11 @@ export class PostCard {
     }
     return this.mySquads().find((squad) => squad.id === squadId)?.name;
   });
+
+  /** The clip card's "Tam ekran oynatıcı" action — hands the clip to the Clips page player. */
+  openInClipsPage(): void {
+    void this.router.navigate(['/clips'], { queryParams: { clip: this.post().id } });
+  }
 
   toggleLike(): void {
     if (this.isTogglingLike()) {

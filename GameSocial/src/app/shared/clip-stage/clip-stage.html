@@ -1,0 +1,110 @@
+<div class="stage" #stage>
+  <video
+    #video
+    class="stage-video"
+    [src]="src()"
+    [muted]="muted()"
+    playsinline
+    preload="metadata"
+    (loadedmetadata)="onLoadedMetadata()"
+    (timeupdate)="onTimeUpdate()"
+    (progress)="onProgress()"
+    (play)="playing.set(true)"
+    (pause)="playing.set(false)"
+    (ended)="onEnded()"></video>
+
+  <span class="stage-scrim" aria-hidden="true"></span>
+
+  <!-- The design's click layer stops short of the overlay so the controls stay reachable. -->
+  <button type="button" class="stage-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
+
+  <div class="stage-badges">
+    <span class="stage-badge stage-badge-rank">{{ rankLabel() }}</span>
+    @if (post().gameName) {
+      <span class="stage-badge stage-badge-game">{{ post().gameName }}</span>
+    }
+    @if (squadName(); as squad) {
+      <span class="stage-badge stage-badge-game">{{ squad }}</span>
+    }
+  </div>
+
+  <div class="stage-actions">
+    @if (isProcessing()) {
+      <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
+    }
+    <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+    @if (variant() === 'hero') {
+      <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+      <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
+    } @else {
+      <button type="button" class="stage-action stage-action-text" (click)="openFull.emit()">Tam ekran oynatıcı</button>
+    }
+  </div>
+
+  @if (!playing()) {
+    <button type="button" class="stage-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
+  }
+
+  <div class="stage-info">
+    <div class="stage-title">{{ title() }}</div>
+
+    <div class="stage-meta">
+      <a [routerLink]="['/profile', post().userId]" class="stage-avatar">{{ initial() }}</a>
+      <a [routerLink]="['/profile', post().userId]" class="stage-author">{{ post().username }}</a>
+      <span class="stage-ago">{{ timeAgo() }}</span>
+      <button type="button" class="stage-vote" [class.active]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ {{ likeCount() }}</button>
+      <button type="button" class="stage-comment" [class.active]="commentsActive()" (click)="toggleComments.emit()">💬 {{ commentTotal() }} yorum</button>
+    </div>
+
+    <div
+      class="stage-scrub"
+      (pointerdown)="onScrubDown($event)"
+      (pointermove)="onScrubMove($event)"
+      (pointerup)="onScrubUp($event)"
+      (pointercancel)="onScrubUp($event)"
+      (pointerleave)="onScrubLeave()">
+      @if (variant() === 'hero' && hoverRatio() !== null) {
+        <span class="stage-hover" [style.left.%]="hoverPercent()">{{ hoverLabel() }}</span>
+      }
+      <div class="stage-track">
+        @if (variant() === 'hero') {
+          <span class="stage-buffered" [style.width.%]="bufferedPercent()"></span>
+        }
+        <span class="stage-played" [style.width.%]="playedPercent()"></span>
+        <span class="stage-knob" [style.left.%]="playedPercent()"></span>
+      </div>
+    </div>
+
+    <div class="stage-times">
+      <span class="stage-now">{{ currentLabel() }}</span>
+      <span>/ {{ durationLabel() }}</span>
+    </div>
+  </div>
+
+  @if (isFullscreen()) {
+    <!-- Clip Player.dc.html's control row — fullscreen is where the native controls are gone. -->
+    <div class="stage-controls">
+      <button type="button" class="sc-btn sc-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
+
+      <div class="sc-volume">
+        <button type="button" class="sc-btn" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+        <div
+          class="sc-volbar"
+          (pointerdown)="onVolumeDown($event)"
+          (pointermove)="onVolumeMove($event)"
+          (pointerup)="onVolumeUp($event)"
+          (pointercancel)="onVolumeUp($event)">
+          <div class="sc-voltrack">
+            <span class="sc-volfill" [style.width.%]="volumePercent()"></span>
+            <span class="sc-volknob" [style.left.%]="volumePercent()"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-time">{{ currentLabel() }} <span>/ {{ durationLabel() }}</span></div>
+      <div class="sc-spacer"></div>
+      <button type="button" class="sc-btn sc-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+      <button type="button" class="sc-btn" aria-label="Tam ekrandan çık" (click)="toggleFullscreen()">⛶</button>
+    </div>
+  }
+</div>

@@ -1,4 +1,20 @@
-<div class="post-card card">
+<!--
+  Gamer Feed.dc.html draws a clip post as one full-bleed stage: no separate
+  header row, no caption paragraph and no interaction bar — the author, the
+  vote and the comment toggle all live on the overlay, and the thread opens
+  underneath it. Every other post type keeps the standard card chrome.
+-->
+<div class="post-card" [class.card]="!isClipCard()" [class.post-card-clip]="isClipCard()">
+  @if (isClipCard()) {
+    <app-clip-stage
+      [post]="post()"
+      variant="feed"
+      [squadName]="squadName()"
+      [commentCount]="commentCount()"
+      [commentsActive]="isCommentsOpen()"
+      (toggleComments)="toggleComments()"
+      (openFull)="openInClipsPage()" />
+  } @else {
   <div class="post-header">
     <a [routerLink]="['/profile', post().userId]" class="avatar">{{ post().username.charAt(0).toUpperCase() }}</a>
     <div class="post-meta">
@@ -198,9 +214,17 @@
       Share
     </button>
   </div>
+  }
 
   @if (isCommentsOpen()) {
-    <div class="post-comments">
+    <div class="post-comments" [class.post-comments-clip]="isClipCard()">
+      @if (isClipCard()) {
+        <div class="clip-thread-head">
+          <span class="clip-thread-title">Yorumlar</span>
+          <a routerLink="/clips" [queryParams]="{ clip: post().id }" class="clip-thread-link">Klip sayfasında aç →</a>
+        </div>
+      }
+
       @if (isLoadingComments() && comments().length === 0) {
         <p class="text-muted comments-status">Loading comments...</p>
       }

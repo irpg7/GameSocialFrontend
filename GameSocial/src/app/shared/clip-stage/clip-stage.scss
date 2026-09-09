@@ -1,0 +1,557 @@
+@use '../../../styles/variables' as *;
+
+// Geometry, type scale and overlay tints below are the design's own values
+// (Gamer Feed.dc.html — feed clip card and Clips page hero). Accent/surface
+// colours go through the theme tokens so the app stays parametric.
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  background-color: #1b1b21;
+  width: 100%;
+}
+
+:host(.variant-feed) .stage {
+  height: 372px;
+}
+
+:host(.variant-hero) .stage {
+  height: 100%;
+  min-height: 320px;
+}
+
+:host(.is-fullscreen) .stage {
+  height: 100%;
+  background-color: #000;
+}
+
+.stage-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background-color: #0e0e12;
+}
+
+:host(.is-fullscreen) .stage-video {
+  object-fit: contain;
+}
+
+.stage-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 190px;
+  background: linear-gradient(180deg, rgba(10, 10, 12, 0), rgba(10, 10, 12, 0.94));
+  pointer-events: none;
+}
+
+.stage-hit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 132px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:host(.variant-hero) .stage-hit {
+  bottom: 150px;
+}
+
+// ─── Top-left badges ─────────────────────────────────────────────────────
+.stage-badges {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.stage-badge {
+  padding: 6px 10px;
+  border-radius: 9px;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-primary;
+  background-color: rgba(10, 10, 12, 0.7);
+  white-space: nowrap;
+}
+
+.stage-badge-rank {
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.stage-badge-processing {
+  background-color: rgba(10, 10, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+:host(.variant-hero) {
+  .stage-badges {
+    left: 18px;
+    top: 18px;
+  }
+
+  .stage-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    background-color: rgba(10, 10, 12, 0.72);
+  }
+}
+
+// ─── Top-right actions ───────────────────────────────────────────────────
+.stage-actions {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background-color: rgba(10, 10, 12, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13px;
+  font-family: $font-family-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: rgba(10, 10, 12, 0.92);
+  }
+}
+
+.stage-action-text {
+  width: auto;
+  padding: 0 11px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+:host(.variant-hero) {
+  .stage-actions {
+    right: 16px;
+    top: 16px;
+  }
+
+  .stage-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .stage-action-text {
+    width: auto;
+    padding: 0 9px;
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  }
+}
+
+// ─── Centre play button ──────────────────────────────────────────────────
+.stage-play {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: none;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  padding-left: 5px;
+  box-shadow: 0 10px 40px $color-accent-glow;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+:host(.variant-hero) .stage-play {
+  top: 40%;
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+  padding-left: 4px;
+  box-shadow: 0 10px 36px $color-accent-glow;
+}
+
+// ─── Bottom overlay ──────────────────────────────────────────────────────
+.stage-info {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 18px;
+}
+
+.stage-title {
+  font-family: $font-family-secondary;
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: $color-text-primary;
+  text-wrap: pretty;
+}
+
+.stage-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 11px;
+  flex-wrap: wrap;
+}
+
+.stage-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex: none;
+}
+
+.stage-author {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.stage-ago {
+  font-size: 13px;
+  line-height: 18px;
+  color: $color-text-secondary;
+}
+
+.stage-vote,
+.stage-comment {
+  border: 1px solid transparent;
+  padding: 6px 11px;
+  border-radius: 10px;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background-color: rgba(10, 10, 12, 0.6);
+  color: $color-text-primary;
+  white-space: nowrap;
+}
+
+.stage-vote {
+  margin-left: auto;
+
+  &.active {
+    background-color: $color-accent-primary;
+    color: #fff;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+}
+
+.stage-comment.active {
+  background-color: #1b1b21;
+  color: #fff;
+  border-color: #3a3a44;
+}
+
+:host(.variant-hero) {
+  .stage-info {
+    left: 18px;
+    right: 18px;
+    bottom: 14px;
+  }
+
+  .stage-title {
+    font-size: 21px;
+    line-height: 27px;
+    letter-spacing: -0.3px;
+  }
+
+  .stage-meta {
+    gap: 9px;
+    margin-top: 8px;
+  }
+
+  .stage-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+    font-size: 0.75rem;
+  }
+
+  .stage-author {
+    font-size: 13px;
+    line-height: 17px;
+  }
+
+  // The hero's meta row in the design has no age label — the rail carries it.
+  .stage-ago {
+    display: none;
+  }
+
+  .stage-vote,
+  .stage-comment {
+    padding: 5px 9px;
+    border-radius: 9px;
+    font-size: 11px;
+    background-color: rgba(10, 10, 12, 0.55);
+  }
+}
+
+// ─── Scrub bar ───────────────────────────────────────────────────────────
+.stage-scrub {
+  position: relative;
+  margin-top: 12px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+:host(.variant-hero) .stage-scrub {
+  margin-top: 11px;
+}
+
+.stage-track {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.stage-buffered,
+.stage-played {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.stage-buffered {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.stage-played {
+  background-color: $color-accent-primary;
+}
+
+.stage-knob {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.stage-hover {
+  position: absolute;
+  bottom: 17px;
+  transform: translateX(-50%);
+  padding: 3px 6px;
+  border-radius: 7px;
+  background-color: rgba(10, 10, 12, 0.94);
+  border: 1px solid $color-bg-tertiary;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: #fff;
+  pointer-events: none;
+}
+
+.stage-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: #8c8c99;
+}
+
+.stage-now {
+  color: #fff;
+}
+
+// ─── Fullscreen control row (Clip Player.dc.html) ────────────────────────
+.stage-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 14px 12px;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85) 55%);
+}
+
+.sc-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.sc-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.sc-text {
+  width: auto;
+  padding: 0 10px;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sc-volume {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 4px;
+}
+
+.sc-volbar {
+  width: 74px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sc-voltrack {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sc-volfill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 99px;
+  background-color: #fff;
+  pointer-events: none;
+}
+
+.sc-volknob {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: #fff;
+  pointer-events: none;
+}
+
+.sc-time {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 6px;
+  white-space: nowrap;
+
+  span {
+    color: #8b8b96;
+  }
+}
+
+.sc-spacer {
+  flex: 1 1 20px;
+}
+
+// The fullscreen control row owns the clock, so the compact overlay drops its
+// own clock and lifts clear of the row.
+:host(.is-fullscreen) {
+  .stage-times {
+    display: none;
+  }
+
+  .stage-info {
+    bottom: 66px;
+  }
+
+  .stage-hit {
+    bottom: 190px;
+  }
+}
