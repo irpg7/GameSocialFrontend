@@ -37,6 +37,127 @@
   }
 }
 
+// ─── Photo card ───────────────────────────────────────────────────
+// Gamer Feed.dc.html's eight-photo post card: a full-bleed article with one
+// compact meta row above the grid and the glyph action bar below it. Geometry
+// and type scale are the design's; colours go through the theme tokens.
+.post-card-photo {
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.post-card.post-card-photo .post-comments {
+  margin-top: 0;
+  padding: 16px 18px 18px;
+}
+
+.photo-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 16px 18px 12px;
+}
+
+.photo-avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 11px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.photo-author {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.photo-meta {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.photo-squad {
+  padding: 3px 8px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+}
+
+.photo-caption {
+  padding: 0 18px 12px;
+  font-size: 15px;
+  line-height: 23px;
+  font-weight: 500;
+  color: $color-text-primary;
+}
+
+.photo-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 18px 13px;
+}
+
+.photo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  line-height: 14px;
+  // The design weights the vote pill heavier than the rest of the bar.
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &.photo-vote,
+  &.active {
+    font-weight: 700;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.14);
+    color: $color-accent-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.photo-action-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .post-card {
   transition: border-color $transition-speed-fast;
 
@@ -144,40 +265,6 @@
 
   .post-video-wrapper {
     position: relative;
-  }
-
-  // ─── Screenshots grid ──────────────────────────────────────────
-  .post-screenshot-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 3px;
-    border-radius: $border-radius-md;
-    overflow: hidden;
-    margin-bottom: $spacing-md;
-  }
-
-  .post-screenshot-tile {
-    position: relative;
-    aspect-ratio: 4 / 3;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-  }
-
-  .post-screenshot-more {
-    position: absolute;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    font-weight: 700;
   }
 
   // ─── Devlog build tags + patch lines ────────────────────────────

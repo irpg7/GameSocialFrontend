@@ -1,0 +1,115 @@
+@use '../../../styles/variables' as *;
+
+// Geometry below is Gamer Feed.dc.html's own: 3px gutters, a 236px band, and
+// the eight-photo card's 1.6/1/1 columns with the lead tile spanning both
+// rows. `data-count` is the *visible* tile count, capped at five.
+
+:host {
+  display: block;
+}
+
+.photo-grid {
+  display: grid;
+  gap: 3px;
+  height: 236px;
+  // Shows through the gutters, matching the design's near-black page ground.
+  background-color: #0a0a0c;
+}
+
+// A lone photo gets the full width and a taller band — nothing to sit beside it.
+:host([data-count='1']) .photo-grid {
+  grid-template-columns: 1fr;
+  height: 300px;
+}
+
+:host([data-count='2']) .photo-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+// The design's three-tile card: one lead tile, two stacked beside it.
+:host([data-count='3']) .photo-grid {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-auto-flow: column;
+
+  .photo-tile:first-child {
+    grid-row: span 2;
+  }
+}
+
+:host([data-count='4']) .photo-grid {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+// The eight-photo card: lead tile plus two columns of two, filled column-first
+// so the reading order matches the design's markup.
+:host([data-count='5']) .photo-grid {
+  grid-template-columns: 1.6fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-auto-flow: column;
+
+  .photo-tile:first-child {
+    grid-row: span 2;
+  }
+}
+
+.photo-tile {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background-color: #1b1b21;
+  cursor: zoom-in;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: -2px;
+  }
+}
+
+.photo-tile-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: rgba(10, 10, 12, 0.75);
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.photo-tile-more {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(10, 10, 12, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .photo-grid {
+    height: 190px;
+  }
+
+  :host([data-count='1']) .photo-grid {
+    height: 230px;
+  }
+}

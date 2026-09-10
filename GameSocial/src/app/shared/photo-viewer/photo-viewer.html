@@ -1,0 +1,49 @@
+<div class="viewer" role="dialog" aria-modal="true" aria-label="Photos" (click)="onBackdrop($event)" (keydown)="onKeydown($event)">
+  <div class="viewer-head">
+    <a [routerLink]="['/profile', userId()]" class="viewer-avatar" (click)="closed.emit()">{{ initial() }}</a>
+    <a [routerLink]="['/profile', userId()]" class="viewer-author" (click)="closed.emit()">{{ username() }}</a>
+    @if (hasMany()) {
+      <span class="viewer-index">{{ indexLabel() }}</span>
+    }
+    <div class="viewer-head-actions">
+      <a [href]="active().url" class="viewer-action" target="_blank" rel="noopener">↓ Full size</a>
+      <button #closeButton type="button" class="viewer-close" aria-label="Close photo viewer" (click)="closed.emit()">✕</button>
+    </div>
+  </div>
+
+  <div class="viewer-body">
+    @if (hasMany()) {
+      <button type="button" class="viewer-nav" aria-label="Previous photo" (click)="prev()">◂</button>
+    }
+
+    <figure class="viewer-frame">
+      <img [src]="active().url" [alt]="caption() || 'Photo ' + indexLabel()" />
+      <figcaption class="viewer-tags">
+        @if (gameName(); as game) {
+          <span class="viewer-tag viewer-tag-game">{{ game }}</span>
+        }
+        <span class="viewer-tag">{{ kindLabel() }}</span>
+      </figcaption>
+    </figure>
+
+    @if (hasMany()) {
+      <button type="button" class="viewer-nav" aria-label="Next photo" (click)="next()">▸</button>
+    }
+  </div>
+
+  @if (hasMany()) {
+    <div class="viewer-thumbs">
+      @for (photo of photos(); track photo.id; let index = $index) {
+        <button
+          type="button"
+          class="viewer-thumb"
+          [class.active]="index === current()"
+          [attr.aria-current]="index === current() ? 'true' : null"
+          [attr.aria-label]="'Show photo ' + (index + 1)"
+          (click)="select(index)">
+          <img [src]="photo.url" alt="" loading="lazy" />
+        </button>
+      }
+    </div>
+  }
+</div>

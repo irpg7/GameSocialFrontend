@@ -32,13 +32,9 @@
     @if (isProcessing()) {
       <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
     }
-    <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
-    @if (variant() === 'hero') {
+    <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>   
       <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
-      <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
-    } @else {
-      <button type="button" class="stage-action stage-action-text" (click)="openFull.emit()">Tam ekran oynatıcı</button>
-    }
+      <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>    
   </div>
 
   @if (!playing()) {

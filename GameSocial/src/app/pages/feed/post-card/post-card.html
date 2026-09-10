@@ -2,9 +2,15 @@
   Gamer Feed.dc.html draws a clip post as one full-bleed stage: no separate
   header row, no caption paragraph and no interaction bar — the author, the
   vote and the comment toggle all live on the overlay, and the thread opens
-  underneath it. Every other post type keeps the standard card chrome.
+  underneath it. A photo post is full-bleed too, but keeps a compact meta row
+  above the grid and the glyph action bar below it. Every other post type
+  keeps the standard card chrome.
 -->
-<div class="post-card" [class.card]="!isClipCard()" [class.post-card-clip]="isClipCard()">
+<div
+  class="post-card"
+  [class.card]="!isClipCard() && !isPhotoCard()"
+  [class.post-card-clip]="isClipCard()"
+  [class.post-card-photo]="isPhotoCard()">
   @if (isClipCard()) {
     <app-clip-stage
       [post]="post()"
@@ -14,6 +20,59 @@
       [commentsActive]="isCommentsOpen()"
       (toggleComments)="toggleComments()"
       (openFull)="openInClipsPage()" />
+  } @else if (isPhotoCard()) {
+    <div class="photo-head">
+      <a [routerLink]="['/profile', post().userId]" class="photo-avatar">{{ authorInitial() }}</a>
+      <a [routerLink]="['/profile', post().userId]" class="photo-author">{{ post().username }}</a>
+      <span class="photo-meta">{{ photoMeta() }}</span>
+      @if (squadName(); as name) {
+        <a [routerLink]="['/squads', post().squadId]" class="photo-squad">Posted to {{ name }}</a>
+      }
+    </div>
+
+    @if (post().caption) {
+      <p class="photo-caption">{{ post().caption }}</p>
+    }
+
+    <app-photo-grid
+      [photos]="photos()"
+      [alt]="post().caption || 'Photo from ' + post().username"
+      [badge]="photoKind()"
+      (open)="openViewer($event)" />
+
+    <div class="photo-actions">
+      <button
+        type="button"
+        class="photo-action photo-vote"
+        [class.active]="liked()"
+        [disabled]="isTogglingLike()"
+        [attr.aria-label]="(liked() ? 'Liked' : 'Like') + ' · ' + likeCount()"
+        (click)="toggleLike()">
+        ▲ <span class="photo-action-count">{{ likeCount() }}</span>
+      </button>
+      <button
+        type="button"
+        class="photo-action"
+        [class.active]="isCommentsOpen()"
+        [attr.aria-expanded]="isCommentsOpen()"
+        [attr.aria-label]="'Comments · ' + commentCount()"
+        (click)="toggleComments()">
+        💬 <span class="photo-action-count">{{ commentCount() }}</span>
+      </button>
+      <!-- Share is out of scope — backend has no share/repost feature yet. -->
+      <button type="button" class="photo-action" disabled title="Share — coming soon">↗ Share</button>
+    </div>
+
+    @if (viewerIndex() !== null) {
+      <app-photo-viewer
+        [photos]="photos()"
+        [startIndex]="viewerIndex()!"
+        [username]="post().username"
+        [userId]="post().userId"
+        [gameName]="post().gameName"
+        [caption]="post().caption"
+        (closed)="closeViewer()" />
+    }
   } @else {
   <div class="post-header">
     <a [routerLink]="['/profile', post().userId]" class="avatar">{{ post().username.charAt(0).toUpperCase() }}</a>
@@ -124,18 +183,8 @@
     }
   }
 
-  @if (post().postType === 'Screenshots' && post().media.length > 0) {
-    <div class="post-screenshot-grid">
-      @for (media of visibleScreenshots(); track media.id; let i = $index; let last = $last) {
-        <div class="post-screenshot-tile">
-          <img [src]="media.url" [alt]="post().caption || 'Screenshot'" />
-          @if (last && hiddenScreenshotCount() > 0) {
-            <div class="post-screenshot-more">+{{ hiddenScreenshotCount() }}</div>
-          }
-        </div>
-      }
-    </div>
-  } @else if (post().media.length > 0) {
+  <!-- Photo posts never reach here: they render the design's photo card above. -->
+  @if (post().media.length > 0) {
     <div class="post-media">
       @for (media of post().media; track media.id) {
         @if (media.mediaType === 'Photo') {

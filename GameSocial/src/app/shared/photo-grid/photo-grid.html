@@ -1,0 +1,13 @@
+<div class="photo-grid">
+  @for (photo of visible(); track photo.id; let index = $index; let first = $first; let last = $last) {
+    <button type="button" class="photo-tile" [attr.aria-label]="tileLabel(index)" (click)="open.emit(index)">
+      <img [src]="photo.url" [alt]="alt()" loading="lazy" />
+      @if (first && badge()) {
+        <span class="photo-tile-badge">{{ badge() }}</span>
+      }
+      @if (last && hiddenCount() > 0) {
+        <span class="photo-tile-more" aria-hidden="true">+{{ hiddenCount() }}</span>
+      }
+    </button>
+  }
+</div>

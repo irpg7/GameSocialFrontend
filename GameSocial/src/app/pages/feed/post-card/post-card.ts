@@ -14,12 +14,13 @@ import { NotificationService } from '../../../services/notification/notification
 import { MeService } from '../../../services/me/me.service';
 import { StarRating } from '../../../shared/star-rating/star-rating';
 import { ClipStage } from '../../../shared/clip-stage/clip-stage';
-
-const MAX_VISIBLE_SCREENSHOTS = 4;
+import { PhotoGrid } from '../../../shared/photo-grid/photo-grid';
+import { PhotoViewer } from '../../../shared/photo-viewer/photo-viewer';
+import { formatTimeAgo } from '../../../shared/clip-format';
 
 @Component({
   selector: 'app-post-card',
-  imports: [DatePipe, RouterLink, FormsModule, StarRating, ClipStage],
+  imports: [DatePipe, RouterLink, FormsModule, StarRating, ClipStage, PhotoGrid, PhotoViewer],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
 })
@@ -66,8 +67,31 @@ export class PostCard {
     () => this.post().postType === 'Clip' && this.post().media.some((media) => media.mediaType === 'Video'),
   );
 
-  protected readonly visibleScreenshots = computed(() => this.post().media.slice(0, MAX_VISIBLE_SCREENSHOTS));
-  protected readonly hiddenScreenshotCount = computed(() => Math.max(0, this.post().media.length - MAX_VISIBLE_SCREENSHOTS));
+  protected readonly photos = computed(() => this.post().media.filter((media) => media.mediaType === 'Photo'));
+
+  /**
+   * A Screenshots post carrying photos renders the design's photo card — the
+   * full-bleed article whose adaptive grid opens into the lightbox — instead
+   * of the standard card chrome. One with no usable photo (a failed upload)
+   * falls back to the standard card rather than showing an empty grid.
+   */
+  protected readonly isPhotoCard = computed(() => this.post().postType === 'Screenshots' && this.photos().length > 0);
+
+  /** Which tile the lightbox opened on; null while it is closed. */
+  protected readonly viewerIndex = signal<number | null>(null);
+
+  /** The design's lead-tile chip, and the mode word inside its meta line. */
+  protected readonly photoKind = computed(() => (this.photos()[0]?.photoType === 'ConceptArt' ? 'concept art' : 'photo mode'));
+
+  /** `8 photos · Vermillion Loop, photo mode · 5 h ago` — the design's meta line. */
+  protected readonly photoMeta = computed(() => {
+    const count = this.photos().length;
+    const game = this.post().gameName;
+    const subject = game ? `${game}, ${this.photoKind()}` : this.photoKind();
+    return `${count} photo${count === 1 ? '' : 's'} · ${subject} · ${formatTimeAgo(this.post().createdAt)}`;
+  });
+
+  protected readonly authorInitial = computed(() => this.post().username.charAt(0).toUpperCase());
 
   /**
    * Only resolvable when the viewer is a member of the tagged squad — the
@@ -82,6 +106,15 @@ export class PostCard {
     }
     return this.mySquads().find((squad) => squad.id === squadId)?.name;
   });
+
+  /** Opens the design's lightbox on the tile that was clicked. */
+  openViewer(index: number): void {
+    this.viewerIndex.set(index);
+  }
+
+  closeViewer(): void {
+    this.viewerIndex.set(null);
+  }
 
   /** The clip card's "Tam ekran oynatıcı" action — hands the clip to the Clips page player. */
   openInClipsPage(): void {

@@ -1,0 +1,225 @@
+@use '../../../styles/variables' as *;
+
+// Geometry, chip sizes and overlay tints below are Gamer Feed.dc.html's own
+// `phViewer` values; accent/surface colours go through the theme tokens.
+
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(6, 6, 8, 0.93);
+  color: $color-text-primary;
+}
+
+// ─── Head ────────────────────────────────────────────────────────
+.viewer-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 24px;
+}
+
+.viewer-avatar {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 11px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.viewer-author {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.viewer-index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+.viewer-head-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewer-action {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: 11px;
+  background: none;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 30px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+}
+
+.viewer-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: 11px;
+  background-color: $color-bg-primary;
+  color: $color-text-primary;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-primary;
+  }
+}
+
+// ─── Frame ───────────────────────────────────────────────────────
+.viewer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.viewer-nav {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: 15px;
+  background-color: $color-bg-secondary;
+  color: $color-text-primary;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-primary;
+  }
+}
+
+.viewer-frame {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: #101014;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+.viewer-tags {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 7px;
+}
+
+.viewer-tag {
+  padding: 5px 10px;
+  border-radius: 9px;
+  background-color: rgba(10, 10, 12, 0.75);
+  color: $color-text-secondary;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.viewer-tag-game {
+  color: #fff;
+}
+
+// ─── Thumbnail strip ─────────────────────────────────────────────
+.viewer-thumbs {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+.viewer-thumb {
+  width: 86px;
+  height: 52px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: $color-bg-secondary;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity $transition-speed-fast;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &.active {
+    border-color: $color-accent-primary;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .viewer-body {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .viewer-thumb {
+    width: 60px;
+    height: 38px;
+  }
+}
