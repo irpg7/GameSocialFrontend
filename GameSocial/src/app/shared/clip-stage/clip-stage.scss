@@ -185,7 +185,7 @@
 .stage-play {
   position: absolute;
   left: 50%;
-  top: 42%;
+  top: 44%;
   transform: translate(-50%, -50%);
   width: 76px;
   height: 76px;
@@ -204,7 +204,7 @@
 }
 
 :host(.variant-hero) .stage-play {
-  top: 40%;
+  top: 50%;
   width: 64px;
   height: 64px;
   font-size: 22px;
