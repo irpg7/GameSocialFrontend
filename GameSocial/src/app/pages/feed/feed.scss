@@ -1,16 +1,17 @@
 @use '../../../styles/variables' as *;
 
+// Column widths and gutter are the design's onFeed layout: 212 / 660 / 288
+// with a 26px gap.
 .feed-page {
-  max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 260px minmax(0, 680px) 280px;
-  gap: $spacing-lg;
+  grid-template-columns: 255px minmax(0, 720px) 275px;
+  gap: 40px;
   align-items: start;
   justify-content: center;
 
   @media (max-width: 1240px) {
-    grid-template-columns: 260px minmax(0, 680px);
+    grid-template-columns: 212px minmax(0, 660px);
 
     .feed-col-rail {
       display: none;
@@ -18,7 +19,7 @@
   }
 
   @media (max-width: 900px) {
-    grid-template-columns: minmax(0, 680px);
+    grid-template-columns: minmax(0, 660px);
 
     .feed-col-sidebar {
       display: none;
@@ -33,30 +34,37 @@
   min-width: 0;
 }
 
+// The design has no segmented control anywhere; every filter row in it is a
+// row of chips with a solid red selection.
 .feed-tabs {
   display: flex;
-  gap: $spacing-xs;
-  background-color: $color-bg-tertiary;
-  border-radius: $border-radius-md;
-  padding: 3px;
+  align-items: center;
+  gap: 8px;
 }
 
 .feed-tab {
-  flex: 1;
-  border: none;
-  background: none;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
   color: $color-text-secondary;
   font-family: $font-family-primary;
   font-weight: 600;
-  font-size: 0.88rem;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-sm;
+  font-size: 13px;
+  line-height: 14px;
+  padding: 8px 13px;
+  border-radius: $border-radius-md;
   cursor: pointer;
-  transition: all $transition-speed-fast;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(.active) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
 
   &.active {
     background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
     color: #fff;
+    font-weight: 700;
   }
 }
 

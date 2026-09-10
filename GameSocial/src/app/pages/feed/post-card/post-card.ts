@@ -67,6 +67,33 @@ export class PostCard {
     () => this.post().postType === 'Clip' && this.post().media.some((media) => media.mediaType === 'Video'),
   );
 
+  /**
+   * A review renders the design's two-column article: the score, stars and
+   * playtime live in a narrow left gutter, everything else to the right of
+   * it. A Review post with no review payload keeps the standard chrome.
+   */
+  protected readonly isReviewCard = computed(() => this.post().postType === 'Review' && this.post().review != null);
+
+  /** `reviewed Ashfall · 1 h ago` — the design's review meta line. */
+  protected readonly reviewMeta = computed(() => {
+    const game = this.post().gameName;
+    return `${game ? `reviewed ${game}` : 'reviewed'} · ${formatTimeAgo(this.post().createdAt)}`;
+  });
+
+  /** `finished` / `still playing` / `dropped`, under the hours in the score gutter. */
+  protected readonly playStatusLabel = computed(() => {
+    switch (this.post().review?.playStatus) {
+      case 'Finished':
+        return 'finished';
+      case 'StillPlaying':
+        return 'still playing';
+      case 'Dropped':
+        return 'dropped';
+      default:
+        return '';
+    }
+  });
+
   protected readonly photos = computed(() => this.post().media.filter((media) => media.mediaType === 'Photo'));
 
   /**

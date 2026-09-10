@@ -1,13 +1,15 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/form-controls';
 
+// Column widths, gutters and rail metrics are the design's onReviews state.
 .reviews-page {
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 680px) 288px;
-  gap: $spacing-lg;
+  grid-template-columns: minmax(0, 760px) 288px;
+  gap: $spacing-xl;
   align-items: start;
+  justify-content: center;
 
   @media (max-width: 960px) {
     grid-template-columns: minmax(0, 1fr);
@@ -21,21 +23,11 @@
   min-width: 0;
 }
 
-.reviews-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-md;
-
-  h2 {
-    margin-bottom: 0;
-  }
-}
-
 .filter-row {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: $spacing-xs;
+  gap: $spacing-sm;
 }
 
 .posts-list {
@@ -66,7 +58,7 @@
 .reviews-rail {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: $spacing-md;
   position: sticky;
   top: 0;
 }
@@ -74,8 +66,14 @@
 .panel-card {
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-radius: $border-radius-lg;
-  padding: $spacing-lg;
+  border-radius: $border-radius-xl;
+  padding: $spacing-md;
+
+  // The design lights the top rail panel the same way as the feed's XP card.
+  &:first-child {
+    background: linear-gradient(180deg, rgba($color-accent-primary, 0.1), $color-bg-secondary);
+    border-color: $color-bg-tertiary;
+  }
 }
 
 .panel-card-header {
@@ -83,11 +81,45 @@
 
   h4 {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 11px;
+    line-height: 14px;
     font-weight: 700;
     color: $color-text-secondary;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 1.2px;
+  }
+}
+
+.rail-note {
+  font-size: 12px;
+  line-height: 18px;
+  color: $color-text-secondary;
+  margin-top: 12px;
+}
+
+.rail-xp {
+  font-family: $font-family-mono;
+  font-weight: 700;
+  color: $color-accent-primary;
+}
+
+// The design's small rail action — a 10px-radius pill, not a full button.
+.rail-pill {
+  flex: none;
+  padding: 7px 11px;
+  border: none;
+  border-radius: $border-radius-md;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-secondary;
   }
 }
 
@@ -102,12 +134,30 @@
 .waiting-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: $spacing-sm;
+  gap: 11px;
+}
+
+// Stands in for the design's 34x46 box-art thumbnail.
+.waiting-cover {
+  width: 34px;
+  height: 46px;
+  flex: none;
+  border-radius: $border-radius-sm;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .waiting-name {
-  font-size: 0.88rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
   color: $color-text-primary;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -123,7 +173,7 @@
 .reviewer-icon {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: $border-radius-md;
   background-color: $color-bg-tertiary;
   color: $color-text-primary;
   display: flex;
@@ -143,7 +193,8 @@
 
 .reviewer-name {
   font-size: 0.88rem;
-  font-weight: 600;
+  line-height: 17px;
+  font-weight: 700;
   color: $color-text-primary;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,35 +202,33 @@
 }
 
 .reviewer-meta {
-  font-size: 0.72rem;
+  font-size: 11px;
+  line-height: 15px;
 }
 
 .follow-toggle {
   flex-shrink: 0;
-  border: 1px solid $color-border;
+  border: none;
   background: none;
-  color: $color-text-secondary;
+  padding: 0;
+  color: $color-accent-primary;
   font-family: $font-family-primary;
-  font-weight: 600;
-  font-size: 0.72rem;
-  padding: 3px $spacing-sm;
-  border-radius: $border-radius-full;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
   cursor: pointer;
-  transition: all $transition-speed-fast;
+  transition: color $transition-speed-fast;
 
   &:hover {
-    border-color: $color-accent-primary;
-    color: $color-accent-primary;
+    color: $color-accent-secondary;
   }
 
   &.following {
-    background-color: rgba($color-accent-primary, 0.12);
-    border-color: $color-accent-primary;
-    color: $color-accent-primary;
+    color: $color-text-secondary;
   }
 }
 
 .info-text {
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 19px;
 }

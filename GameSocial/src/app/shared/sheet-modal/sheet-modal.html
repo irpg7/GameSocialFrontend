@@ -1,8 +1,13 @@
 <div class="sheet-backdrop" (click)="closed.emit()">
-  <div class="sheet-panel card" role="dialog" aria-modal="true" [attr.aria-label]="title()" (click)="$event.stopPropagation()">
+  <div class="sheet-panel" role="dialog" aria-modal="true" [attr.aria-label]="title()" (click)="$event.stopPropagation()">
     <div class="sheet-header">
-      <h3>{{ title() }}</h3>
-      <button type="button" class="sheet-close" aria-label="Close" (click)="closed.emit()">&times;</button>
+      <div class="sheet-heading">
+        <h3>{{ title() }}</h3>
+        @if (subtitle(); as sub) {
+          <p class="sheet-subtitle">{{ sub }}</p>
+        }
+      </div>
+      <button type="button" class="sheet-close" aria-label="Close" (click)="closed.emit()">&#10005;</button>
     </div>
     <div class="sheet-body">
       <ng-content></ng-content>

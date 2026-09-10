@@ -1,34 +1,29 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { GameService } from '../../services/game/game.service';
 import { GameModel } from '../../models/game.model';
 
 @Component({
   selector: 'app-games',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [],
   templateUrl: './games.html',
-  styleUrl: './games.scss'
+  styleUrl: './games.scss',
 })
 export class Games implements OnInit {
   private gameService = inject(GameService);
 
-  games: GameModel[] = [];
-  filteredGames: GameModel[] = [];
-  searchQuery: string = '';
+  protected readonly games = signal<GameModel[]>([]);
+  protected readonly searchQuery = signal('');
 
-  ngOnInit() {
-    this.gameService.getGames().subscribe(data => {
-      this.games = data;
-      this.filteredGames = data;
+  protected readonly filteredGames = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const games = this.games();
+    return query ? games.filter((game) => game.name.toLowerCase().includes(query)) : games;
+  });
+
+  ngOnInit(): void {
+    this.gameService.getGames().subscribe({
+      next: (games) => this.games.set(games),
+      error: () => void 0,
     });
-  }
-
-  onSearch() {
-    const query = this.searchQuery.toLowerCase().trim();
-    this.filteredGames = !query
-      ? this.games
-      : this.games.filter(g => g.name.toLowerCase().includes(query));
   }
 }

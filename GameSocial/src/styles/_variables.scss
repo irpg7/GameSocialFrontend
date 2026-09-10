@@ -21,6 +21,9 @@ $color-border: #323139;
 // ─── Typography ──────────────────────────────────────────────────────────────
 $font-family-primary:   'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 $font-family-secondary: 'Outfit', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+// The design sets every number — counts, XP, scores, timers, rarity — in a
+// monospace face so digits line up between rows.
+$font-family-mono:      ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 // ─── Spacing ─────────────────────────────────────────────────────────────────
 $spacing-xs:  0.25rem;
@@ -31,10 +34,14 @@ $spacing-xl:  2rem;
 $spacing-2xl: 3rem;
 
 // ─── Border Radius ───────────────────────────────────────────────────────────
-$border-radius-sm:   4px;
-$border-radius-md:   8px;
-$border-radius-lg:   12px;
-$border-radius-xl:   16px;
+// The scale is Gamer Feed.dc.html's: small controls sit at 10-12px, inner
+// cards at 14-16px, page panels at 20px and modal sheets at 26px. The app
+// used to run 4/8/12/16, which read noticeably sharper than the design.
+$border-radius-sm:   7px;
+$border-radius-md:   11px;
+$border-radius-lg:   14px;
+$border-radius-xl:   20px;
+$border-radius-sheet: 26px;
 $border-radius-full: 9999px;
 
 // ─── Transitions ─────────────────────────────────────────────────────────────

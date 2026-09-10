@@ -44,6 +44,8 @@ export class Trophies implements OnInit {
   protected readonly meService = inject(MeService);
 
   protected readonly xpAwards = XP_AWARDS;
+  /** The design labels the showcase "N of 3 slots"; the backend's slots are 1-3. */
+  protected readonly showcaseSlotCount = 3;
 
   protected readonly achievements = signal<AchievementModel[]>([]);
   protected readonly isLoading = signal(true);

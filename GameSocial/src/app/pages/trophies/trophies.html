@@ -1,9 +1,9 @@
 <div class="trophies-page">
   <div class="trophies-main">
-    <div class="trophies-header">
+    <div class="page-head">
       <div>
         <h2>Trophies</h2>
-        <p class="text-muted">{{ earnedCount() }} earned · {{ inProgressList().length }} in progress</p>
+        <p class="page-sub">{{ earnedCount() }} earned · {{ inProgressList().length }} in progress · rarity shown for every one.</p>
       </div>
       <button type="button" class="btn btn-secondary" (click)="toggleEditMode()">
         {{ editMode() ? 'Done editing' : 'Edit showcase' }}
@@ -15,22 +15,26 @@
       @for (game of games(); track game.id) {
         <button type="button" class="chip" [class.active]="gameFilter() === game.id" (click)="setGameFilter(game.id)">{{ game.name }}</button>
       }
+      <span class="chip-divider" aria-hidden="true"></span>
       <button type="button" class="chip sort-chip" [class.active]="sortMode() === 'rarest'" (click)="toggleSort()">Rarest first</button>
     </div>
 
     @if (isLoading()) {
       <p class="text-muted">Loading trophies...</p>
     } @else {
-      <section class="trophy-section">
-        <h3>Showcase</h3>
+      <section class="showcase-panel">
+        <div class="showcase-panel-head">
+          <span class="section-head-label">Showcase — pinned to your profile</span>
+          <span class="section-head-note">{{ showcased().length }} of {{ showcaseSlotCount }} slots</span>
+        </div>
         @if (showcased().length > 0) {
           <div class="showcase-grid">
             @for (achievement of showcased(); track achievement.id) {
-              <div class="trophy-card showcase-card" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
-                <span class="trophy-icon">{{ achievement.icon }}</span>
+              <div class="trophy-tile trophy-tile-pinned" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
+                <span class="trophy-icon trophy-icon-accent">{{ achievement.icon }}</span>
                 <span class="trophy-name">{{ achievement.name }}</span>
-                <span class="text-muted trophy-desc">{{ achievement.description }}</span>
-                <span class="trophy-rarity">{{ achievement.rarityPercent }}% of players</span>
+                <span class="trophy-desc">{{ achievement.description }}</span>
+                <span class="trophy-rarity trophy-rarity-accent">{{ achievement.rarityPercent }}% have this</span>
                 @if (editMode()) {
                   <span class="trophy-unpin">Unpin</span>
                 }
@@ -42,51 +46,56 @@
         }
       </section>
 
-      <section class="trophy-section">
-        <h3>In progress</h3>
-        @if (inProgressList().length > 0) {
-          <div class="progress-list">
-            @for (achievement of inProgressList(); track achievement.id) {
-              <div class="trophy-card progress-card">
-                <span class="trophy-icon">{{ achievement.icon }}</span>
-                <div class="progress-card-body">
-                  <div class="progress-card-header">
-                    <span class="trophy-name">{{ achievement.name }}</span>
-                    <span class="text-muted">{{ progressPercent(achievement) }}%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div class="progress-bar-fill" [style.width.%]="progressPercent(achievement)"></div>
-                  </div>
-                  <span class="text-muted trophy-to-go">{{ progressToGo(achievement) }} to go</span>
+      <div class="section-head">
+        <span class="section-head-label">In progress</span>
+        <span class="section-head-rule"></span>
+        <span class="section-head-note">Closest first</span>
+      </div>
+
+      @if (inProgressList().length > 0) {
+        <div class="progress-list">
+          @for (achievement of inProgressList(); track achievement.id; let first = $first) {
+            <div class="progress-row" [class.progress-row-lead]="first">
+              <span class="trophy-icon trophy-icon-sm" [class.trophy-icon-accent]="first">{{ achievement.icon }}</span>
+              <div class="progress-row-body">
+                <div class="progress-row-head">
+                  <span class="trophy-name">{{ achievement.name }}</span>
+                  <span class="trophy-rarity">{{ achievement.rarityPercent }}% have this</span>
+                </div>
+                <p class="progress-row-desc">{{ achievement.description }} — {{ progressToGo(achievement) }} to go</p>
+                <div class="progress-bar">
+                  <div class="progress-bar-fill" [style.width.%]="progressPercent(achievement)"></div>
                 </div>
               </div>
-            }
-          </div>
-        } @else {
-          <p class="text-muted trophy-empty">No achievements in progress yet.</p>
-        }
-      </section>
+              <span class="progress-percent" [class.accent]="first">{{ progressPercent(achievement) }}%</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="text-muted trophy-empty">No achievements in progress yet.</p>
+      }
 
-      <section class="trophy-section">
-        <h3>Recently earned</h3>
-        @if (recentlyEarned().length > 0) {
-          <div class="showcase-grid">
-            @for (achievement of recentlyEarned(); track achievement.id) {
-              <div class="trophy-card" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
-                <span class="trophy-icon">{{ achievement.icon }}</span>
-                <span class="trophy-name">{{ achievement.name }}</span>
-                <span class="text-muted trophy-desc">{{ achievement.description }}</span>
-                <span class="trophy-rarity">{{ achievement.rarityPercent }}% of players</span>
-                @if (editMode()) {
-                  <span class="trophy-unpin">{{ achievement.showcaseSlot != null ? 'Unpin' : 'Pin to showcase' }}</span>
-                }
-              </div>
-            }
-          </div>
-        } @else {
-          <p class="text-muted trophy-empty">No trophies earned yet.</p>
-        }
-      </section>
+      <div class="section-head">
+        <span class="section-head-label">Recently earned</span>
+        <span class="section-head-rule"></span>
+      </div>
+
+      @if (recentlyEarned().length > 0) {
+        <div class="earned-grid">
+          @for (achievement of recentlyEarned(); track achievement.id) {
+            <div class="trophy-tile trophy-tile-earned" [class.editable]="editMode()" (click)="onAchievementClick(achievement)">
+              <span class="trophy-icon trophy-icon-sm" [class.trophy-icon-accent]="achievement.showcaseSlot != null">{{ achievement.icon }}</span>
+              <span class="trophy-name">{{ achievement.name }}</span>
+              <span class="trophy-desc">{{ achievement.description }} · {{ achievement.rarityPercent }}% have this</span>
+              @if (editMode()) {
+                <span class="trophy-unpin">{{ achievement.showcaseSlot != null ? 'Unpin' : 'Pin to showcase' }}</span>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="text-muted trophy-empty">No trophies earned yet.</p>
+      }
     }
   </div>
 

@@ -92,10 +92,10 @@
 
 .photo-squad {
   padding: 3px 8px;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba($color-accent-primary, 0.3);
   border-radius: 8px;
-  background-color: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+  background-color: rgba($color-accent-primary, 0.15);
+  color: $color-accent-primary;
   font-size: 11px;
   line-height: 14px;
   font-weight: 700;
@@ -158,6 +158,150 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+// ─── Review card ──────────────────────────────────────────────────
+// The design's review article: a narrow score gutter on the left, the write-up
+// and its action pills on the right, inside one 20px-radius padded panel.
+.review-layout {
+  display: flex;
+  gap: 18px;
+}
+
+.review-score-col {
+  width: 70px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.review-score {
+  font-family: $font-family-mono;
+  font-size: 22px;
+  line-height: 24px;
+  font-weight: 800;
+  color: $color-accent-primary;
+}
+
+.review-hours {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  text-align: center;
+}
+
+.review-body-col {
+  min-width: 0;
+  flex: 1;
+}
+
+.review-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-avatar {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: $border-radius-sm;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.review-author {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.review-meta {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.review-tag {
+  padding: 4px 8px;
+  border-radius: $border-radius-sm;
+  background-color: $color-bg-primary;
+  color: $color-text-secondary;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 600;
+}
+
+.review-headline {
+  font-family: $font-family-primary;
+  font-size: 19px;
+  line-height: 26px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: $color-text-primary;
+  margin: 9px 0 0;
+}
+
+.review-text {
+  font-size: 15px;
+  line-height: 23px;
+  font-weight: 500;
+  color: $color-text-primary;
+  margin-top: 6px;
+}
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.review-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: none;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-primary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-bg-tertiary;
+  }
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.14);
+    color: $color-accent-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .mono {
+    font-family: $font-family-mono;
+  }
+}
+
 .post-card {
   transition: border-color $transition-speed-fast;
 
@@ -174,7 +318,7 @@
     .avatar {
       width: 42px;
       height: 42px;
-      border-radius: 50%;
+      border-radius: $border-radius-md;
       background-color: $color-bg-tertiary;
       color: $color-text-primary;
       display: flex;
@@ -220,9 +364,9 @@
         }
 
         .tag-squad {
-          background-color: rgba(99, 102, 241, 0.15);
-          color: #818cf8;
-          border: 1px solid rgba(99, 102, 241, 0.3);
+          background-color: rgba($color-accent-primary, 0.15);
+          color: $color-accent-primary;
+          border: 1px solid rgba($color-accent-primary, 0.3);
           text-transform: none;
           letter-spacing: normal;
         }
@@ -512,7 +656,7 @@
     .comment-avatar {
       width: 32px;
       height: 32px;
-      border-radius: 50%;
+      border-radius: $border-radius-sm;
       background-color: $color-bg-tertiary;
       color: $color-text-primary;
       display: flex;

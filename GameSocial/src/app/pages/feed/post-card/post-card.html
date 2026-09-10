@@ -10,7 +10,8 @@
   class="post-card"
   [class.card]="!isClipCard() && !isPhotoCard()"
   [class.post-card-clip]="isClipCard()"
-  [class.post-card-photo]="isPhotoCard()">
+  [class.post-card-photo]="isPhotoCard()"
+  [class.post-card-review]="isReviewCard()">
   @if (isClipCard()) {
     <app-clip-stage
       [post]="post()"
@@ -72,6 +73,61 @@
         [gameName]="post().gameName"
         [caption]="post().caption"
         (closed)="closeViewer()" />
+    }
+  } @else if (isReviewCard()) {
+    @if (post().review; as review) {
+      <div class="review-layout">
+      <div class="review-score-col">
+        <span class="review-score">{{ review.score }}</span>
+        <app-star-rating [score]="review.score" />
+        <span class="review-hours">{{ review.hoursPlayed }} h<br />{{ playStatusLabel() }}</span>
+      </div>
+
+      <div class="review-body-col">
+        <div class="review-meta-row">
+          <a [routerLink]="['/profile', post().userId]" class="review-avatar">{{ authorInitial() }}</a>
+          <a [routerLink]="['/profile', post().userId]" class="review-author">{{ post().username }}</a>
+          <span class="review-meta">{{ reviewMeta() }}</span>
+          @if (review.spoilerFree) {
+            <span class="review-tag">Spoiler-free</span>
+          }
+          @if (squadName(); as name) {
+            <a [routerLink]="['/squads', post().squadId]" class="review-tag">Posted to {{ name }}</a>
+          }
+        </div>
+
+        @if (post().caption) {
+          <h3 class="review-headline">{{ post().caption }}</h3>
+        }
+
+        @if (review.body) {
+          <p class="review-text">{{ review.body }}</p>
+        }
+
+        <div class="review-actions">
+          <button
+            type="button"
+            class="review-action"
+            [class.active]="liked()"
+            [disabled]="isTogglingLike()"
+            [attr.aria-label]="(liked() ? 'Marked useful' : 'Mark useful') + ' · ' + likeCount()"
+            (click)="toggleLike()">
+            ▲ <span class="mono">{{ likeCount() }}</span> useful
+          </button>
+          <button
+            type="button"
+            class="review-action"
+            [class.active]="isCommentsOpen()"
+            [attr.aria-expanded]="isCommentsOpen()"
+            [attr.aria-label]="'Comments · ' + commentCount()"
+            (click)="toggleComments()">
+            💬 <span class="mono">{{ commentCount() }}</span>
+          </button>
+          <!-- Share is out of scope — backend has no share/repost feature yet. -->
+          <button type="button" class="review-action" disabled title="Share — coming soon">↗ Share</button>
+        </div>
+      </div>
+      </div>
     }
   } @else {
   <div class="post-header">

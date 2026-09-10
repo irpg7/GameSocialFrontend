@@ -89,6 +89,26 @@ export class PostComposer implements OnInit, OnDestroy {
   /** Review isn't driven by `openSheet` — it's the standalone ReviewSheet, opened/closed independently. */
   protected readonly isReviewSheetOpen = signal(false);
 
+  /**
+   * The one line of guidance in the design's composer bar, which changes with
+   * the selected post type (`hints` in Gamer Feed.dc.html's composer logic).
+   */
+  protected readonly composerHint = computed(() => {
+    if (this.isReviewSheetOpen()) {
+      return 'Review — score it, then say why';
+    }
+    switch (this.openSheet()) {
+      case 'poll':
+        return 'Poll — ask the feed something';
+      case 'devlog':
+        return 'DevLog — build tag, headline, patch lines';
+      default:
+        return this.selectedTab() === 'screenshots'
+          ? `Screenshot dump — up to ${MAX_SCREENSHOTS} images`
+          : 'New clip — drop the file and name it';
+    }
+  });
+
   /** The post type the inline Post button / open sheet is currently about to submit. */
   protected readonly activePostType = computed<PostType>(() => {
     const sheet = this.openSheet();

@@ -1,24 +1,31 @@
-<div class="composer card">
+<div class="composer">
   <div class="composer-header">
-    <div class="avatar">{{ (authService.currentUser()?.username ?? '?').charAt(0).toUpperCase() }}</div>
+    <div class="avatar" aria-hidden="true">▲</div>
+
+    <p class="composer-hint">{{ composerHint() }}</p>
 
     <div class="toggle-group" role="tablist" aria-label="Post type">
-      <button type="button" class="toggle-btn" [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip'" (click)="selectTab('clip')">
-        🎬 Clip
-      </button>
-      <button type="button" class="toggle-btn" [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots'" (click)="selectTab('screenshots')">
-        🖼️ Screenshots
-      </button>
-      <button type="button" class="toggle-btn" [class.active]="isReviewSheetOpen()" (click)="openReviewSheet()">
-        ⭐ Review
-      </button>
-      <button type="button" class="toggle-btn" [class.active]="openSheet() === 'poll'" (click)="openSheetFor('poll')">
-        📊 Poll
-      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        aria-label="Clip"
+        [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip'"
+        (click)="selectTab('clip')">▶</button>
+      <button
+        type="button"
+        class="toggle-btn"
+        aria-label="Screenshots"
+        [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots'"
+        (click)="selectTab('screenshots')">▣</button>
+      <button type="button" class="toggle-btn" aria-label="Review" [class.active]="isReviewSheetOpen()" (click)="openReviewSheet()">★</button>
+      <button type="button" class="toggle-btn" aria-label="Poll" [class.active]="openSheet() === 'poll'" (click)="openSheetFor('poll')">▤</button>
       @if (isDevlogAllowed()) {
-        <button type="button" class="toggle-btn" [class.active]="openSheet() === 'devlog'" (click)="openSheetFor('devlog')">
-          📝 Devlog
-        </button>
+        <button
+          type="button"
+          class="toggle-btn toggle-btn-dev"
+          aria-label="DevLog"
+          [class.active]="openSheet() === 'devlog'"
+          (click)="openSheetFor('devlog')">◆</button>
       }
     </div>
   </div>
@@ -181,7 +188,10 @@
 }
 
 @if (openSheet() === 'poll') {
-  <app-sheet-modal title="New poll" (closed)="closeSheet()">
+  <app-sheet-modal
+    title="New poll"
+    subtitle="Two to six options, and a deadline people can see"
+    (closed)="closeSheet()">
     <div class="form-group">
       <label for="poll-question">Question</label>
       <input
@@ -242,15 +252,19 @@
     }
 
     <div class="composer-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeSheet()">Cancel</button>
       <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
-        {{ isSubmitting() ? 'Creating...' : 'Create poll' }}
+        {{ isSubmitting() ? 'Creating...' : 'Post poll' }}
       </button>
     </div>
   </app-sheet-modal>
 }
 
 @if (openSheet() === 'devlog') {
-  <app-sheet-modal title="New devlog" (closed)="closeSheet()">
+  <app-sheet-modal
+    title="New DevLog"
+    subtitle="Goes to everyone following the game, not just your followers"
+    (closed)="closeSheet()">
     <div class="chip-row devlog-tag-row">
       <input
         class="tag-input"
@@ -341,8 +355,9 @@
     }
 
     <div class="composer-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeSheet()">Cancel</button>
       <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
-        {{ isSubmitting() ? 'Publishing...' : 'Publish devlog' }}
+        {{ isSubmitting() ? 'Publishing...' : 'Publish DevLog' }}
       </button>
     </div>
   </app-sheet-modal>

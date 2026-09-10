@@ -1,5 +1,8 @@
 @use '../../../styles/variables' as *;
 
+// The design's stars are the brand red with a flat grey for the empty ones —
+// there is no yellow anywhere in Gamer Feed.dc.html.
+
 :host {
   display: inline-flex;
   align-items: center;
@@ -10,15 +13,15 @@
   flex-shrink: 0;
 
   &-full {
-    color: #facc15;
+    color: $color-accent-primary;
   }
 
   &-half {
-    color: #facc15;
+    color: $color-accent-primary;
     opacity: 0.5;
   }
 
   &-empty {
-    color: $color-border;
+    color: $color-bg-tertiary;
   }
 }

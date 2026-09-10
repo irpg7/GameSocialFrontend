@@ -8,10 +8,11 @@
   overflow: hidden;
 }
 
+// The design's header is a flat 64px red bar with no rule under it — the
+// bar's own colour is the separation.
 .layout-topbar {
-  height: 70px;
+  height: 64px;
   flex-shrink: 0;
-  border-bottom: 1px solid $color-border;
 }
 
 .layout-body {
@@ -20,12 +21,13 @@
   overflow: hidden;
 }
 
+// Design content inset: 26px top/bottom, 28px sides.
 .layout-content {
   flex-grow: 1;
   padding: $spacing-xl $spacing-2xl;
   overflow-y: auto;
 
   @media (max-width: 640px) {
-    padding: $spacing-lg;
+    padding: $spacing-md;
   }
 }

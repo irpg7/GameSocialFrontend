@@ -44,20 +44,22 @@ a {
   }
 }
 
-/* Buttons */
+/* Buttons — the design's action pill: 11/16 padding, 14px radius, 13px/700,
+   and a plain darker-red hover with no lift or glow. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: $spacing-sm $spacing-lg;
-  border-radius: $border-radius-md;
+  padding: 11px 16px;
+  border-radius: $border-radius-lg;
   font-family: $font-family-primary;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 14px;
   text-align: center;
   cursor: pointer;
-  transition: all $transition-speed-fast;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
   border: none;
   outline: none;
 
@@ -67,22 +69,18 @@ a {
 
     &:hover {
       background-color: $color-accent-secondary;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px $color-accent-glow;
-    }
-
-    &:active {
-      transform: translateY(0);
+      color: #fff;
     }
   }
 
+  // The design's secondary action is an outline pill on the page ground, not
+  // a filled grey button.
   &-secondary {
-    background-color: $color-bg-tertiary;
+    background-color: transparent;
     color: $color-text-primary;
-    border: 1px solid $color-border;
+    border: 1px solid $color-bg-tertiary;
 
     &:hover {
-      background-color: color-mix(in srgb, $color-bg-tertiary 90%, white);
       border-color: $color-text-secondary;
     }
   }
@@ -141,15 +139,75 @@ select {
   }
 }
 
-/* Cards */
+/* Cards — the design's panel: 20px radius, 18px padding. */
 .card {
   background-color: $color-bg-secondary;
-  border-radius: $border-radius-lg;
+  border-radius: $border-radius-xl;
   border: 1px solid $color-border;
-  padding: $spacing-lg;
+  padding: 18px;
+}
+
+/* Page and section headings — Gamer Feed.dc.html opens every screen with a
+   28/34 title, a muted one-line subtitle and an action pill pushed right,
+   and separates blocks with an uppercase micro-label followed by a hairline.
+   Global (not per-page) so Feed/Clips/Reviews/Trophies/Squads share one. */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  h1, h2 {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.6px;
+    margin-bottom: 0;
+  }
+
+  > :last-child:not(:first-child) {
+    margin-left: auto;
+    flex: none;
+  }
+}
+
+.page-sub {
+  font-size: 14px;
+  line-height: 21px;
+  color: $color-text-secondary;
+  margin-top: 2px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Standalone too — panel headers reuse the label/note without the rule. */
+.section-head-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-secondary;
+}
+
+.section-head-rule {
+  flex: 1;
+  height: 1px;
+  background-color: $color-border;
+}
+
+.section-head-note {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-secondary;
 }
 
 /* Utilities */
+.mono { font-family: $font-family-mono; }
 .text-accent { color: $color-accent-primary; }
 .text-muted   { color: $color-text-secondary; }
 .mt-md { margin-top: $spacing-md; }

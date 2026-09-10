@@ -39,8 +39,15 @@
 
 .composer-footer {
   display: flex;
-  justify-content: flex-end;
-  margin-top: $spacing-md;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+
+  // Cancel sits on the left and the publish action on the right, as in the
+  // design's sheet footers; a footer with one action stays right-aligned.
+  > :last-child {
+    margin-left: auto;
+  }
 }
 
 .form-row {
@@ -60,28 +67,42 @@
   margin-bottom: $spacing-md;
 }
 
+// The design's filter chip (identical on Clips, Reviews, Trophies and inside
+// the sheets): 8/13 padding, 12px radius, and a *solid* red when selected —
+// not the tinted outline the app used to draw.
 .chip {
   border: 1px solid $color-border;
-  background-color: $color-bg-tertiary;
+  background-color: $color-bg-secondary;
   color: $color-text-secondary;
   font-family: $font-family-primary;
   font-weight: 600;
-  font-size: 0.85rem;
-  padding: $spacing-xs $spacing-md;
-  border-radius: $border-radius-full;
+  font-size: 13px;
+  line-height: 14px;
+  padding: 8px 13px;
+  border-radius: $border-radius-md;
   cursor: pointer;
-  transition: all $transition-speed-fast;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
 
   &.active {
-    background-color: rgba($color-accent-primary, 0.15);
+    background-color: $color-accent-primary;
     border-color: $color-accent-primary;
-    color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
   }
 
   &:hover:not(.active) {
     border-color: $color-text-secondary;
     color: $color-text-primary;
   }
+}
+
+// The design puts a thin rule between a filter group and the sort chip
+// that follows it.
+.chip-divider {
+  width: 1px;
+  height: 24px;
+  background-color: $color-border;
+  margin: 0 4px;
 }
 
 .score-preview {

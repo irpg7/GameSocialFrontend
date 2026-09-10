@@ -5,73 +5,72 @@
   margin: 0 auto;
 }
 
-.games-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: $spacing-2xl;
+// The design's search field: a 38px pill with a glyph, not an icon button.
+.page-head {
+  margin-bottom: 20px;
+}
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: $spacing-xs;
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  padding: 0 14px;
+  min-width: 240px;
+  transition: border-color $transition-speed-fast;
+
+  &:focus-within {
+    border-color: $color-accent-primary;
   }
 
-  .search-box {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    background-color: $color-bg-secondary;
-    border: 1px solid $color-border;
-    border-radius: $border-radius-full;
-    padding: $spacing-sm $spacing-md;
-    min-width: 260px;
-    transition: border-color $transition-speed-fast;
+  .search-glyph {
+    color: $color-text-secondary;
+    flex-shrink: 0;
+    font-size: 15px;
+  }
 
-    &:focus-within {
-      border-color: $color-accent-primary;
-    }
+  input {
+    background: none;
+    border: none;
+    padding: 0;
+    color: $color-text-primary;
+    font-size: 13px;
+    font-weight: 500;
+    width: 100%;
 
-    svg {
-      color: $color-text-secondary;
-      flex-shrink: 0;
-    }
-
-    input {
-      background: none;
+    &:focus {
+      outline: none;
+      box-shadow: none;
       border: none;
-      color: $color-text-primary;
-      font-size: 0.9rem;
-      width: 100%;
+    }
 
-      &:focus {
-        outline: none;
-        box-shadow: none;
-        border: none;
-      }
-
-      &::placeholder {
-        color: $color-text-secondary;
-      }
+    &::placeholder {
+      color: $color-text-secondary;
     }
   }
 }
 
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: $spacing-lg;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .game-card {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  padding: 0;
+  gap: 12px;
+  padding: 0 0 14px;
   overflow: hidden;
-  transition: transform $transition-speed-normal, border-color $transition-speed-normal;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-lg;
+  transition: border-color $transition-speed-fast;
 
   &:hover {
-    transform: translateY(-4px);
     border-color: rgba($color-accent-primary, 0.5);
   }
 
@@ -92,29 +91,38 @@
     }
 
     .game-cover-placeholder {
-      font-size: 3.5rem;
+      font-family: $font-family-secondary;
+      font-size: 34px;
+      font-weight: 800;
+      color: $color-text-secondary;
     }
   }
 
   .game-info {
-    padding: 0 $spacing-md;
+    padding: 0 14px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     flex-grow: 1;
 
     h3 {
-      font-size: 1rem;
+      font-family: $font-family-primary;
+      font-size: 13px;
+      line-height: 18px;
+      font-weight: 700;
       margin: 0;
     }
 
     .game-slug {
-      font-size: 0.78rem;
+      font-size: 11px;
+      line-height: 15px;
+      font-weight: 500;
+      color: $color-text-secondary;
     }
   }
 
   button {
-    margin: 0 $spacing-md $spacing-md;
+    margin: 0 14px;
   }
 }
 

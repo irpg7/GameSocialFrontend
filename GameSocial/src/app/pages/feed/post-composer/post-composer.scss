@@ -1,53 +1,81 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/form-controls';
 
+// Gamer Feed.dc.html draws the composer as a dashed "drop zone" bar rather
+// than a filled card: a small accent tile, one line of guidance, and a row of
+// 36px glyph buttons — one per post type — that turn solid red when active.
 .composer {
+  border: 1.5px dashed $color-bg-tertiary;
+  border-radius: $border-radius-xl;
+  padding: 12px 14px;
+  background-color: $color-bg-primary;
+
   .composer-header {
     display: flex;
     align-items: center;
-    gap: $spacing-md;
-    margin-bottom: $spacing-md;
+    gap: 12px;
+    flex-wrap: wrap;
 
     .avatar {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
-      box-shadow: 0 4px 16px $color-accent-glow;
-      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: $border-radius-md;
+      background-color: rgba($color-accent-primary, 0.14);
+      color: $color-accent-primary;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-weight: 700;
-      flex-shrink: 0;
+      font-size: 15px;
+      flex: none;
     }
+  }
+
+  .composer-hint {
+    flex: 1;
+    min-width: 180px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: $color-text-secondary;
   }
 
   .toggle-group {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-xs;
+    gap: 6px;
+    flex: none;
 
     .toggle-btn {
-      background: $color-bg-tertiary;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $color-bg-secondary;
       border: 1px solid $color-border;
       border-radius: $border-radius-md;
-      color: $color-text-secondary;
-      padding: $spacing-xs $spacing-md;
-      font-size: 0.9rem;
+      color: $color-text-primary;
+      padding: 0;
+      font-size: 13px;
       cursor: pointer;
-      transition: all $transition-speed-fast;
+      transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
       font-family: $font-family-primary;
 
       &.active {
-        background-color: rgba($color-accent-primary, 0.15);
+        background-color: $color-accent-primary;
         border-color: $color-accent-primary;
+        color: #fff;
+      }
+
+      // The design tints the developer-only DevLog glyph even when idle.
+      &.toggle-btn-dev:not(.active) {
+        background-color: rgba($color-accent-primary, 0.12);
+        border-color: rgba($color-accent-primary, 0.35);
         color: $color-accent-primary;
       }
 
       &:hover:not(.active) {
         border-color: $color-text-secondary;
-        color: $color-text-primary;
       }
     }
   }

@@ -1,4 +1,7 @@
-<app-sheet-modal title="Write a review" (closed)="closed.emit()">
+<app-sheet-modal
+  title="Write a review"
+  subtitle="Your tracked playtime is attached — that is what makes it count"
+  (closed)="closed.emit()">
   <div class="option-group">
     <label for="review-game">Game</label>
     <select id="review-game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
@@ -77,6 +80,7 @@
   }
 
   <div class="composer-footer">
+    <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
     <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
       {{ isSubmitting() ? 'Publishing...' : 'Publish review' }}
     </button>

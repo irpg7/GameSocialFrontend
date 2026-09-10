@@ -1,14 +1,21 @@
 @use '../../../styles/variables' as *;
 
+// Gamer Feed.dc.html's sheet shell: a 620px panel on a near-black scrim,
+// 26px radius, deep drop shadow, and a header with no rule under it.
+
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(6, 6, 8, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-xl;
+  padding: 40px;
   z-index: 100;
+
+  @media (max-width: 640px) {
+    padding: $spacing-md;
+  }
 }
 
 .sheet-panel {
@@ -17,40 +24,63 @@
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: $border-radius-sheet;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 
 .sheet-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $spacing-lg;
-  border-bottom: 1px solid $color-border;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 22px 0;
   flex-shrink: 0;
+}
+
+.sheet-heading {
+  min-width: 0;
 
   h3 {
     margin: 0;
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
   }
 }
 
-.sheet-close {
-  background: none;
-  border: none;
+.sheet-subtitle {
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
   color: $color-text-secondary;
-  font-size: 1.4rem;
+  margin-top: 2px;
+}
+
+.sheet-close {
+  margin-left: auto;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  color: $color-text-secondary;
+  font-size: 15px;
   line-height: 1;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0 $spacing-xs;
-  border-radius: $border-radius-sm;
-  transition: color $transition-speed-fast;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
 
   &:hover {
+    border-color: $color-text-secondary;
     color: $color-text-primary;
   }
 }
 
 .sheet-body {
-  padding: $spacing-lg;
+  padding: 18px 22px 20px;
   overflow-y: auto;
 }

@@ -1,47 +1,54 @@
 <div class="feed-right-rail">
   @if (meService.me(); as me) {
-    <div class="panel-card xp-card">
-      <div class="xp-card-header">
-        <span class="xp-card-level">Level {{ me.level }}</span>
-        <span class="xp-card-total">{{ me.xp }} XP</span>
+    <div class="rail-card rail-card-xp">
+      <div class="rail-card-head">
+        <span class="rail-label">Level {{ me.level }}</span>
+        <span class="rail-figure">{{ me.xpToNextLevel }} XP to {{ me.level + 1 }}</span>
       </div>
-      <div class="xp-card-bar">
-        <div class="xp-card-bar-fill" [style.width.%]="me.xpProgressPercent"></div>
+      <div class="xp-bar">
+        <div class="xp-bar-fill" [style.width.%]="me.xpProgressPercent"></div>
       </div>
-      <p class="xp-card-hint">{{ me.xpToNextLevel }} XP to level {{ me.level + 1 }} — post, review, or get a useful vote to earn more.</p>
+      <p class="rail-hint">Posting a clip is worth 120 XP. Reviews are worth 200.</p>
     </div>
   }
 
-  <div class="panel-card activity-card">
-    <div class="panel-card-header">
-      <h4>Squad activity</h4>
+  <div class="rail-card">
+    <div class="rail-card-head">
+      <span class="rail-label">Squad activity</span>
+      <a routerLink="/squads" class="rail-link">Open room →</a>
     </div>
 
     @if (isLoadingActivity()) {
-      <p class="text-muted activity-empty">Loading...</p>
+      <p class="text-muted rail-hint">Loading...</p>
     } @else if (activityItems().length > 0) {
       <ul class="activity-list">
         @for (item of activityItems(); track item.squadId + '-' + item.createdAt + '-' + item.username) {
           <li>
             <a [routerLink]="['/squads', item.squadId]" class="activity-row">
-              <span class="activity-squad">{{ item.squadName }}</span>
-              <span class="activity-text">
-                <strong>{{ item.username }}</strong>
-                @if (item.body) {
-                  {{ item.body }}
-                } @else if (item.sharedPostType) {
-                  shared a {{ item.sharedPostType }}
-                } @else {
-                  sent a message
-                }
+              <span class="activity-avatar">{{ item.username.charAt(0).toUpperCase() }}</span>
+              <span class="activity-body">
+                <span class="activity-text">
+                  <b>{{ item.username }}</b>
+                  @if (item.body) {
+                    {{ item.body }}
+                  } @else if (item.sharedPostType) {
+                    shared a {{ item.sharedPostType }}
+                  } @else {
+                    sent a message
+                  }
+                </span>
+                <span class="activity-meta">
+                  <span class="activity-squad-icon">{{ item.squadName.charAt(0).toUpperCase() }}</span>
+                  <span class="activity-squad">{{ item.squadName }}</span>
+                  <span class="activity-time">{{ item.createdAt | date: 'short' }}</span>
+                </span>
               </span>
-              <span class="activity-time">{{ item.createdAt | date: 'short' }}</span>
             </a>
           </li>
         }
       </ul>
     } @else {
-      <p class="text-muted activity-empty">No squad activity yet — join or create a squad to see it here.</p>
+      <p class="text-muted rail-hint">No squad activity yet — join or create a squad to see it here.</p>
     }
   </div>
 </div>

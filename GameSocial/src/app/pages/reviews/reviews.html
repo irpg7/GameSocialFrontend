@@ -1,14 +1,23 @@
 <div class="reviews-page">
   <div class="reviews-main">
-    <div class="reviews-header">
-      <h2>Reviews</h2>
-      <button type="button" class="btn btn-primary" (click)="openReviewSheet()">Write a review</button>
+    <div class="page-head">
+      <div>
+        <h2>Reviews</h2>
+        <p class="page-sub">Written by people whose hours you can see.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="openReviewSheet()">★ Write a review</button>
     </div>
 
     <div class="filter-row">
       <button type="button" class="chip" [class.active]="isFilterActive('following')" (click)="toggleFilter('following')">Following</button>
+      <span class="chip-divider" aria-hidden="true"></span>
+      <button type="button" class="chip" [class.active]="isFilterActive('longPlaytime')" (click)="toggleFilter('longPlaytime')">20 h+ played only</button>
       <button type="button" class="chip" [class.active]="isFilterActive('noSpoilers')" (click)="toggleFilter('noSpoilers')">No spoilers</button>
-      <button type="button" class="chip" [class.active]="isFilterActive('longPlaytime')" (click)="toggleFilter('longPlaytime')">20h+ played</button>
+    </div>
+
+    <div class="section-head">
+      <span class="section-head-label">Most useful this week</span>
+      <span class="section-head-rule"></span>
     </div>
 
     <div class="posts-list">
@@ -41,14 +50,16 @@
         <ul class="waiting-list">
           @for (game of waitingGames(); track game.gameId) {
             <li class="waiting-row">
+              <span class="waiting-cover" aria-hidden="true">{{ game.gameName.charAt(0).toUpperCase() }}</span>
               <span class="waiting-name">{{ game.gameName }}</span>
-              <button type="button" class="btn btn-secondary btn-sm" (click)="openReviewSheet(game.gameId)">Rate</button>
+              <button type="button" class="rail-pill" (click)="openReviewSheet(game.gameId)">Rate</button>
             </li>
           }
         </ul>
       } @else {
-        <p class="text-muted">You're all caught up.</p>
+        <p class="text-muted rail-note">You're all caught up.</p>
       }
+      <p class="rail-note">A review is worth <span class="rail-xp">+200 XP</span>, more if people find it useful.</p>
     </div>
 
     <div class="panel-card">
