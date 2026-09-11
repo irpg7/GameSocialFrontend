@@ -97,8 +97,10 @@ export class PostComposer implements OnInit, OnDestroy {
    * force the underlying `postType` back to Clip, which made the Clip chip
    * light up *alongside* whichever sheet was actually open).
    */
-  // initialTab lets a host (the squad room) open the composer straight on a tab.
-  protected readonly selectedTab = linkedSignal<ComposerTab>(() => this.initialTab() ?? 'clip');
+  // Nothing is picked until the user picks it — the design's composer starts on
+  // `composer: null`, with no chip lit and no panel open. initialTab lets a host
+  // (the squad room) open the composer straight on a tab instead.
+  protected readonly selectedTab = linkedSignal<ComposerTab | null>(() => this.initialTab());
   protected readonly openSheet = signal<ComposerSheet>(null);
   /** Review isn't driven by `openSheet` — it's the standalone ReviewSheet, opened/closed independently. */
   protected readonly isReviewSheetOpen = signal(false);
@@ -117,18 +119,25 @@ export class PostComposer implements OnInit, OnDestroy {
       case 'devlog':
         return 'DevLog — build tag, headline, patch lines';
       default:
-        return this.selectedTab() === 'screenshots'
-          ? `Screenshot dump — up to ${MAX_SCREENSHOTS} images`
-          : 'New clip — drop the file and name it';
+        switch (this.selectedTab()) {
+          case 'screenshots':
+            return `Screenshot dump — up to ${MAX_SCREENSHOTS} images`;
+          case 'clip':
+            return 'New clip — drop the file and name it';
+          default:
+            return 'Drag a clip in — or pick a type';
+        }
     }
   });
 
-  /** The post type the inline Post button / open sheet is currently about to submit. */
-  protected readonly activePostType = computed<PostType>(() => {
+  /** The post type the inline Post button / open sheet is currently about to submit, or null while no type is picked. */
+  protected readonly activePostType = computed<PostType | null>(() => {
     const sheet = this.openSheet();
     if (sheet === 'poll') return PostType.Poll;
     if (sheet === 'devlog') return PostType.Devlog;
-    return this.selectedTab() === 'screenshots' ? PostType.Screenshots : PostType.Clip;
+    const tab = this.selectedTab();
+    if (tab === 'screenshots') return PostType.Screenshots;
+    return tab === 'clip' ? PostType.Clip : null;
   });
 
   /** Populates the optional squad-tag select for Clip/Screenshots — only squads the user is a member of (required server-side). */
@@ -194,7 +203,7 @@ export class PostComposer implements OnInit, OnDestroy {
   selectTab(tab: ComposerTab): void {
     this.openSheet.set(null);
     this.isReviewSheetOpen.set(false);
-    this.selectedTab.set(tab);
+    this.selectedTab.set(this.selectedTab() === tab ? null : tab);
     this.errorMessage.set(null);
   }
 
@@ -203,6 +212,7 @@ export class PostComposer implements OnInit, OnDestroy {
       return;
     }
     this.isReviewSheetOpen.set(false);
+    this.selectedTab.set(null);
     this.openSheet.set(sheet);
     this.errorMessage.set(null);
   }
@@ -213,6 +223,7 @@ export class PostComposer implements OnInit, OnDestroy {
 
   openReviewSheet(): void {
     this.openSheet.set(null);
+    this.selectedTab.set(null);
     this.isReviewSheetOpen.set(true);
     this.errorMessage.set(null);
   }
@@ -353,24 +364,28 @@ export class PostComposer implements OnInit, OnDestroy {
       return;
     }
 
-    const submittedType = this.activePostType();
+    const submittedType = this.activePostType()!;
     this.isSubmitting.set(true);
     this.postService
-      .createPost(this.buildFormData())
+      .createPost(this.buildFormData(submittedType))
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: (post) => {
           this.posted.emit(post);
           this.resetTypeForm(submittedType);
           this.openSheet.set(null);
-          this.selectedTab.set('clip');
+          this.selectedTab.set(null);
         },
         error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'Failed to publish post. Please try again.')),
       });
   }
 
   private validate(): string | null {
-    switch (this.activePostType()) {
+    const type = this.activePostType();
+    if (type === null) {
+      return 'Pick a post type first — clip, screenshots, review, poll or devlog.';
+    }
+    switch (type) {
       case PostType.Clip:
         return this.validateClip();
       case PostType.Screenshots:
@@ -480,8 +495,7 @@ export class PostComposer implements OnInit, OnDestroy {
     return null;
   }
 
-  private buildFormData(): FormData {
-    const type = this.activePostType();
+  private buildFormData(type: PostType): FormData {
     const formData = new FormData();
     formData.append('PostType', String(type));
 

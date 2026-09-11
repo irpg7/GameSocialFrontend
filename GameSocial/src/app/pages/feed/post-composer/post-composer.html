@@ -9,13 +9,13 @@
         type="button"
         class="toggle-btn"
         aria-label="Clip"
-        [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip'"
+        [class.active]="selectedTab() === 'clip'"
         (click)="selectTab('clip')">▶</button>
       <button
         type="button"
         class="toggle-btn"
         aria-label="Screenshots"
-        [class.active]="openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots'"
+        [class.active]="selectedTab() === 'screenshots'"
         (click)="selectTab('screenshots')">▣</button>
       <button type="button" class="toggle-btn" aria-label="Review" [class.active]="isReviewSheetOpen()" (click)="openReviewSheet()">★</button>
       <button type="button" class="toggle-btn" aria-label="Poll" [class.active]="openSheet() === 'poll'" (click)="openSheetFor('poll')">▤</button>
@@ -27,10 +27,14 @@
           [class.active]="openSheet() === 'devlog'"
           (click)="openSheetFor('devlog')">◆</button>
       }
+
+      <button type="button" class="composer-post-btn" [disabled]="isSubmitting()" (click)="submit()">
+        {{ isSubmitting() ? 'Posting...' : 'Post' }}
+      </button>
     </div>
   </div>
 
-  @if (openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'clip') {
+  @if (selectedTab() === 'clip') {
     <div class="composer-panel">
       <div class="panel-row">
         <div
@@ -104,7 +108,7 @@
     </div>
   }
 
-  @if (openSheet() === null && !isReviewSheetOpen() && selectedTab() === 'screenshots') {
+  @if (selectedTab() === 'screenshots') {
     <div class="composer-panel">
       <div
         class="screenshot-dropzone"
@@ -180,13 +184,6 @@
     <p class="form-error">{{ errorMessage() }}</p>
   }
 
-  @if (openSheet() === null && !isReviewSheetOpen()) {
-    <div class="composer-footer">
-      <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
-        {{ isSubmitting() ? 'Posting...' : 'Post' }}
-      </button>
-    </div>
-  }
 </div>
 
 @if (isReviewSheetOpen()) {

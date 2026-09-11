@@ -78,6 +78,32 @@
         border-color: $color-text-secondary;
       }
     }
+
+    // The design keeps Post in this same row, after the type glyphs — same
+    // 36px height and 11px radius as the glyphs, just wider and filled red.
+    .composer-post-btn {
+      height: 36px;
+      padding: 0 16px;
+      border: none;
+      border-radius: $border-radius-md;
+      background-color: $color-accent-primary;
+      color: #fff;
+      font-family: $font-family-primary;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 36px;
+      cursor: pointer;
+      transition: background-color $transition-speed-fast;
+
+      &:hover:not(:disabled) {
+        background-color: $color-accent-secondary;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
   }
 
   .composer-panel {
