@@ -27,15 +27,10 @@
   min-width: 0;
 }
 
-.filter-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  .sort-chip {
-    margin-left: 0;
-  }
+// .filter-row artık paylaşılan _form-controls.scss içinde; burada yalnızca bu
+// sayfaya özgü sort-chip override'ı kalıyor.
+.filter-row .sort-chip {
+  margin-left: 0;
 }
 
 .trophy-empty {

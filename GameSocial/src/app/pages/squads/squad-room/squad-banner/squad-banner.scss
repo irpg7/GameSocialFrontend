@@ -1,0 +1,166 @@
+@use '../../../../../styles/variables' as *;
+
+// Gamer Feed.dc.html `onSquad` banner: 168px bant, alt 120px'te zemine karışan
+// gradient, üstte kimlik ve eylem satırı.
+.squad-banner {
+  position: relative;
+  flex: none;
+  height: 168px;
+  // No cover: a neutral ground, since the design's banner placeholder is neutral
+  // too rather than a red wash.
+  background: linear-gradient(135deg, $color-bg-tertiary, $color-bg-secondary 55%, $color-bg-primary);
+  border-bottom: 1px solid $color-bg-tertiary;
+  overflow: hidden;
+}
+
+.squad-banner-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.squad-banner-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  background: linear-gradient(180deg, rgba($color-bg-primary, 0), rgba($color-bg-primary, 0.94));
+}
+
+.squad-banner-content {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+
+  @media (max-width: 860px) {
+    left: $spacing-md;
+    right: $spacing-md;
+    gap: $spacing-sm;
+  }
+}
+
+.squad-banner-lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.squad-banner-back {
+  width: 34px;
+  height: 34px;
+  border-radius: $border-radius-md;
+  background-color: rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: $color-text-primary;
+  text-decoration: none;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: $color-text-primary;
+  }
+}
+
+// 74px / 22px radius, 3px zemin rengi border ile banttan ayrılıyor (tasarım).
+.squad-banner-mark {
+  width: 74px;
+  height: 74px;
+  border-radius: 22px;
+  border: 3px solid $color-bg-primary;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  flex: none;
+
+  @media (max-width: 620px) {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    font-size: 22px;
+  }
+}
+
+.squad-banner-identity {
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.squad-banner-name {
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: $color-text-primary;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.squad-banner-meta {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  margin: 4px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.squad-banner-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+// Banner eylemleri tasarımda 13px radius ve 10/15 padding ile global .btn'den
+// bir tık daha kompakt.
+.btn-banner {
+  padding: 10px 15px;
+  border-radius: 13px;
+  text-decoration: none;
+}
+
+// Banner görselinin üzerinde duran ikincil eylem: outline değil, yarı şeffaf
+// beyaz bir yüzey (tasarım).
+.btn-glass {
+  background-color: rgba(255, 255, 255, 0.09);
+  color: $color-text-primary;
+  border: none;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: $color-text-primary;
+  }
+}
+
+.btn-icon {
+  width: 38px;
+  padding: 10px 0;
+}
+
+@media (max-width: 760px) {
+  .squad-banner-actions .btn-banner:not(.btn-icon) {
+    display: none;
+  }
+}

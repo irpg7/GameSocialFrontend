@@ -1,0 +1,31 @@
+<div class="tab-panel">
+  <div class="filter-row">
+    @for (filter of filters(); track filter.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="activeGameId() === filter.id"
+        [attr.aria-pressed]="activeGameId() === filter.id"
+        (click)="gamePicked.emit(filter.id)">
+        {{ filter.label }}
+      </button>
+    }
+    @if (canPost()) {
+      <button type="button" class="btn btn-primary btn-sm filter-row-action" (click)="upload.emit()">＋ Upload clip</button>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <p class="text-muted tab-status">Loading clips…</p>
+  } @else if (posts().length === 0) {
+    <p class="text-muted tab-status">No clips posted to this squad yet.</p>
+  } @else {
+    <ul class="clip-grid">
+      @for (post of posts(); track post.id) {
+        <li>
+          <app-clip-queue-card [post]="post" (play)="openClip.emit(post)" />
+        </li>
+      }
+    </ul>
+  }
+</div>

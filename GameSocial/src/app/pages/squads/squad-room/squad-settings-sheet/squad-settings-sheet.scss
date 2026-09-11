@@ -1,0 +1,511 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/form-controls';
+
+// Gamer Feed.dc.html `sqSettings`. The sheet shell comes from app-sheet-modal.
+
+.settings-tabs {
+  margin-bottom: $spacing-md;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+}
+
+.settings-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.settings-hint {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+}
+
+.settings-count {
+  margin-left: auto;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+// ─── Game chips ─────────────────────────────────────────────────────────────
+.game-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+// The banner game is the highlighted chip (the design fills the active game
+// with a tinted accent); the others sit on the plain surface.
+.game-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 12px;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-bg-tertiary;
+
+  &.primary {
+    background-color: rgba($color-accent-primary, 0.16);
+    border-color: rgba($color-accent-primary, 0.5);
+
+    .game-chip-name {
+      color: $color-accent-light;
+    }
+  }
+}
+
+.game-chip-name {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.game-chip-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  line-height: 12px;
+  font-weight: 700;
+  color: $color-accent-light;
+  opacity: 0.7;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.game-chip-add {
+  padding: 7px 12px;
+  border-radius: $border-radius-md;
+  border: 1px dashed $color-bg-tertiary;
+  background: none;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}
+
+// ─── Game picker (sqGamePicker) ─────────────────────────────────────────────
+.game-picker {
+  margin-top: 9px;
+  border-radius: $border-radius-lg;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+  overflow: hidden;
+}
+
+.game-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-bottom: 1px solid $color-bg-tertiary;
+  color: $color-text-secondary;
+
+  // Borderless field — the panel itself is the frame (design).
+  input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+
+    &:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+  }
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: $color-text-secondary;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+  }
+}
+
+.game-picker-results {
+  max-height: 196px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.game-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  border: none;
+  border-radius: $border-radius-md;
+  background: none;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-bg-secondary;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.game-result-cover {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background-color: $color-bg-tertiary;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.game-result-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-result-name {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-result-meta {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-result-mark {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+.game-picker-empty {
+  padding: 14px 10px;
+  font-size: 12px;
+  line-height: 17px;
+  text-align: center;
+  margin: 0;
+}
+
+.game-picker-foot {
+  padding: 9px 12px;
+  border-top: 1px solid $color-bg-tertiary;
+  font-size: 11px;
+  line-height: 14px;
+  margin: 0;
+}
+
+// ─── Who can join (shares the create sheet's card treatment) ────────────────
+.policy-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  legend {
+    padding: 0;
+    margin-bottom: 8px;
+  }
+}
+
+.policy-cards {
+  display: flex;
+  gap: $spacing-sm;
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+  }
+}
+
+.policy-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 13px;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-bg-tertiary;
+  background-color: $color-bg-primary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, background-color $transition-speed-fast;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &:hover:not(.disabled) {
+    border-color: $color-text-secondary;
+  }
+
+  &.selected {
+    border-color: $color-accent-primary;
+    background-color: rgba($color-accent-primary, 0.1);
+  }
+
+  &.disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+}
+
+.policy-card-label {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.policy-card-desc {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+// ─── Members tab (sqOnMembers) ──────────────────────────────────────────────
+.member-rows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: $border-radius-lg;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+}
+
+.member-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.member-identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-meta {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+// The design's role pill doubles as the control that cycles the role.
+.member-role {
+  flex: none;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 10px;
+  border: none;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &.captain {
+    background-color: rgba($color-accent-primary, 0.16);
+    color: $color-accent-light;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.member-role-static {
+  cursor: default;
+}
+
+.member-remove {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: none;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-accent-light;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.invite-row {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: 4px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// ─── Footer ─────────────────────────────────────────────────────────────────
+.settings-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 18px;
+  margin-top: 16px;
+  border-top: 1px solid $color-bg-tertiary;
+  flex-wrap: wrap;
+}
+
+.leave-squad,
+.leave-yes,
+.leave-no {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.leave-squad,
+.leave-yes {
+  color: $color-accent-light;
+
+  &:hover {
+    color: $color-accent-primary;
+  }
+}
+
+.leave-no {
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.leave-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+// Cancel/Save sit to the right of the leave action (design).
+.settings-cancel {
+  margin-left: auto;
+}

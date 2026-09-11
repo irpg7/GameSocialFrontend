@@ -31,3 +31,17 @@
     padding: $spacing-md;
   }
 }
+
+// Full-bleed pages (`data: { flush: true }`): no inset, and the page owns its
+// own scrolling. The squad room's sidebar has to touch the topbar and scroll
+// separately from the main column, which the default padded/scrolling content
+// box cannot express.
+.layout-content-flush {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+
+  @media (max-width: 640px) {
+    padding: 0;
+  }
+}

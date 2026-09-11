@@ -85,6 +85,17 @@ a {
     }
   }
 
+  /* Compact action — the design's inline "＋ Upload clip" / "Add" buttons sit
+     at 7/13 rather than the full 11/16 pill. This used to be defined locally
+     in post-card.scss and _admin-shared.scss only, so `btn-sm` was a no-op
+     anywhere else it was used (e.g. the old squad room). */
+  &-sm {
+    padding: 7px 13px;
+    font-size: 12px;
+    line-height: 13px;
+    flex-shrink: 0;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -213,3 +224,18 @@ select {
 .mt-md { margin-top: $spacing-md; }
 .mb-md { margin-bottom: $spacing-md; }
 .mb-lg { margin-bottom: $spacing-lg; }
+
+/* Screen-reader-only label. Was previously defined per-component
+   (post-composer.scss); the squad screens need it in several places, so it
+   lives here as one utility. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

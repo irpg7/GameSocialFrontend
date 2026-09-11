@@ -1,0 +1,324 @@
+@use '../../../../../styles/variables' as *;
+
+// Gamer Feed.dc.html `onSquad` + `onChat`.
+.chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chat-head {
+  flex: none;
+}
+
+.chat-day {
+  margin: $spacing-sm 0;
+}
+
+.chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-status {
+  font-size: 13px;
+  margin: 0;
+}
+
+.chat-not-member {
+  flex: none;
+  border-top: 1px solid $color-bg-tertiary;
+  padding-top: $spacing-md;
+}
+
+.chat-load-earlier {
+  align-self: center;
+  background: none;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  padding: 6px 12px;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+}
+
+// ─── Mesaj satırı ───────────────────────────────────────────────────────────
+.message {
+  flex: none;
+  display: flex;
+  gap: 12px;
+}
+
+.message-avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.message-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.message-author {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+// Tasarımdaki LV chip'i — leaderboard'un sunucuda hesapladığı gerçek seviye.
+.message-level {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.message-time {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.message-body {
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 500;
+  color: $color-text-primary;
+  margin: 3px 0 0;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.message-pin {
+  flex: none;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px;
+  opacity: 0.35;
+  transition: opacity $transition-speed-fast;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.pinned {
+    opacity: 1;
+  }
+}
+
+// ─── Paylaşılan post kartı ──────────────────────────────────────────────────
+// Tasarımda bu 200px yüksekliğinde, kendi başına duran bir kart — küçük bir
+// thumbnail şeridi değil.
+.shared-card {
+  margin-top: 8px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid $color-bg-tertiary;
+  background-color: $color-bg-primary;
+}
+
+.shared-stage {
+  position: relative;
+  height: 200px;
+  background-color: $color-bg-secondary;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.shared-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 4px 8px;
+  border-radius: $border-radius-sm;
+  background-color: rgba(10, 10, 12, 0.75);
+  color: $color-text-primary;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+}
+
+.shared-play {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba($color-accent-primary, 0.92);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding-left: 3px;
+}
+
+.shared-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+.shared-caption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $color-text-primary;
+}
+
+.shared-game {
+  flex: none;
+  font-weight: 600;
+}
+
+// Tasarımdaki "Push to main feed →" — squad'a etiketli post zaten feed'de
+// olduğu için taşıma değil, feed'e götüren bir link.
+.shared-link {
+  margin-left: auto;
+  flex: none;
+  font-weight: 600;
+  color: $color-accent-light;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-accent-primary;
+  }
+}
+
+// ─── Composer ───────────────────────────────────────────────────────────────
+.composer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: 16px;
+}
+
+.composer-avatar {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+// Tasarımda composer alanı çerçevesiz, kartın kendisi çerçeve görevi görüyor.
+.composer-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: $color-text-primary;
+
+  &:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.composer-actions {
+  flex: none;
+  display: flex;
+  gap: 5px;
+}
+
+.composer-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: none;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-text-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.composer-send {
+  background-color: $color-accent-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: $color-accent-secondary;
+    color: #fff;
+  }
+}
+
+// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
+// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}

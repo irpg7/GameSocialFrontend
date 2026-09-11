@@ -30,6 +30,9 @@ export const routes: Routes = [
       { path: 'squads', loadComponent: () => import('./pages/squads/squads').then((m) => m.Squads) },
       {
         path: 'squads/:id',
+        // flush: squad odası full-bleed çalışır — sol sidebar topbar'a yapışık ve
+        // main kolondan bağımsız kayar (bkz. MainLayout.isFlush).
+        data: { flush: true },
         loadComponent: () => import('./pages/squads/squad-room/squad-room').then((m) => m.SquadRoom),
       },
       { path: 'profile/:id', loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile) },

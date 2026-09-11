@@ -1,0 +1,59 @@
+<div class="tab-panel">
+  <div class="filter-row">
+    @for (filter of filters(); track filter.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="activeGameId() === filter.id"
+        [attr.aria-pressed]="activeGameId() === filter.id"
+        (click)="gamePicked.emit(filter.id)">
+        {{ filter.label }}
+      </button>
+    }
+    @if (canPost()) {
+      <button type="button" class="btn btn-primary btn-sm filter-row-action" (click)="add.emit()">＋ Add screens</button>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <p class="text-muted tab-status">Loading screenshots…</p>
+  } @else if (visibleTiles().length === 0) {
+    <p class="text-muted tab-status">No screenshots posted to this squad yet.</p>
+  } @else {
+    <!-- Design: 4 columns, lead tile spans 2x2, last tile carries the +N overlay -->
+    <ul class="screen-mosaic">
+      @for (tile of visibleTiles(); track tile.media.id; let i = $index; let last = $last) {
+        <li class="screen-cell">
+          <button type="button" class="screen-tile" (click)="openTile(tile)">
+            <img [src]="tile.media.url" [alt]="tileAlt(tile)" />
+            @if (last && hiddenCount() > 0) {
+              <span class="screen-more">+{{ hiddenCount() }}</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (latestActivity(); as activity) {
+      <div class="screen-activity">
+        <span class="screen-activity-avatar" aria-hidden="true">{{ activity.initial }}</span>
+        <p>
+          <b>{{ activity.username }}</b> added {{ activity.count }}
+          screen{{ activity.count === 1 ? '' : 's' }}@if (activity.gameName) { to <b>{{ activity.gameName }}</b>}
+        </p>
+        <span class="screen-activity-when">{{ activity.when }}</span>
+      </div>
+    }
+  }
+</div>
+
+@if (viewerTile(); as tile) {
+  <app-photo-viewer
+    [photos]="viewerPhotos()"
+    [startIndex]="tile.indexInPost"
+    [username]="tile.post.username"
+    [userId]="tile.post.userId"
+    [gameName]="tile.post.gameName"
+    [caption]="tile.post.caption"
+    (closed)="closeViewer()" />
+}

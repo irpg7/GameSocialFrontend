@@ -438,3 +438,19 @@
     display: block;
   }
 }
+
+// Opened from a squad room: the target squad is fixed, so a locked label
+// replaces the picker (see PostComposer.preselectedSquadId). It is a <span>,
+// so unlike the real fields it needs the frame drawn explicitly — the global
+// field styling in styles.scss only targets input/textarea/select.
+.composer .squad-locked {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-primary;
+  color: $color-accent-light;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: default;
+}

@@ -1,0 +1,37 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/form-controls';
+@use '../../../../../styles/panels';
+
+// Gamer Feed.dc.html `onClips` (squad içi): 3 kolon grid, 12px boşluk.
+.clip-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 620px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// clip-queue-card Clips sayfasındaki dikey rail için 122px thumb yüksekliğine
+// sabitlenmiş; tasarımın squad grid'inde bu kutu 112px ve kart tam genişlikte.
+:host ::ng-deep .clip-queue-card {
+  width: 100%;
+
+  .queue-thumb {
+    height: 112px;
+  }
+}
+
+// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
+// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}

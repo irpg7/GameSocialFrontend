@@ -1,0 +1,125 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/form-controls';
+@use '../../../../../styles/panels';
+
+// Gamer Feed.dc.html `onScreens` (squad içi): 4 kolon, 104px satır yüksekliği,
+// 8px boşluk; ilk kutu 2x2 kaplıyor.
+.screen-mosaic {
+  list-style: none;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 104px;
+  gap: 8px;
+
+  .screen-cell:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  @media (max-width: 860px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .screen-cell:first-child {
+      grid-column: span 2;
+      grid-row: span 1;
+    }
+  }
+}
+
+.screen-cell {
+  min-width: 0;
+}
+
+.screen-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-bg-tertiary;
+  background-color: $color-bg-secondary;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-text-secondary;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+// Tasarımdaki "+336" overlay'i.
+.screen-more {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(10, 10, 12, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: $color-text-primary;
+}
+
+// ─── Aktivite satırı ────────────────────────────────────────────────────────
+.screen-activity {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: $border-radius-lg;
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 17px;
+    font-weight: 500;
+    color: $color-text-secondary;
+
+    b {
+      color: $color-text-primary;
+      font-weight: 700;
+    }
+  }
+}
+
+.screen-activity-avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.screen-activity-when {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
+// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}

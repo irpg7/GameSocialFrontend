@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, computed, inject, input, linkedSignal, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { GameModel } from '../../../models/game.model';
@@ -63,6 +63,19 @@ export class PostComposer implements OnInit, OnDestroy {
   games = input.required<GameModel[]>();
   posted = output<PostModel>();
 
+  /**
+   * When set, the composer posts to this squad and the squad picker is
+   * replaced by a locked chip. Used by the squad room, which hosts this
+   * composer in a sheet so "＋ Post to squad" / "＋ Upload clip" /
+   * "＋ Add screens" all land in the squad you are looking at.
+   * Follows the ReviewSheet.preselectedGameId precedent.
+   */
+  preselectedSquadId = input<string | null>(null);
+  /** Label for the locked squad chip (the squad list is not fetched twice). */
+  lockedSquadName = input<string | undefined>(undefined);
+  /** Opens the composer straight on the clip or screenshots tab. */
+  initialTab = input<ComposerTab | null>(null);
+
   protected readonly PostPhotoType = PostPhotoType;
   protected readonly PatchLineStatus = PatchLineStatus;
 
@@ -84,7 +97,8 @@ export class PostComposer implements OnInit, OnDestroy {
    * force the underlying `postType` back to Clip, which made the Clip chip
    * light up *alongside* whichever sheet was actually open).
    */
-  protected readonly selectedTab = signal<ComposerTab>('clip');
+  // initialTab lets a host (the squad room) open the composer straight on a tab.
+  protected readonly selectedTab = linkedSignal<ComposerTab>(() => this.initialTab() ?? 'clip');
   protected readonly openSheet = signal<ComposerSheet>(null);
   /** Review isn't driven by `openSheet` — it's the standalone ReviewSheet, opened/closed independently. */
   protected readonly isReviewSheetOpen = signal(false);
@@ -123,7 +137,11 @@ export class PostComposer implements OnInit, OnDestroy {
   // ─── Clip / Screenshots (shared inline panel fields) ─────────
   protected readonly gameId = signal<number | null>(null);
   protected readonly caption = signal('');
-  protected readonly squadId = signal<number | null>(null);
+  // SquadModel.id is a GUID string and PostListFilters.squadId is a string, but
+  // this signal used to be typed `number` — so `[ngValue]="squad.id"` was putting
+  // a string into it and `String(...)` was stringifying it straight back. It is a
+  // linkedSignal so a host-supplied preselectedSquadId seeds it and stays in sync.
+  protected readonly squadId = linkedSignal<string | null>(() => this.preselectedSquadId());
   protected readonly photoType = signal<PostPhotoType>(PostPhotoType.Screenshot);
 
   // ─── Clip ──────────────────────────────────────────────────────

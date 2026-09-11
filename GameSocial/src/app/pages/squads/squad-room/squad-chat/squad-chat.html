@@ -1,0 +1,120 @@
+<div class="chat">
+  <!-- Design: `#channel ———————— Today` -->
+  <div class="section-head chat-head">
+    <span class="section-head-label">#{{ channelName() ?? "channel" }}</span>
+    <span class="section-head-rule"></span>
+    @if (groups().length > 0) {
+      <span class="section-head-note">{{ groups()[0].label }}</span>
+    }
+  </div>
+
+  <div class="chat-scroll">
+    @if (hasMore()) {
+      <button type="button" class="chat-load-earlier" [disabled]="isLoading()" (click)="loadEarlier.emit()">
+        {{ isLoading() ? 'Loading…' : 'Load earlier messages' }}
+      </button>
+    }
+
+    @if (isLoading() && messages().length === 0) {
+      <p class="text-muted chat-status">Loading messages…</p>
+    } @else if (messages().length === 0) {
+      <p class="text-muted chat-status">No messages yet — say something.</p>
+    }
+
+    @for (group of groups(); track group.label; let groupIndex = $index) {
+      <!-- The header already names the first day; later days get their own divider. -->
+      @if (groupIndex > 0) {
+        <div class="section-head chat-day">
+          <span class="section-head-rule"></span>
+          <span class="section-head-note">{{ group.label }}</span>
+          <span class="section-head-rule"></span>
+        </div>
+      }
+
+      @for (message of group.messages; track message.id) {
+        <article class="message">
+          <span class="message-avatar" aria-hidden="true">{{ initial(message.username) }}</span>
+
+          <div class="message-main">
+            <div class="message-meta">
+              <span class="message-author">{{ message.username }}</span>
+              @if (level(message.userId); as lv) {
+                <span class="message-level mono">LV {{ lv }}</span>
+              }
+              <span class="message-time">{{ time(message.createdAt) }}</span>
+              @if (message.sharedPost) {
+                <span class="message-time">· shared a {{ message.sharedPost.postType | lowercase }}</span>
+              }
+            </div>
+
+            @if (message.body) {
+              <p class="message-body">{{ message.body }}</p>
+            }
+
+            @if (message.sharedPost; as shared) {
+              <!-- Design: large inline clip card, not a thumbnail strip -->
+              <div class="shared-card">
+                <div class="shared-stage">
+                  @if (shared.thumbnailUrl) {
+                    <img [src]="shared.thumbnailUrl" [alt]="shared.caption ?? 'Shared ' + shared.postType" />
+                  }
+                  <span class="shared-badge mono">SQUAD {{ shared.postType | uppercase }}</span>
+                  @if (shared.postType === 'Clip') {
+                    <span class="shared-play" aria-hidden="true">▶</span>
+                  }
+                </div>
+                <div class="shared-foot">
+                  @if (shared.caption) {
+                    <span class="shared-caption">{{ shared.caption }}</span>
+                  }
+                  @if (shared.gameName) {
+                    <span class="shared-game">{{ shared.gameName }}</span>
+                  }
+                  <a class="shared-link" routerLink="/feed">View in feed →</a>
+                </div>
+              </div>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="message-pin"
+            [class.pinned]="message.isPinned"
+            [attr.aria-label]="message.isPinned ? 'Unpin message' : 'Pin message'"
+            [attr.aria-pressed]="message.isPinned"
+            (click)="togglePin.emit(message)">
+            📌
+          </button>
+        </article>
+      }
+    }
+  </div>
+
+  @if (isMember()) {
+    <!-- Design: avatar + field + clip / screens / send actions -->
+    <div class="composer">
+      <span class="composer-avatar" aria-hidden="true">{{ initial(currentUsername()) }}</span>
+      <label class="visually-hidden" for="squad-chat-input">Message #{{ channelName() }}</label>
+      <input
+        id="squad-chat-input"
+        type="text"
+        class="composer-input"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        [placeholder]="'Message #' + (channelName() ?? 'channel') + ' — or drop a clip'"
+        (keydown.enter)="$event.preventDefault(); submit()">
+      <div class="composer-actions">
+        <button type="button" class="composer-action" aria-label="Post a clip to this squad" (click)="attachClip.emit()">▶</button>
+        <button type="button" class="composer-action" aria-label="Post screenshots to this squad" (click)="attachScreens.emit()">▣</button>
+        <button
+          type="button"
+          class="composer-action composer-send"
+          aria-label="Send message"
+          [disabled]="!draft().trim() || isSending()"
+          (click)="submit()">↵</button>
+      </div>
+    </div>
+  } @else {
+    <p class="text-muted chat-status chat-not-member">You're not a member of this squad, so you can't post here.</p>
+  }
+</div>

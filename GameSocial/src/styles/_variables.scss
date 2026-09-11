@@ -15,6 +15,11 @@ $color-text-secondary: #a1a1aa;
 $color-accent-primary:   #e50914;
 $color-accent-secondary: #b8070e;
 $color-accent-glow:      rgba(229, 9, 20, 0.4);
+// The design uses a lighter red than the accent for *text* — accent counters
+// ("3 online"), inline links ("Push to main feed →") and destructive links
+// ("Leave squad"). $color-accent-secondary is the darker hover red, so this is
+// a separate token rather than a shade of it.
+$color-accent-light:     #f4485c;
 
 $color-border: #323139;
 

@@ -1,0 +1,223 @@
+@use '../../../../../styles/variables' as *;
+
+// Gamer Feed.dc.html `onSquad` sol sidebar: 248px sabit genişlik, kendi
+// scroll'u, sağda ince ayırıcı ve sayfa zemininden bir tık daha koyu yüzey.
+.squad-sidebar {
+  flex: none;
+  width: 248px;
+  background-color: $color-bg-primary;
+  border-right: 1px solid $color-bg-tertiary;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  flex: none;
+}
+
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+  margin-bottom: 9px;
+}
+
+.sidebar-count {
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+// Tasarımdaki "＋" kanal ekleme affordance'ı.
+.sidebar-add {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: color $transition-speed-fast;
+
+  &:hover {
+    color: $color-accent-light;
+  }
+}
+
+// ─── Squad kartları ─────────────────────────────────────────────────────────
+.squad-cards {
+  list-style: none;
+  // Tasarım bu listeyi 236px'te kesip kendi içinde kaydırıyor, böylece
+  // "＋ Yeni squad" ve kanallar çok sayıda squad'da bile görünür kalıyor.
+  max-height: 236px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-right: 2px;
+  margin-bottom: 16px;
+}
+
+.squad-card {
+  display: block;
+  border-radius: 16px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-bg-tertiary;
+  padding: 12px;
+  text-decoration: none;
+  transition: border-color $transition-speed-fast, background-color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-text-secondary;
+  }
+
+  &.active {
+    border-color: $color-accent-primary;
+    background-color: rgba($color-accent-primary, 0.1);
+  }
+}
+
+.squad-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.squad-card-mark {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.squad-card-identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.squad-card-name {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+  color: $color-text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.squad-card-meta {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+// Tasarımda burada son aktivite özeti var; öyle bir endpoint olmadığı için
+// (kanal başına iki istek gerektirirdi) squad'ın ana oyunu gösteriliyor.
+.squad-card-game {
+  display: block;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  margin-top: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ─── Dashed eylem ───────────────────────────────────────────────────────────
+.sidebar-dashed {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  border-radius: $border-radius-lg;
+  border: 1px dashed $color-bg-tertiary;
+  background: none;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}
+
+// ─── Kanallar ───────────────────────────────────────────────────────────────
+.channel-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.channel-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border-radius: $border-radius-md;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-bg-secondary;
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background-color: rgba($color-accent-primary, 0.15);
+    color: $color-accent-light;
+    font-weight: 700;
+  }
+}
+
+.channel-hash {
+  color: $color-text-secondary;
+}
+
+// Angular ara bir host elemanı eklediği için layout zincirinin kopmaması adına
+// host'un da flex olması gerekiyor: aksi halde host gerilir ama içindeki kök
+// eleman içerik yüksekliğinde kalır (sidebar yarım yükseklikte görünüyordu).
+:host {
+  display: flex;
+  min-height: 0;
+}

@@ -1,0 +1,215 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/form-controls';
+
+// Gamer Feed.dc.html `sheetSquad`. The sheet shell itself (620px / 26px radius
+// / header + subtitle) comes from app-sheet-modal.
+
+// ─── Identity row: 74px icon + name/game stack ──────────────────────────────
+.create-identity {
+  display: flex;
+  gap: 12px;
+  margin-bottom: $spacing-md;
+}
+
+// 74px / 22px radius, exactly the mock's slot. The mock draws a dashed
+// "Squad icon" upload target; there is no image upload, so this is a live
+// initial-letter preview of the typed name instead of a control that lies.
+.create-icon {
+  flex: none;
+  width: 74px;
+  height: 74px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $color-accent-primary, $color-accent-secondary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+  text-align: center;
+}
+
+// Before a name is typed there is nothing to preview, so the slot falls back
+// to the mock's dashed placeholder.
+.create-icon:has(.create-icon-hint) {
+  background: none;
+  border: 1.5px dashed $color-bg-tertiary;
+}
+
+.create-icon-hint {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  color: $color-text-secondary;
+}
+
+.create-identity-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+}
+
+// ─── "Who can join": described radio cards ──────────────────────────────────
+.policy-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 $spacing-md;
+
+  legend {
+    padding: 0;
+    margin-bottom: 8px;
+  }
+}
+
+.policy-cards {
+  display: flex;
+  gap: $spacing-sm;
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+  }
+}
+
+.policy-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-border;
+  background-color: $color-bg-primary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, background-color $transition-speed-fast;
+
+  // The radio itself is the accessible control; the card is its label.
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &:hover {
+    border-color: $color-text-secondary;
+  }
+
+  &.selected {
+    border-color: $color-accent-primary;
+    background-color: rgba($color-accent-primary, 0.1);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+}
+
+.policy-card-label {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.policy-card-desc {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.hint {
+  font-size: 0.78rem;
+  margin-top: $spacing-xs;
+}
+
+// ─── Starter channels ───────────────────────────────────────────────────────
+.starter-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin: 8px 0 $spacing-sm;
+}
+
+.removable-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  cursor: default;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+}
+
+.add-channel-row {
+  display: flex;
+  gap: $spacing-sm;
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// ─── Invite nudge row ───────────────────────────────────────────────────────
+.invite-nudge {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  border-radius: $border-radius-lg;
+  background-color: $color-bg-primary;
+  border: 1px solid $color-border;
+
+  p {
+    font-size: 12px;
+    line-height: 17px;
+    font-weight: 600;
+    color: $color-text-secondary;
+    margin: 0;
+  }
+}
+
+.invite-avatars {
+  display: flex;
+  flex: none;
+}
+
+.invite-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-tertiary;
+  border: 2px solid $color-bg-primary;
+  display: block;
+
+  & + & {
+    margin-left: -8px;
+  }
+
+  &.invite-avatar-add {
+    background: none;
+    border: 2px dashed $color-bg-tertiary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: $color-text-secondary;
+  }
+}

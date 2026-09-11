@@ -1,0 +1,68 @@
+// Panel and tab-body primitives shared by the squad room's tab components and
+// rail. Each Angular component is style-encapsulated, so these are `@use`d per
+// component rather than living in one page stylesheet.
+@use 'variables' as *;
+
+// A tab's body: fills the remaining height and owns its own scrolling, as the
+// design's squad room does (the page itself never scrolls).
+.tab-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.tab-status {
+  font-size: 13px;
+  margin: 0;
+}
+
+// The design's rail/nav panel: 20px radius, 16px padding, hairline border.
+.panel-card {
+  background-color: $color-bg-primary;
+  border: 1px solid $color-bg-tertiary;
+  border-radius: $border-radius-xl;
+  padding: 16px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-bottom: 12px;
+}
+
+// The design's accent count beside a panel label ("3 online" → here "N members").
+.panel-count {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+// Dashed call-to-action at the foot of a panel ("＋ Invite a player").
+.panel-dashed {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px 0;
+  border-radius: $border-radius-md;
+  border: 1px dashed $color-bg-tertiary;
+  background: none;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}

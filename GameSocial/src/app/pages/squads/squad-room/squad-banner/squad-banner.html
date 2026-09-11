@@ -1,0 +1,26 @@
+<header class="squad-banner">
+  @if (coverUrl(); as cover) {
+    <img class="squad-banner-image" [src]="cover" alt="" aria-hidden="true" />
+  }
+  <span class="squad-banner-fade" aria-hidden="true"></span>
+
+  <div class="squad-banner-content">
+    <div class="squad-banner-lead">
+      <a routerLink="/feed" class="squad-banner-back" aria-label="Back to feed">←</a>
+      <span class="squad-banner-mark" aria-hidden="true">{{ initial() }}</span>
+    </div>
+
+    <div class="squad-banner-identity">
+      <h1 class="squad-banner-name">{{ squad().name }}</h1>
+      <p class="squad-banner-meta">{{ meta() }}</p>
+    </div>
+
+    <div class="squad-banner-actions">
+      @if (canPost()) {
+        <button type="button" class="btn btn-primary btn-banner" (click)="postToSquad.emit()">＋ Post to squad</button>
+      }
+      <a routerLink="/feed" class="btn btn-banner btn-glass">Back to feed</a>
+      <button type="button" class="btn btn-banner btn-glass btn-icon" aria-label="Squad settings" (click)="openSettings.emit()">⚙</button>
+    </div>
+  </div>
+</header>

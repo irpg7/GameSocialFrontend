@@ -83,7 +83,11 @@
               }
             </select>
 
-            @if (mySquads().length > 0) {
+            <!-- Hosted from a squad room: the target squad is fixed, so show it
+                 locked rather than offering a picker that could retarget the post. -->
+            @if (preselectedSquadId()) {
+              <span class="field-box squad-locked">{{ lockedSquadName() ?? 'This squad' }}</span>
+            } @else if (mySquads().length > 0) {
               <select class="field-box" id="composer-squad" aria-label="Tag a squad (optional)" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
                 <option [ngValue]="null">＋ Tag squad</option>
                 @for (squad of mySquads(); track squad.id) {
@@ -158,7 +162,9 @@
           <button type="button" class="chip" [class.active]="photoType() === PostPhotoType.ConceptArt" (click)="photoType.set(PostPhotoType.ConceptArt)">Concept art</button>
         </div>
 
-        @if (mySquads().length > 0) {
+        @if (preselectedSquadId()) {
+          <span class="field-box squad-locked">{{ lockedSquadName() ?? 'This squad' }}</span>
+        } @else if (mySquads().length > 0) {
           <select class="field-box" id="composer-ss-squad" aria-label="Tag a squad (optional)" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
             <option [ngValue]="null">＋ Tag squad</option>
             @for (squad of mySquads(); track squad.id) {

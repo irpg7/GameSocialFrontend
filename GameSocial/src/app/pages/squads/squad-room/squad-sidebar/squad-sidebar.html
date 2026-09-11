@@ -1,0 +1,57 @@
+<aside class="squad-sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-heading">
+      <span class="section-head-label">Your squads</span>
+      <span class="sidebar-count mono">{{ squads().length }}</span>
+    </div>
+
+    <ul class="squad-cards">
+      @for (squad of squads(); track squad.id) {
+        <li>
+          <a
+            class="squad-card"
+            [class.active]="squad.id === activeSquadId()"
+            [routerLink]="['/squads', squad.id]"
+            [attr.aria-current]="squad.id === activeSquadId() ? 'page' : null">
+            <span class="squad-card-top">
+              <span class="squad-card-mark" aria-hidden="true">{{ initial(squad.name) }}</span>
+              <span class="squad-card-identity">
+                <span class="squad-card-name">{{ squad.name }}</span>
+                <span class="squad-card-meta">{{ memberLabel(squad) }}</span>
+              </span>
+            </span>
+            @if (squad.primaryGameName) {
+              <span class="squad-card-game">{{ squad.primaryGameName }}</span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+
+    <button type="button" class="sidebar-dashed" (click)="createSquad.emit()">＋ New squad</button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">
+      <span class="section-head-label" id="squad-channels-label">Channels</span>
+      @if (canAddChannel()) {
+        <button type="button" class="sidebar-add" aria-label="Add a channel" (click)="addChannel.emit()">＋</button>
+      }
+    </div>
+
+    <ul class="channel-list" aria-labelledby="squad-channels-label">
+      @for (channel of channels(); track channel.id) {
+        <li>
+          <button
+            type="button"
+            class="channel-row"
+            [class.active]="channel.id === activeChannelId()"
+            [attr.aria-current]="channel.id === activeChannelId() ? 'true' : null"
+            (click)="channelPicked.emit(channel.id)">
+            <span class="channel-hash" aria-hidden="true">#</span>{{ channel.name }}
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</aside>

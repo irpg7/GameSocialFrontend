@@ -1,0 +1,62 @@
+<aside class="squad-rail">
+  <section class="panel-card">
+    <div class="panel-head">
+      <span class="section-head-label" id="squad-roster-label">Roster</span>
+      <span class="panel-count mono">{{ roster().length }} member{{ roster().length === 1 ? '' : 's' }}</span>
+    </div>
+
+    @if (rosterError(); as error) {
+      <p class="text-muted rail-status">{{ error }}</p>
+    } @else if (roster().length === 0) {
+      <p class="text-muted rail-status">No members yet.</p>
+    } @else {
+      <ul class="roster" aria-labelledby="squad-roster-label">
+        @for (member of roster(); track member.userId) {
+          <li class="roster-row" [class.self]="isSelf(member.userId)">
+            <span class="roster-avatar" aria-hidden="true">{{ initial(member.username) }}</span>
+            <span class="roster-identity">
+              <span class="roster-name-row">
+                <a class="roster-name" [routerLink]="['/profile', member.userId]">{{ member.username }}</a>
+                @if (member.level !== null) {
+                  <span class="roster-level mono">LV {{ member.level }}</span>
+                }
+              </span>
+              <span class="roster-status">
+                {{ member.role }} · joined {{ joined(member.joinedAt) }}
+              </span>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (isCaptain()) {
+      <button type="button" class="panel-dashed" (click)="invite.emit()">＋ Invite a player</button>
+      <button type="button" class="rail-manage" (click)="manageMembers.emit()">Manage members</button>
+    }
+  </section>
+
+  <section class="panel-card">
+    <!-- Mock says "This week's board"; no weekly XP is stored, so this is honest. -->
+    <div class="panel-head">
+      <span class="section-head-label" id="squad-board-label">All-time board</span>
+    </div>
+
+    @if (leaderboardError(); as error) {
+      <p class="text-muted rail-status">{{ error }}</p>
+    } @else if (leaderboard().length === 0) {
+      <p class="text-muted rail-status">No XP earned yet.</p>
+    } @else {
+      <ol class="board" aria-labelledby="squad-board-label">
+        @for (entry of leaderboard(); track entry.userId; let i = $index) {
+          <li class="board-row" [class.self]="isSelf(entry.userId)">
+            <span class="board-rank mono" [class.top]="i === 0">{{ i + 1 }}</span>
+            <span class="board-avatar" aria-hidden="true">{{ initial(entry.username) }}</span>
+            <span class="board-name">{{ isSelf(entry.userId) ? 'You' : entry.username }}</span>
+            <span class="board-xp mono">{{ entry.xp }}</span>
+          </li>
+        }
+      </ol>
+    }
+  </section>
+</aside>

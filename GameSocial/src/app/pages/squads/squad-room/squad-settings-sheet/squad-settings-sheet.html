@@ -1,0 +1,247 @@
+<app-sheet-modal [title]="squad().name + ' settings'" [subtitle]="subtitle()" (closed)="closed.emit()">
+
+  <!-- sqSettings tab row. The mock's third tab (Content rules) is absent: no
+       per-squad settings storage exists to persist those toggles. -->
+  <div class="chip-row settings-tabs" role="tablist" aria-label="Squad settings sections">
+    <button
+      type="button"
+      class="chip"
+      role="tab"
+      [class.active]="tab() === 'general'"
+      [attr.aria-selected]="tab() === 'general'"
+      (click)="tab.set('general')">General</button>
+    <button
+      type="button"
+      class="chip"
+      role="tab"
+      [class.active]="tab() === 'members'"
+      [attr.aria-selected]="tab() === 'members'"
+      (click)="tab.set('members')">Members</button>
+  </div>
+
+  @if (tab() === 'general') {
+    <div class="settings-section">
+      <div class="form-group">
+        <label for="settings-name" class="section-head-label">Squad name</label>
+        <input
+          id="settings-name"
+          type="text"
+          maxlength="100"
+          [disabled]="!isCaptain()"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)">
+      </div>
+
+      <div class="form-group">
+        <label for="settings-description" class="section-head-label">Description</label>
+        <textarea
+          id="settings-description"
+          rows="3"
+          maxlength="1000"
+          [disabled]="!isCaptain()"
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
+          placeholder="What is this squad for?"></textarea>
+      </div>
+
+      <!-- sqOnGeneral: "Main games", max 5, removable chips + picker -->
+      <div class="form-group">
+        <div class="settings-label-row">
+          <span class="section-head-label">Main games</span>
+          <span class="text-muted settings-hint">at most {{ maxGames }} games</span>
+          <span class="settings-count mono">{{ selectedGames().length }}/{{ maxGames }}</span>
+        </div>
+
+        <div class="game-chips">
+          @for (game of selectedGames(); track game.id) {
+            <span class="game-chip" [class.primary]="primaryGameId() === game.id">
+              <button
+                type="button"
+                class="game-chip-name"
+                [disabled]="!isCaptain()"
+                [attr.aria-label]="'Use ' + game.name + ' as the banner game'"
+                [attr.aria-pressed]="primaryGameId() === game.id"
+                (click)="setPrimaryGame(game.id)">{{ game.name }}</button>
+              @if (isCaptain()) {
+                <button
+                  type="button"
+                  class="game-chip-remove"
+                  [attr.aria-label]="'Remove ' + game.name"
+                  (click)="removeGame(game.id)">✕</button>
+              }
+            </span>
+          }
+
+          @if (isCaptain() && canAddGame()) {
+            <button
+              type="button"
+              class="game-chip-add"
+              [attr.aria-expanded]="isGamePickerOpen()"
+              (click)="toggleGamePicker()">＋ Add game</button>
+          }
+        </div>
+
+        @if (selectedGames().length > 1) {
+          <p class="text-muted settings-hint">
+            The highlighted game is the banner game — click another chip to switch it.
+          </p>
+        }
+
+        <!-- sqGamePicker -->
+        @if (isGamePickerOpen()) {
+          <div class="game-picker">
+            <div class="game-picker-search">
+              <span aria-hidden="true">⌕</span>
+              <label class="visually-hidden" for="settings-game-search">Search your library</label>
+              <input
+                id="settings-game-search"
+                type="text"
+                [ngModel]="gameQuery()"
+                (ngModelChange)="gameQuery.set($event)"
+                [placeholder]="'Search the library — ' + games().length + ' games'">
+              <button type="button" aria-label="Close game picker" (click)="toggleGamePicker()">✕</button>
+            </div>
+
+            <div class="game-picker-results">
+              @for (game of gameResults(); track game.id) {
+                <button
+                  type="button"
+                  class="game-result"
+                  [disabled]="isGameSelected(game.id)"
+                  (click)="addGame(game)">
+                  <span class="game-result-cover">
+                    @if (game.coverImageUrl) {
+                      <img [src]="game.coverImageUrl" alt="" />
+                    }
+                  </span>
+                  <span class="game-result-body">
+                    <span class="game-result-name">{{ game.name }}</span>
+                    <span class="game-result-meta">{{ game.genres.join(' · ') }}</span>
+                  </span>
+                  <span class="game-result-mark">{{ isGameSelected(game.id) ? '✓' : '＋' }}</span>
+                </button>
+              }
+
+              <!-- sqGameEmpty -->
+              @if (gameResults().length === 0) {
+                <p class="game-picker-empty text-muted">No matching game.</p>
+              }
+            </div>
+
+            <p class="game-picker-foot text-muted">Pick the games this squad actually plays.</p>
+          </div>
+        }
+      </div>
+
+      <!-- sqOnGeneral: "Who can join" described radio cards -->
+      <fieldset class="policy-group">
+        <legend class="section-head-label">Who can join</legend>
+        <div class="policy-cards">
+          @for (policy of joinPolicies; track policy.value) {
+            <label class="policy-card" [class.selected]="joinPolicy() === policy.value" [class.disabled]="!isCaptain()">
+              <input
+                type="radio"
+                name="settingsJoinPolicy"
+                [value]="policy.value"
+                [disabled]="!isCaptain()"
+                [checked]="joinPolicy() === policy.value"
+                (change)="joinPolicy.set(policy.value)">
+              <span class="policy-card-label">{{ policy.label }}</span>
+              <span class="policy-card-desc">{{ policy.description }}</span>
+            </label>
+          }
+        </div>
+        <p class="text-muted settings-hint">
+          Only "Invite only" behaves differently today — the captain adds members by username.
+          Ask-to-join and Open are stored but have no request inbox or self-serve join flow yet.
+        </p>
+      </fieldset>
+    </div>
+  }
+
+  @if (tab() === 'members') {
+    <!-- sqOnMembers -->
+    <div class="settings-section">
+      <ul class="member-rows">
+        @for (member of members(); track member.userId) {
+          <li class="member-row">
+            <span class="member-avatar" aria-hidden="true">{{ initial(member.username) }}</span>
+            <span class="member-identity">
+              <span class="member-name">{{ member.username }}{{ isSelf(member.userId) ? ' (you)' : '' }}</span>
+              <span class="member-meta">{{ member.role }}</span>
+            </span>
+
+            @if (isCaptain()) {
+              <button
+                type="button"
+                class="member-role"
+                [class.captain]="member.role === 'Captain'"
+                [disabled]="busyUserId() !== null"
+                [attr.aria-label]="'Change role of ' + member.username"
+                (click)="toggleRole(member)">{{ member.role }}</button>
+
+              @if (!isSelf(member.userId)) {
+                <button
+                  type="button"
+                  class="member-remove"
+                  [disabled]="busyUserId() !== null"
+                  [attr.aria-label]="'Remove ' + member.username + ' from the squad'"
+                  (click)="removeMember(member)">✕</button>
+              }
+            } @else {
+              <span class="member-role member-role-static" [class.captain]="member.role === 'Captain'">{{ member.role }}</span>
+            }
+          </li>
+        }
+      </ul>
+
+      @if (isCaptain()) {
+        <div class="invite-row">
+          <label class="visually-hidden" for="settings-invite">Invite a player by username</label>
+          <input
+            id="settings-invite"
+            type="text"
+            [ngModel]="inviteUsername()"
+            (ngModelChange)="inviteUsername.set($event)"
+            placeholder="Invite a player by username"
+            (keydown.enter)="$event.preventDefault(); invite()">
+          <button type="button" class="btn btn-secondary btn-sm" [disabled]="isInviting()" (click)="invite()">
+            {{ isInviting() ? 'Adding…' : 'Invite' }}
+          </button>
+        </div>
+        @if (inviteError()) {
+          <p class="form-error">{{ inviteError() }}</p>
+        }
+      }
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  <!-- sqSettings footer: leave on the left, cancel + save on the right -->
+  <div class="settings-footer">
+    @if (isLeaveConfirmOpen()) {
+      <span class="leave-confirm">
+        Leave this squad?
+        <button type="button" class="leave-yes" [disabled]="isLeaving()" (click)="leave()">
+          {{ isLeaving() ? 'Leaving…' : 'Yes, leave' }}
+        </button>
+        <button type="button" class="leave-no" (click)="cancelLeave()">Keep me in</button>
+      </span>
+    } @else {
+      <button type="button" class="leave-squad" (click)="confirmLeave()">Leave squad</button>
+    }
+
+    <button type="button" class="btn btn-secondary settings-cancel" (click)="closed.emit()">
+      {{ isCaptain() ? 'Cancel' : 'Close' }}
+    </button>
+
+    @if (isCaptain()) {
+      <button type="button" class="btn btn-primary" [disabled]="isSaving()" (click)="save()">
+        {{ isSaving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    }
+  </div>
+</app-sheet-modal>

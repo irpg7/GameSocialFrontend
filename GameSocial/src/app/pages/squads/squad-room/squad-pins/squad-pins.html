@@ -1,0 +1,65 @@
+<div class="tab-panel">
+  @if (isLoading()) {
+    <p class="text-muted tab-status">Loading pinned messages…</p>
+  } @else if (pins().length === 0) {
+    <p class="text-muted tab-status">Nothing pinned yet. Pin a message from any channel and it shows up here.</p>
+    <button type="button" class="pin-dashed" (click)="goToChat.emit()">＋ Pin a message from chat</button>
+  } @else {
+    @if (featured(); as pin) {
+      <!-- Design: featured "pinned guide" card -->
+      <article class="pin-featured">
+        <div class="pin-cover">
+          @if (pin.sharedPost?.thumbnailUrl) {
+            <img [src]="pin.sharedPost!.thumbnailUrl!" alt="" />
+          } @else {
+            <span class="pin-cover-mark" aria-hidden="true">◫</span>
+          }
+        </div>
+
+        <div class="pin-featured-body">
+          <div class="pin-featured-head">
+            <span class="pin-badge mono">PINNED</span>
+            <span class="pin-byline">{{ pin.username }} · updated {{ when(pin.createdAt) }}</span>
+          </div>
+
+          <h3 class="pin-title">{{ title(pin) }}</h3>
+
+          <div class="pin-chips">
+            <span class="pin-chip">#{{ pin.channelName }}</span>
+            @if (pin.sharedPost?.postType) {
+              <span class="pin-chip">{{ pin.sharedPost!.postType }}</span>
+            }
+            @if (pin.sharedPost?.gameName) {
+              <span class="pin-chip">{{ pin.sharedPost!.gameName }}</span>
+            }
+          </div>
+
+          <button type="button" class="pin-open" (click)="openPin.emit(pin)">Open in #{{ pin.channelName }}</button>
+        </div>
+      </article>
+    }
+
+    @if (rest().length > 0) {
+      <ul class="pin-rows">
+        @for (pin of rest(); track pin.id) {
+          <li>
+            <button type="button" class="pin-row" (click)="openPin.emit(pin)">
+              <span class="pin-row-thumb">
+                @if (pin.sharedPost?.thumbnailUrl) {
+                  <img [src]="pin.sharedPost!.thumbnailUrl!" alt="" />
+                }
+              </span>
+              <span class="pin-row-body">
+                <span class="pin-row-title">{{ title(pin) }}</span>
+                <span class="pin-row-meta">{{ pin.username }} · #{{ pin.channelName }}</span>
+              </span>
+              <span class="pin-row-open">Open</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    <button type="button" class="pin-dashed" (click)="goToChat.emit()">＋ Pin a message from chat</button>
+  }
+</div>

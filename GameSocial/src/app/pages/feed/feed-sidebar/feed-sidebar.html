@@ -74,9 +74,11 @@
       <p class="text-muted follow-empty">No squads yet.</p>
     }
 
+    <!-- "Find a squad" kaldırıldı: keşif/browse özelliği yok ve iki CTA da aynı
+         yere gidiyordu. /squads artık son ziyaret edilen squad odasına
+         yönlendiriyor, hiç squad yoksa oluşturma ekranını açıyor. -->
     <div class="squads-actions">
       <a routerLink="/squads" class="squad-action squad-action-primary">＋ Create a squad</a>
-      <a routerLink="/squads" class="squad-action">⌕ Find a squad</a>
     </div>
   </section>
 

@@ -125,3 +125,19 @@
     width: auto;
   }
 }
+
+// The design's page-level filter row: a horizontal band of .chip filters with
+// an optional trailing action pushed to the right. Previously duplicated
+// verbatim in reviews.scss and trophies.scss (both used these exact values).
+.filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+// Trailing action inside a .filter-row (the design's "＋ Upload clip" /
+// "＋ Add screens" buttons sit flush right of the filters).
+.filter-row-action {
+  margin-left: auto;
+}

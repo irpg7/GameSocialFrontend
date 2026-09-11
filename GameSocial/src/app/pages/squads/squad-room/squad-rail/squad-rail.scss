@@ -1,0 +1,206 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/panels';
+
+// Gamer Feed.dc.html `onSquad` right rail: 268px fixed column, its own scroll.
+.squad-rail {
+  flex: none;
+  width: 268px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+
+  @media (max-width: 1180px) {
+    display: none;
+  }
+}
+
+.rail-status {
+  font-size: 12px;
+  margin: 0;
+}
+
+// ─── Roster ─────────────────────────────────────────────────────────────────
+.roster {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: $border-radius-md;
+
+  &.self {
+    background-color: rgba($color-accent-primary, 0.1);
+    margin: 0 -8px;
+    padding: 4px 8px;
+  }
+}
+
+.roster-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.roster-identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.roster-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.roster-name {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+  color: $color-text-primary;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    color: $color-accent-light;
+  }
+}
+
+// Leaderboard'un sunucuda hesapladığı gerçek seviye.
+.roster-level {
+  flex: none;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+// Tasarımda burada oyuncunun anlık durumu ("in-game") yazıyor; presence verisi
+// olmadığı için rol ve katılma tarihi gösteriliyor.
+.roster-status {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rail-manage {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+// ─── Board ──────────────────────────────────────────────────────────────────
+.board {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: $border-radius-md;
+
+  &.self {
+    background-color: rgba($color-accent-primary, 0.1);
+    margin: 0 -8px;
+    padding: 6px 8px;
+
+    .board-name {
+      color: $color-text-primary;
+      font-weight: 700;
+    }
+
+    .board-xp {
+      color: $color-text-primary;
+    }
+  }
+}
+
+.board-rank {
+  flex: none;
+  width: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  color: $color-text-secondary;
+
+  &.top {
+    color: $color-accent-light;
+  }
+}
+
+.board-avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.board-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-xp {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+// Angular ara bir host elemanı eklediği için layout zincirinin kopmaması adına
+// host'un da flex olması gerekiyor: aksi halde host gerilir ama içindeki kök
+// eleman içerik yüksekliğinde kalır (sidebar yarım yükseklikte görünüyordu).
+:host {
+  display: flex;
+  min-height: 0;
+}

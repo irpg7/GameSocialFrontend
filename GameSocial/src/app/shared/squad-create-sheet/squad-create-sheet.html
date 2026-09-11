@@ -1,0 +1,119 @@
+<app-sheet-modal
+  title="Create a squad"
+  subtitle="Small groups work best — 4 to 8 people who actually play together"
+  (closed)="closed.emit()">
+
+  <!-- sheetSquad: 74px icon beside the name + main-game stack -->
+  <div class="create-identity">
+    <div class="create-icon" aria-hidden="true">
+      @if (initial()) {
+        {{ initial() }}
+      } @else {
+        <span class="create-icon-hint">Squad<br />icon</span>
+      }
+    </div>
+    <div class="create-identity-fields">
+      <div class="form-group">
+        <label for="squad-name">Name</label>
+        <input
+          id="squad-name"
+          type="text"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          [maxlength]="maxNameLength"
+          placeholder="Squad name">
+      </div>
+      <div class="form-group">
+        <label for="squad-game">Main game <span class="text-muted">(optional)</span></label>
+        <select id="squad-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
+          <option [ngValue]="null">— No main game —</option>
+          @for (game of games(); track game.id) {
+            <option [ngValue]="game.id">{{ game.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="squad-description">What is this squad for? <span class="text-muted">(optional)</span></label>
+    <textarea
+      id="squad-description"
+      rows="3"
+      [ngModel]="description()"
+      (ngModelChange)="description.set($event)"
+      [maxlength]="maxDescriptionLength"
+      placeholder="Weeknight raids, no mic shaming…"></textarea>
+    <span class="char-count">{{ description().length }}/{{ maxDescriptionLength }}</span>
+  </div>
+
+  <!-- sheetSquad: described radio cards, not a chip row -->
+  <fieldset class="policy-group">
+    <legend class="section-head-label">Who can join</legend>
+    <div class="policy-cards">
+      @for (policy of joinPolicies; track policy.value) {
+        <label class="policy-card" [class.selected]="joinPolicy() === policy.value">
+          <input
+            type="radio"
+            name="joinPolicy"
+            [value]="policy.value"
+            [checked]="joinPolicy() === policy.value"
+            (change)="joinPolicy.set(policy.value)">
+          <span class="policy-card-label">{{ policy.label }}</span>
+          <span class="policy-card-desc">{{ policy.description }}</span>
+        </label>
+      }
+    </div>
+    <p class="hint text-muted">
+      Only "Invite only" behaves differently today — the captain adds members by username.
+      Ask-to-join and Open are stored but have no request inbox or self-serve join flow yet.
+    </p>
+  </fieldset>
+
+  <div class="form-group">
+    <span class="section-head-label">Starter channels</span>
+    <div class="starter-channels">
+      <span class="chip active" aria-disabled="true">#general</span>
+      <span class="chip active" aria-disabled="true">#clips</span>
+      @for (channelName of additionalChannelNames(); track channelName; let i = $index) {
+        <span class="chip active removable-chip">
+          #{{ channelName }}
+          <button type="button" [attr.aria-label]="'Remove #' + channelName" (click)="removeChannelName(i)">&times;</button>
+        </span>
+      }
+    </div>
+    <div class="add-channel-row">
+      <label class="visually-hidden" for="squad-new-channel">Add another channel</label>
+      <input
+        id="squad-new-channel"
+        type="text"
+        [ngModel]="newChannelName()"
+        (ngModelChange)="newChannelName.set($event)"
+        [maxlength]="maxChannelNameLength"
+        placeholder="Add another channel"
+        (keydown.enter)="$event.preventDefault(); addChannelName()">
+      <button type="button" class="btn btn-secondary" (click)="addChannelName()">Add</button>
+    </div>
+  </div>
+
+  <!-- sheetSquad: stacked-avatar invite nudge -->
+  <div class="invite-nudge">
+    <div class="invite-avatars" aria-hidden="true">
+      <span class="invite-avatar"></span>
+      <span class="invite-avatar"></span>
+      <span class="invite-avatar invite-avatar-add">＋</span>
+    </div>
+    <p>Invite 2 friends now — squads with 3+ members stay alive twice as long</p>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  <div class="composer-footer">
+    <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
+    <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
+      {{ isSubmitting() ? 'Creating...' : 'Create squad' }}
+    </button>
+  </div>
+</app-sheet-modal>
