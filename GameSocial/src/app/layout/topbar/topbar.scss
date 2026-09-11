@@ -20,19 +20,35 @@ $header-hover-bg: rgba(0, 0, 0, 0.16);
 }
 
 .topbar-brand {
+  // The design pairs the tavern-sign mark with the wordmark, 10px apart.
   .brand-logo {
-    font-family: $font-family-secondary;
-    font-size: 22px;
-    line-height: 1;
-    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     color: $header-text;
-    letter-spacing: -0.6px;
     text-decoration: none;
-    white-space: nowrap;
 
     &:hover {
       color: $header-text;
     }
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    object-fit: scale-down;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+    margin-bottom: 1rem;
+  }
+
+  .brand-name {
+    font-family: $font-family-secondary;
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    white-space: nowrap;
   }
 }
 

@@ -16,7 +16,9 @@ html, body {
   font-family: $font-family-primary;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: grayscale;  
+  scrollbar-color: $color-text-secondary $color-bg-primary;
+  scrollbar-width: thin;
 }
 
 /* The photo lightbox covers the page — the feed must not scroll away behind it. */
