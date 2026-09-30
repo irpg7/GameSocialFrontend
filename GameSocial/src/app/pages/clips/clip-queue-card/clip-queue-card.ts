@@ -1,18 +1,20 @@
 import { Component, ElementRef, computed, inject, input, linkedSignal, output, signal, viewChild } from '@angular/core';
 import { PostModel } from '../../../models/post.model';
 import { LikeService } from '../../../services/like/like.service';
+import { PostService } from '../../../services/post/post.service';
 import { NotificationService } from '../../../services/notification/notification.service';
-import { formatClock } from '../../../shared/clip-format';
+import { clipVideo, formatClock, formatCount } from '../../../shared/clip-format';
 
 /**
  * One card in the Clips page "Up next" rail, from Gamer Feed.dc.html's
- * `onClipsPage` state: thumbnail with a play badge, a duration chip, a hairline
- * progress line, then title, author and the vote/comment chips.
+ * `onClipsPage` state: poster thumbnail with a play badge, a duration chip, a
+ * hairline progress line, then title, author + ◇/◆ save, and the vote/comment
+ * chips.
  *
- * The design's hover state ("ÖN İZLEME · 🔇") is a real muted preview here —
+ * The design's hover state ("ÖN İZLEME · 🔇") is a real muted preview —
  * pointing at a card plays its video silently and the chip tracks the preview
- * position, exactly as the mock animates it. The design's save/bookmark glyph
- * is left out: the backend has no bookmark feature to bind it to.
+ * position, exactly as the mock animates it. ◇/◆ is `POST posts/{id}/save`
+ * (the same list as "◷ watch later" on the Clip Player).
  */
 @Component({
   selector: 'app-clip-queue-card',
@@ -26,11 +28,14 @@ import { formatClock } from '../../../shared/clip-format';
 })
 export class ClipQueueCard {
   private likeService = inject(LikeService);
+  private postService = inject(PostService);
   private notificationService = inject(NotificationService);
 
   post = input.required<PostModel>();
   /** The clip currently loaded in the hero stage. */
   active = input(false);
+  /** Hero position while `active` (the design's card mirrors the hero's clock/progress). */
+  activeTime = input(0);
 
   play = output<void>();
   openComments = output<void>();
@@ -40,21 +45,45 @@ export class ClipQueueCard {
   protected readonly previewing = signal(false);
   protected readonly previewTime = signal(0);
   protected readonly isTogglingLike = signal(false);
+  protected readonly isTogglingSave = signal(false);
   protected readonly liked = linkedSignal(() => this.post().isLikedByCurrentUser);
   protected readonly likeCount = linkedSignal(() => this.post().likeCount);
+  protected readonly saved = linkedSignal(() => this.post().isSavedByCurrentUser);
 
-  protected readonly media = computed(() => this.post().media.find((m) => m.mediaType === 'Video'));
-  protected readonly src = computed(() => this.media()?.url ?? '');
+  protected readonly media = computed(() => clipVideo(this.post().media));
+  protected readonly src = computed(() => this.media()?.renditions?.at(-1)?.url ?? this.media()?.url ?? '');
+  protected readonly poster = computed(() => this.media()?.thumbnailUrl ?? null);
   protected readonly duration = computed(() => this.media()?.durationSeconds ?? 0);
   protected readonly title = computed(() => this.post().caption?.trim() || this.post().gameName || 'Clip');
   protected readonly initial = computed(() => this.post().username.charAt(0).toUpperCase());
-  protected readonly timeLabel = computed(() => formatClock(this.previewing() ? this.previewTime() : this.duration()));
+  protected readonly likeLabel = computed(() => formatCount(this.likeCount()));
+  protected readonly commentCount = computed(() => formatCount(this.post().commentCount));
+  protected readonly timeLabel = computed(() => {
+    if (this.previewing()) {
+      return formatClock(this.previewTime());
+    }
+    return formatClock(this.active() ? this.activeTime() : this.duration());
+  });
   protected readonly progressPercent = computed(() => {
     const total = this.duration();
-    return this.previewing() && total > 0 ? Math.min(100, (this.previewTime() / total) * 100) : 0;
+    if (total <= 0) {
+      return 0;
+    }
+    if (this.previewing()) {
+      return Math.min(100, (this.previewTime() / total) * 100);
+    }
+    return this.active() ? Math.min(100, (this.activeTime() / total) * 100) : 0;
   });
 
+  protected onPlay(event: Event): void {
+    event.stopPropagation();
+    this.play.emit();
+  }
+
   protected onEnter(): void {
+    if (this.active()) {
+      return;
+    }
     this.previewing.set(true);
     const video = this.videoRef().nativeElement;
     video.currentTime = 0;
@@ -90,6 +119,24 @@ export class ClipQueueCard {
       error: () => {
         this.isTogglingLike.set(false);
         this.notificationService.error('Failed to update like. Please try again.');
+      },
+    });
+  }
+
+  protected toggleSave(event: Event): void {
+    event.stopPropagation();
+    if (this.isTogglingSave()) {
+      return;
+    }
+    this.isTogglingSave.set(true);
+    this.postService.toggleSave(this.post().id).subscribe({
+      next: (result) => {
+        this.saved.set(result.saved);
+        this.isTogglingSave.set(false);
+      },
+      error: () => {
+        this.isTogglingSave.set(false);
+        this.notificationService.error('Kaydetme başarısız oldu.');
       },
     });
   }

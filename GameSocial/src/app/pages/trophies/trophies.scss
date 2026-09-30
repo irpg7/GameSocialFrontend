@@ -2,12 +2,12 @@
 @use '../../../styles/form-controls';
 
 // Every metric below is Gamer Feed.dc.html's `onTrophies` state: a 760px
-// column beside a 288px rail, 16px gaps, a 20px-radius showcase panel with
-// 16px tiles inside it, 16px-radius progress rows and a four-up grid of
+// column beside a 288px rail (26px apart), 16px gaps, a 20px-radius showcase
+// panel with 16px tiles, 16px-radius progress rows and a four-up grid of
 // recently-earned tiles.
 
 .trophies-page {
-  max-width: 1100px;
+  max-width: 1074px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 760px) 288px;
@@ -27,15 +27,15 @@
   min-width: 0;
 }
 
-// .filter-row artık paylaşılan _form-controls.scss içinde; burada yalnızca bu
-// sayfaya özgü sort-chip override'ı kalıyor.
-.filter-row .sort-chip {
-  margin-left: 0;
+// Design: 1px #2A2A32 outline (the shared .btn-secondary is a shade darker).
+.edit-showcase {
+  border-color: $color-border-strong;
 }
 
 .trophy-empty {
   font-size: 13px;
   line-height: 19px;
+  color: $color-text-tertiary;
 }
 
 // ─── Showcase panel ───────────────────────────────────────────
@@ -52,6 +52,11 @@
   justify-content: space-between;
   gap: $spacing-sm;
   margin-bottom: 14px;
+
+  .section-head-label,
+  .section-head-note {
+    color: $color-text-tertiary;
+  }
 }
 
 .showcase-grid {
@@ -64,121 +69,40 @@
   }
 }
 
-.earned-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-
-  @media (max-width: 860px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-// ─── Trophy tiles ─────────────────────────────────────────────
-.trophy-tile {
-  position: relative;
+.showcase-empty {
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px dashed $color-border-dashed;
   display: flex;
   flex-direction: column;
-  border-radius: $border-radius-lg;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
-
-  &.editable {
-    cursor: pointer;
-    transition: border-color $transition-speed-fast;
-
-    &:hover {
-      border-color: $color-accent-primary;
-    }
-  }
-}
-
-// Pinned slots are centred and lit warm, the way the design draws them.
-.trophy-tile-pinned {
-  align-items: center;
-  text-align: center;
-  gap: 9px;
-  padding: 16px;
-  background: linear-gradient(180deg, rgba($color-accent-primary, 0.08), $color-bg-primary);
-  border-color: rgba($color-accent-primary, 0.35);
-}
-
-.trophy-tile-earned {
-  gap: 9px;
-  padding: 14px;
-  background-color: $color-bg-secondary;
-  border-color: $color-border;
-}
-
-.trophy-icon {
-  width: 54px;
-  height: 54px;
-  flex: none;
-  border-radius: 18px;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
-  color: $color-text-secondary;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  line-height: 1;
-}
-
-.trophy-icon-sm {
-  width: 40px;
-  height: 40px;
-  border-radius: $border-radius-lg;
-  font-size: 16px;
-}
-
-.trophy-icon-accent {
-  background-color: rgba($color-accent-primary, 0.18);
-  border-color: $color-accent-primary;
-  color: $color-accent-primary;
-}
-
-.trophy-name {
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-.trophy-desc {
+  gap: 9px;
+  min-height: 150px;
   font-size: 11px;
   line-height: 15px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
+  text-align: center;
 }
 
-// The design states rarity as a monospace badge, not running text.
-.trophy-rarity {
-  align-self: center;
-  padding: 4px 8px;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-primary;
-  color: $color-text-secondary;
-  font-family: $font-family-mono;
-  font-size: 9px;
-  line-height: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
+.showcase-empty-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  border: 1px dashed $color-border-dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
 
-.trophy-rarity-accent {
-  background-color: rgba($color-accent-primary, 0.16);
-  color: $color-accent-primary;
-}
-
-.trophy-unpin {
-  font-size: 10px;
-  line-height: 13px;
-  font-weight: 800;
-  color: $color-accent-primary;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+// Section heads on this screen use the design's #6C6C78 label/note colour.
+.section-head {
+  .section-head-label,
+  .section-head-note {
+    color: $color-text-tertiary;
+  }
 }
 
 // ─── In progress rows ─────────────────────────────────────────
@@ -195,18 +119,35 @@
   padding: 14px 16px;
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-radius: $border-radius-lg;
+  border-radius: 16px;
+
+  // The closest one gets a warm border, a tinted glyph and a red percentage.
+  &.lead {
+    border-color: $color-accent-border;
+
+    .progress-icon {
+      background-color: $color-accent-tint;
+      color: $color-accent-light;
+    }
+
+    .progress-percent {
+      color: $color-accent-light;
+    }
+  }
 }
 
-// The design highlights the closest one with a warm border.
-.progress-row-lead {
-  border-color: rgba($color-accent-primary, 0.35);
-}
-
-.progress-row .trophy-icon-sm {
+.progress-icon {
   width: 44px;
   height: 44px;
+  flex: none;
+  border-radius: 14px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
+  line-height: 1;
 }
 
 .progress-row-body {
@@ -219,28 +160,36 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
 
-  .trophy-name {
-    font-size: 14px;
-    line-height: 19px;
-  }
+.progress-name {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
 
-  .trophy-rarity {
-    align-self: auto;
-    padding: 3px 7px;
-  }
+.rarity-badge {
+  padding: 3px 7px;
+  border-radius: 7px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-family: $font-family-mono;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .progress-row-desc {
   font-size: 12px;
   line-height: 17px;
   font-weight: 500;
-  color: $color-text-secondary;
-  margin-top: 2px;
+  color: $color-text-tertiary;
+  margin: 2px 0 0;
 }
 
 .progress-bar {
-  width: 100%;
   height: 6px;
   border-radius: 3px;
   background-color: $color-border;
@@ -261,10 +210,91 @@
   line-height: 18px;
   font-weight: 800;
   color: $color-text-secondary;
+}
 
-  &.accent {
-    color: $color-accent-primary;
+// ─── Recently earned ──────────────────────────────────────────
+.earned-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  @media (max-width: 860px) {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
+
+.earned-tile {
+  border-radius: 16px;
+  padding: 14px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  text-align: left;
+
+  &.lead .earned-icon {
+    background-color: $color-accent-tint;
+    color: $color-accent-light;
+  }
+
+  &.editable {
+    cursor: pointer;
+    transition: border-color $transition-speed-fast;
+
+    &:hover {
+      border-color: $color-accent-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+      outline-offset: 2px;
+    }
+  }
+
+  &.pinned {
+    border-color: $color-accent-border;
+  }
+}
+
+.earned-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.earned-name {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.earned-meta {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.earned-action {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: $color-accent-light;
 }
 
 // ─── Right rail ───────────────────────────────────────────────
@@ -276,158 +306,236 @@
   top: 0;
 }
 
-.panel-card {
+.rail-card {
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
   border-radius: $border-radius-xl;
   padding: 18px;
 }
 
-.panel-card-header {
+.rail-card-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
   margin-bottom: 14px;
 
-  h4 {
-    margin: 0;
-    font-size: 11px;
-    line-height: 14px;
-    font-weight: 700;
-    color: $color-text-secondary;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
+  &.xp-label {
+    margin-bottom: 10px;
   }
 }
 
-// The design's identity panel is a left-aligned row, lit like the XP card.
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: linear-gradient(180deg, rgba($color-accent-primary, 0.1), $color-bg-secondary);
-  border-color: $color-bg-tertiary;
+// Identity + level card: lit like the design's XP card.
+.identity-card {
+  background: linear-gradient(180deg, #1a1015, $color-bg-secondary);
+  border-color: $color-border-strong;
 }
 
-.profile-avatar {
+.identity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.identity-avatar {
   width: 46px;
   height: 46px;
-  border-radius: $border-radius-lg;
-  background-color: $color-bg-tertiary;
+  flex: none;
+  border-radius: 15px;
+  background-color: $color-border-strong;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: 800;
-  color: $color-text-primary;
-  font-family: $font-family-secondary;
+  color: $color-text-secondary;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
-.profile-username {
+.identity-text {
+  min-width: 0;
+}
+
+.identity-name {
   font-size: 15px;
   line-height: 20px;
   font-weight: 700;
   color: $color-text-primary;
-  margin-top: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity-sub {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.level-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.level-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.level-to-next {
+  font-family: $font-family-mono;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.level-bar {
+  height: 8px;
+  border-radius: 4px;
+  background-color: $color-border;
+  overflow: hidden;
+  margin-top: 9px;
+}
+
+.level-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background-color: $color-accent-primary;
+  transition: width $transition-speed-normal;
 }
 
 // Three columns split by hairlines, as in the design's stat strip.
-.profile-stats {
+.identity-stats {
   display: flex;
   margin-top: 16px;
   border-top: 1px solid $color-border;
   padding-top: 14px;
 }
 
-.profile-stat {
+.identity-stat {
   flex: 1;
   text-align: center;
 
-  & + .profile-stat {
+  & + .identity-stat {
     border-left: 1px solid $color-border;
   }
-
-  .profile-stat-value {
-    display: block;
-    font-family: $font-family-mono;
-    font-weight: 800;
-    font-size: 18px;
-    line-height: 22px;
-    color: $color-text-primary;
-  }
-
-  .profile-stat-label {
-    display: block;
-    font-size: 11px;
-    line-height: 14px;
-    font-weight: 600;
-    color: $color-text-secondary;
-  }
 }
 
-.profile-xp-hint {
-  font-size: 12px;
-  line-height: 17px;
-  margin-top: 12px;
+.identity-stat-value {
+  font-family: $font-family-mono;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 800;
+  color: $color-text-primary;
 }
 
-.squad-leaderboard-caption {
+.identity-stat-label {
   font-size: 11px;
-  line-height: 15px;
-  margin-bottom: 12px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-tertiary;
 }
 
-.leaderboard-list {
+// ─── Squad comparison ─────────────────────────────────────────
+.comparison-list {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.leaderboard-row {
+.comparison-row {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  color: $color-text-secondary;
 
   &.self {
     padding: 6px 8px;
     margin: 0 -8px;
-    border-radius: $border-radius-md;
+    border-radius: 10px;
     background-color: rgba($color-accent-primary, 0.1);
-    color: $color-text-primary;
-    font-weight: 700;
-  }
-
-  .leaderboard-rank {
-    width: 18px;
-    flex: none;
-    font-family: $font-family-mono;
-    font-weight: 800;
-    font-size: 12px;
-    color: $color-text-secondary;
-  }
-
-  &.self .leaderboard-rank {
-    color: $color-accent-primary;
-  }
-
-  .leaderboard-name {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .text-muted {
-    font-family: $font-family-mono;
-    font-weight: 700;
   }
 }
 
+.comparison-rank {
+  width: 18px;
+  flex: none;
+  font-family: $font-family-mono;
+  font-size: 12px;
+  font-weight: 800;
+  color: $color-text-tertiary;
+}
+
+.comparison-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 10px;
+  background-color: $color-border-strong;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.comparison-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.comparison-count {
+  margin-left: auto;
+  font-family: $font-family-mono;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+.comparison-row.bright {
+  .comparison-rank {
+    color: $color-accent-light;
+  }
+
+  .comparison-name {
+    font-weight: 700;
+    color: $color-text-primary;
+  }
+
+  .comparison-count {
+    color: $color-text-primary;
+  }
+}
+
+// ─── Where XP comes from ──────────────────────────────────────
 .xp-source-list {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -440,10 +548,9 @@
     font-weight: 600;
     color: $color-text-secondary;
   }
+}
 
-  .xp-source-amount {
-    font-family: $font-family-mono;
-    font-weight: 700;
-    color: $color-accent-primary;
-  }
+.xp-source-amount {
+  font-family: $font-family-mono;
+  color: $color-accent-light;
 }

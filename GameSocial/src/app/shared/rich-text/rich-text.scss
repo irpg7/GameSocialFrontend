@@ -1,0 +1,72 @@
+@use '../../../styles/variables' as *;
+
+// Inherits font/colour from the host (review body 15/23 #C9C9D2, devlog body, …)
+// so each card keeps its own typography; only spacing and the inline chips live here.
+:host {
+  display: block;
+}
+
+.rt-p,
+.rt-quote,
+.rt-list {
+  margin: 0;
+
+  & + & {
+    margin-top: 1em;
+  }
+}
+
+.rt-p + .rt-quote,
+.rt-p + .rt-list,
+.rt-quote + .rt-p,
+.rt-list + .rt-p,
+.rt-quote + .rt-list,
+.rt-list + .rt-quote {
+  margin-top: 1em;
+}
+
+.rt-p {
+  white-space: pre-line;
+}
+
+.rt-bold {
+  color: $color-text-primary;
+}
+
+.rt-quote {
+  padding-left: 12px;
+  border-left: 2px solid $color-border-strong;
+  font-style: italic;
+}
+
+.rt-list {
+  padding-left: 18px;
+}
+
+.rt-link {
+  color: $color-accent-light;
+}
+
+// Design: display:inline-block; padding:2px 8px; radius 7; #1B1B21; #6C6C78; 600 12px.
+.rt-spoiler {
+  display: inline-block;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 7px;
+  background: $color-bg-tertiary;
+  color: $color-text-tertiary;
+  font: 600 12px/18px $font-family-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-border;
+    color: $color-text-secondary;
+  }
+}
+
+.rt-spoiler-open {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: $color-bg-tertiary;
+}

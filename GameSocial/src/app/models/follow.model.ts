@@ -1,3 +1,5 @@
+import { GameModel } from './game.model';
+
 /**
  * Corresponds to Domain.Responses.FollowResponse — returned by both the
  * game-follow and user-follow toggle endpoints.
@@ -18,4 +20,14 @@ export interface FollowedUserModel {
   userId: string;
   username: string;
   isDeveloper: boolean;
+  avatarUrl?: string;
+  xp?: number;
+  level?: number;
+  /** Feed sidebar's red count: posts since the row was last selected (POST users/{id}/follow/seen). */
+  newPostCount?: number;
+}
+
+/** Domain.Responses.FollowedGameResponse (GET /api/games/followed) — a GameModel plus the sidebar's red "new posts" dot. */
+export interface FollowedGameModel extends GameModel {
+  newPostCount: number;
 }

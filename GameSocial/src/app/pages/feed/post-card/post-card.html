@@ -1,379 +1,400 @@
-<!--
-  Gamer Feed.dc.html draws a clip post as one full-bleed stage: no separate
-  header row, no caption paragraph and no interaction bar — the author, the
-  vote and the comment toggle all live on the overlay, and the thread opens
-  underneath it. A photo post is full-bleed too, but keeps a compact meta row
-  above the grid and the glyph action bar below it. Every other post type
-  keeps the standard card chrome.
--->
-<div
-  class="post-card"
-  [class.card]="!isClipCard() && !isPhotoCard()"
-  [class.post-card-clip]="isClipCard()"
-  [class.post-card-photo]="isPhotoCard()"
-  [class.post-card-review]="isReviewCard()">
-  @if (isClipCard()) {
+<!-- One comment row — the design's fhComments item: avatar, author, LV, @stamp, age, text, ▲ n, Yanıtla. -->
+<ng-template #commentRow let-comment>
+  <div class="cm" [class.cm-pinned]="comment.isPinned">
+    <a [routerLink]="['/profile', comment.userId]" class="cm-avatar" [attr.aria-label]="comment.username">
+      @if (comment.authorAvatarUrl) { <img [src]="comment.authorAvatarUrl" alt="" /> }
+    </a>
+    <div class="cm-body">
+      <div class="cm-meta">
+        <a [routerLink]="['/profile', comment.userId]" class="cm-author">{{ comment.username }}</a>
+        <span class="cm-lv">LV {{ comment.authorLevel }}</span>
+        @if (comment.isPinned) {
+          <span class="cm-dev">◆ YAPIMCI</span>
+        }
+        @if (comment.timestampSeconds != null && isClipCard()) {
+          <button type="button" class="cm-stamp" [attr.aria-label]="'Klipte ' + clock(comment.timestampSeconds) + ' anına git'" (click)="seekComment(comment)">&#64;{{ clock(comment.timestampSeconds) }}</button>
+        }
+        <span class="cm-ago">{{ ago(comment.createdAt) }}</span>
+        @if (isOwnComment(comment)) {
+          <button type="button" class="cm-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
+        }
+      </div>
+      <div class="cm-text">{{ comment.body }}</div>
+      <div class="cm-actions">
+        <button type="button" class="cm-vote" [class.active]="comment.isVotedByCurrentUser" [attr.aria-pressed]="comment.isVotedByCurrentUser" (click)="voteComment(comment)">▲ {{ count(comment.voteCount) }}</button>
+        <button type="button" class="cm-reply" [attr.aria-expanded]="replyingTo() === comment.id" (click)="startReply(comment)">
+          Yanıtla@if (comment.replyCount > 0) { <span class="cm-reply-count">· {{ comment.replyCount }}</span> }
+        </button>
+      </div>
+      @if (replyingTo() === comment.id) {
+        <div class="cm-reply-form">
+          <input
+            type="text"
+            [value]="replyBody()"
+            (input)="replyBody.set($any($event.target).value)"
+            (keydown.enter)="submitReply(comment)"
+            [placeholder]="comment.username + ' kullanıcısına yanıt ver'"
+            aria-label="Yanıt" />
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="!replyBody().trim() || isSubmittingComment()" (click)="submitReply(comment)">Gönder</button>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<!-- The full thread under every non-featured card. -->
+<ng-template #thread>
+  <div class="thread">
+    @if (isLoadingComments() && comments().length === 0) {
+      <p class="thread-status">Loading comments...</p>
+    }
+    @for (comment of comments(); track comment.id) {
+      <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
+    }
+    @if (comments().length === 0 && !isLoadingComments()) {
+      <p class="thread-status">No comments yet. Be the first to comment.</p>
+    }
+    @if (hasMoreComments()) {
+      <button type="button" class="thread-more" [disabled]="isLoadingComments()" (click)="loadMoreComments()">
+        {{ isLoadingComments() ? 'Loading...' : 'Load more comments' }}
+      </button>
+    }
+    <div class="thread-form">
+      <textarea
+        #commentInput
+        rows="1"
+        [value]="newCommentBody()"
+        (input)="newCommentBody.set($any($event.target).value)"
+        placeholder="Write a comment..."
+        aria-label="Write a comment"></textarea>
+      <button type="button" class="btn btn-primary btn-sm" [disabled]="!newCommentBody().trim() || isSubmittingComment()" (click)="submitComment()">
+        {{ isSubmittingComment() ? 'Posting...' : 'Comment' }}
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ··· menu shared by every card head. -->
+<ng-template #moreMenu>
+  <div class="more">
+    <button type="button" class="more-btn" aria-label="More actions" aria-haspopup="menu" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu($event)">···</button>
+    @if (menuOpen()) {
+      <div class="more-pop" role="menu" (click)="$event.stopPropagation()">
+        <button type="button" role="menuitem" class="more-item" (click)="toggleSave(); menuOpen.set(false)">{{ saved() ? '◆ Saved' : '◇ Save' }}</button>
+        <button type="button" role="menuitem" class="more-item" (click)="share()">↗ Copy link</button>
+        <a role="menuitem" class="more-item" [routerLink]="['/profile', post().userId]">◉ View profile</a>
+      </div>
+    }
+  </div>
+</ng-template>
+
+@if (isFeaturedClip()) {
+  <!-- ─── CLIP OF THE DAY (D183–245) ─────────────────────────────── -->
+  <article class="pc pc-hero">
     <app-clip-stage
       [post]="post()"
       variant="feed"
+      rankLabel="CLIP OF THE DAY"
       [squadName]="squadName()"
       [commentCount]="commentCount()"
       [commentsActive]="isCommentsOpen()"
-      (toggleComments)="toggleComments()"
-      (openFull)="openInClipsPage()" />
-  } @else if (isPhotoCard()) {
-    <div class="photo-head">
-      <a [routerLink]="['/profile', post().userId]" class="photo-avatar">{{ authorInitial() }}</a>
-      <a [routerLink]="['/profile', post().userId]" class="photo-author">{{ post().username }}</a>
-      <span class="photo-meta">{{ photoMeta() }}</span>
-      @if (squadName(); as name) {
-        <a [routerLink]="['/squads', post().squadId]" class="photo-squad">Posted to {{ name }}</a>
-      }
-    </div>
+      (toggleComments)="toggleComments()" />
 
-    @if (post().caption) {
-      <p class="photo-caption">{{ post().caption }}</p>
+    @if (isCommentsOpen()) {
+      <div class="hero-thread">
+        <div class="hero-thread-head">
+          <span class="label">Öne çıkan yorumlar</span>
+          <button type="button" class="hero-thread-all" (click)="openClipComments()">Tüm {{ commentLabel() }} yorumu gör →</button>
+        </div>
+        @if (isLoadingComments() && comments().length === 0) {
+          <p class="thread-status">Yorumlar yükleniyor…</p>
+        }
+        @for (comment of featuredComments(); track comment.id) {
+          <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
+        }
+        @if (comments().length === 0 && !isLoadingComments()) {
+          <p class="thread-status">Henüz yorum yok.</p>
+        }
+      </div>
     }
+  </article>
+} @else if (isClipCard()) {
+  <!-- ─── In-feed clip: author row + inline muted-autoplay stage ──── -->
+  <article class="pc">
+    <div class="pc-head">
+      <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
+        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+      </a>
+      <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
+      <span class="lv">LV {{ post().authorLevel }}</span>
+      <span class="meta">{{ clipMeta() }}</span>
+      @if (squadName(); as name) {
+        <a [routerLink]="['/squads', post().squadId]" class="squad-tag">{{ name }}</a>
+      }
+      <ng-container *ngTemplateOutlet="moreMenu" />
+    </div>
+    @if (post().caption) {
+      <div class="pc-clip-title">{{ post().caption }}</div>
+    }
+    <div class="pc-clip-stage">
+      <app-clip-stage [post]="post()" variant="inline" [squadName]="squadName()" />
+    </div>
+    <div class="bar">
+      <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+      <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
+      <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
+      <span class="bar-views mono">{{ count(post().viewCount) }} views</span>
+      <button type="button" class="outline-btn" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="toggleSave()">{{ saved() ? '◆ Saved' : '◇ Save' }}</button>
+    </div>
+    @if (isCommentsOpen()) {
+      <ng-container *ngTemplateOutlet="thread" />
+    }
+  </article>
+} @else if (isDevlogCard()) {
+  <!-- ─── DevLog (D247–297) ──────────────────────────────────────── -->
+  @if (post().devlog; as devlog) {
+    <article class="pc pc-devlog">
+      <div class="dv-head">
+        <a [routerLink]="['/profile', post().userId]" class="av av-40" [attr.aria-label]="post().username">
+          @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+        </a>
+        <div class="dv-who">
+          <div class="dv-who-row">
+            <a [routerLink]="['/profile', post().userId]" class="dv-name">{{ post().authorStudioName || post().username }}</a>
+            @if (post().authorIsDeveloper) {
+              <span class="dev-badge">◆ DEVELOPER</span>
+            }
+          </div>
+          <div class="dv-meta">{{ devlogMeta() }}</div>
+        </div>
+        <div class="dv-head-actions">
+          @if (!isOwnPost()) {
+            <button type="button" class="outline-btn outline-btn-sm" [attr.aria-pressed]="followingAuthor()" (click)="toggleFollowAuthor()">
+              {{ followingAuthor() ? 'Following ✓' : 'Follow updates' }}
+            </button>
+          }
+          <ng-container *ngTemplateOutlet="moreMenu" />
+        </div>
+      </div>
 
+      <div class="dv-copy">
+        <div class="dv-chips">
+          <span class="dv-chip dv-chip-accent">DEVLOG{{ devlog.sequence ? ' #' + devlog.sequence : '' }}</span>
+          @if (buildChip()) {
+            <span class="dv-chip">{{ buildChip() }}</span>
+          }
+        </div>
+        <h3 class="dv-title">{{ devlog.title }}</h3>
+        @if (devlog.body) {
+          <div class="dv-body"><app-rich-text [text]="devlog.body" /></div>
+        }
+      </div>
+
+      @if (devlogMedia().lead; as lead) {
+        <div class="dv-media">
+          <div class="dv-lead">
+            @if (lead.mediaType === 'Video') {
+              <video #devVideo [src]="lead.url" [poster]="lead.thumbnailUrl ?? ''" preload="metadata" playsinline (play)="true" (pause)="true" (click)="devVideo.paused ? devVideo.play() : devVideo.pause()"></video>
+              @if (devVideo.paused) {
+                <button type="button" class="dv-play" aria-label="Oynat" (click)="devVideo.play()">▶</button>
+              }
+            } @else {
+              <img [src]="lead.url" [alt]="devlog.title" />
+            }
+            @if (lead.role === 'InEngine' || lead.mediaType === 'Video') {
+              <span class="dv-tag">IN ENGINE</span>
+            }
+          </div>
+          @if (devlogMedia().side.length > 0) {
+            <div class="dv-side">
+              @for (m of devlogMedia().side; track m.id) {
+                <div class="dv-side-tile">
+                  <img [src]="m.thumbnailUrl || m.url" [alt]="m.role === 'Before' ? 'Before' : m.role === 'After' ? 'After' : devlog.title" />
+                  @if (m.role) {
+                    <span class="dv-tag">{{ m.role === 'Before' ? 'BEFORE' : 'AFTER' }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (devlog.patchLines.length > 0) {
+        <div class="dv-patch">
+          <div class="label">Next patch</div>
+          <ul class="dv-lines">
+            @for (line of devlog.patchLines; track line.id) {
+              <li class="dv-line">
+                <span class="dv-line-icon" [class.pending]="line.status === 'Investigating'" [attr.title]="line.status">{{ line.status === 'Investigating' ? '◷' : '✓' }}</span>{{ line.text }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="bar bar-devlog">
+        <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+        <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
+        <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
+        <div class="bar-end">
+          <button type="button" class="outline-btn outline-btn-lg" (click)="reportBug()">Report a bug</button>
+          @if (devlog.testBranchUrl) {
+            <a class="red-btn" [href]="devlog.testBranchUrl" target="_blank" rel="noopener">Join the test branch</a>
+          }
+        </div>
+      </div>
+      @if (isCommentsOpen()) {
+        <ng-container *ngTemplateOutlet="thread" />
+      }
+    </article>
+  }
+} @else if (isReviewCard()) {
+  <!-- ─── Review (D304–325) ──────────────────────────────────────── -->
+  @if (post().review; as review) {
+    <article class="pc pc-review">
+      <div class="rv-layout">
+        <div class="rv-gutter">
+          <div class="rv-cover">
+            @if (post().gameCoverImageUrl) { <img [src]="post().gameCoverImageUrl" [alt]="post().gameName ?? ''" /> }
+          </div>
+          <div class="rv-score">{{ reviewScore() }}</div>
+          <app-star-rating [score]="review.score" />
+        </div>
+        <div class="rv-main">
+          <div class="rv-meta-row">
+            <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
+            <span class="lv">LV {{ post().authorLevel }}</span>
+            <span class="meta">{{ reviewMeta() }}</span>
+          </div>
+          @if (post().caption) {
+            <h3 class="rv-headline">{{ post().caption }}</h3>
+          }
+          @if (review.body) {
+            <div class="rv-text"><app-rich-text [text]="review.body" /></div>
+          }
+          <div class="rv-actions">
+            <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [attr.aria-label]="'Useful · ' + likeCount()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+            <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
+            <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
+            @if (!isOwnPost()) {
+              <button type="button" class="outline-btn outline-btn-lg rv-rate" (click)="addRating()">Add your rating</button>
+            }
+          </div>
+        </div>
+      </div>
+      @if (isCommentsOpen()) {
+        <ng-container *ngTemplateOutlet="thread" />
+      }
+    </article>
+  }
+} @else if (isPhotoCard()) {
+  <!-- ─── Screenshots (D345–374) ─────────────────────────────────── -->
+  <article class="pc">
+    <div class="pc-head">
+      <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
+        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+      </a>
+      <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
+      <span class="lv">LV {{ post().authorLevel }}</span>
+      <span class="meta">{{ photoMeta() }}</span>
+      @if (squadName(); as name) {
+        <a [routerLink]="['/squads', post().squadId]" class="squad-tag">{{ name }}</a>
+      }
+      <ng-container *ngTemplateOutlet="moreMenu" />
+    </div>
+    @if (post().caption) {
+      <p class="pc-caption">{{ post().caption }}</p>
+    }
     <app-photo-grid
       [photos]="photos()"
       [alt]="post().caption || 'Photo from ' + post().username"
-      [badge]="photoKind()"
+      [badge]="photoBadge()"
       (open)="openViewer($event)" />
-
-    <div class="photo-actions">
-      <button
-        type="button"
-        class="photo-action photo-vote"
-        [class.active]="liked()"
-        [disabled]="isTogglingLike()"
-        [attr.aria-label]="(liked() ? 'Liked' : 'Like') + ' · ' + likeCount()"
-        (click)="toggleLike()">
-        ▲ <span class="photo-action-count">{{ likeCount() }}</span>
-      </button>
-      <button
-        type="button"
-        class="photo-action"
-        [class.active]="isCommentsOpen()"
-        [attr.aria-expanded]="isCommentsOpen()"
-        [attr.aria-label]="'Comments · ' + commentCount()"
-        (click)="toggleComments()">
-        💬 <span class="photo-action-count">{{ commentCount() }}</span>
-      </button>
-      <!-- Share is out of scope — backend has no share/repost feature yet. -->
-      <button type="button" class="photo-action" disabled title="Share — coming soon">↗ Share</button>
+    <div class="bar">
+      <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+      <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
+      <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
+      <button type="button" class="outline-btn" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="toggleSave()">{{ saved() ? '◆ Saved' : '◇ Save all' }}</button>
     </div>
-
+    @if (isCommentsOpen()) {
+      <ng-container *ngTemplateOutlet="thread" />
+    }
     @if (viewerIndex() !== null) {
       <app-photo-viewer
         [photos]="photos()"
         [startIndex]="viewerIndex()!"
         [username]="post().username"
         [userId]="post().userId"
+        [authorLevel]="post().authorLevel"
+        [authorAvatarUrl]="post().authorAvatarUrl"
         [gameName]="post().gameName"
         [caption]="post().caption"
+        [saved]="saved()"
+        (saveToggle)="toggleSave()"
         (closed)="closeViewer()" />
     }
-  } @else if (isReviewCard()) {
-    @if (post().review; as review) {
-      <div class="review-layout">
-      <div class="review-score-col">
-        <span class="review-score">{{ review.score }}</span>
-        <app-star-rating [score]="review.score" />
-        <span class="review-hours">{{ review.hoursPlayed }} h<br />{{ playStatusLabel() }}</span>
-      </div>
+  </article>
+} @else {
+  <!-- ─── Poll, and any post whose media failed (same chrome) ────── -->
+  <article class="pc pc-padded">
+    <div class="pc-head pc-head-flush">
+      <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
+        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+      </a>
+      <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
+      <span class="lv">LV {{ post().authorLevel }}</span>
+      <span class="meta">{{ isPollCard() ? 'asked' : 'posted' }}{{ post().gameName ? ' in ' + post().gameName : '' }} · {{ timeAgo() }}</span>
+      <ng-container *ngTemplateOutlet="moreMenu" />
+    </div>
 
-      <div class="review-body-col">
-        <div class="review-meta-row">
-          <a [routerLink]="['/profile', post().userId]" class="review-avatar">{{ authorInitial() }}</a>
-          <a [routerLink]="['/profile', post().userId]" class="review-author">{{ post().username }}</a>
-          <span class="review-meta">{{ reviewMeta() }}</span>
-          @if (review.spoilerFree) {
-            <span class="review-tag">Spoiler-free</span>
-          }
-          @if (squadName(); as name) {
-            <a [routerLink]="['/squads', post().squadId]" class="review-tag">Posted to {{ name }}</a>
-          }
-        </div>
+    @if (post().caption) {
+      <h3 class="poll-question">{{ post().caption }}</h3>
+    }
 
-        @if (post().caption) {
-          <h3 class="review-headline">{{ post().caption }}</h3>
-        }
-
-        @if (review.body) {
-          <p class="review-text">{{ review.body }}</p>
-        }
-
-        <div class="review-actions">
+    @if (poll(); as pollState) {
+      <div class="poll" role="group" [attr.aria-label]="post().caption || 'Poll'">
+        @for (option of pollState.options; track option.id) {
           <button
             type="button"
-            class="review-action"
-            [class.active]="liked()"
-            [disabled]="isTogglingLike()"
-            [attr.aria-label]="(liked() ? 'Marked useful' : 'Mark useful') + ' · ' + likeCount()"
-            (click)="toggleLike()">
-            ▲ <span class="mono">{{ likeCount() }}</span> useful
-          </button>
-          <button
-            type="button"
-            class="review-action"
-            [class.active]="isCommentsOpen()"
-            [attr.aria-expanded]="isCommentsOpen()"
-            [attr.aria-label]="'Comments · ' + commentCount()"
-            (click)="toggleComments()">
-            💬 <span class="mono">{{ commentCount() }}</span>
-          </button>
-          <!-- Share is out of scope — backend has no share/repost feature yet. -->
-          <button type="button" class="review-action" disabled title="Share — coming soon">↗ Share</button>
-        </div>
-      </div>
-      </div>
-    }
-  } @else {
-  <div class="post-header">
-    <a [routerLink]="['/profile', post().userId]" class="avatar">{{ post().username.charAt(0).toUpperCase() }}</a>
-    <div class="post-meta">
-      <a [routerLink]="['/profile', post().userId]" class="author">{{ post().username }}</a>
-      <div class="post-tags">
-        <span class="tag tag-type">{{ post().postType }}</span>
-        @if (post().gameName) {
-          <span class="tag tag-game">{{ post().gameName }}</span>
-        }
-        @if (squadName(); as name) {
-          <a [routerLink]="['/squads', post().squadId]" class="tag tag-squad">Posted to {{ name }}</a>
-        }
-      </div>
-      <span class="date">{{ post().createdAt | date: 'medium' }}</span>
-    </div>
-  </div>
-
-  @if (post().devlog?.title) {
-    <div class="post-devlog-title">
-      <h3>{{ post().devlog!.title }}</h3>
-    </div>
-  }
-
-  @if (post().postType === 'Poll') {
-    @if (post().caption) {
-      <div class="post-poll-question">
-        <h3>{{ post().caption }}</h3>
-      </div>
-    }
-  } @else if (post().postType === 'Review') {
-    @if (post().caption) {
-      <div class="post-review-headline">
-        <h3>{{ post().caption }}</h3>
-      </div>
-    }
-  } @else if (post().caption) {
-    <div class="post-content">
-      <p>{{ post().caption }}</p>
-    </div>
-  }
-
-  @if (post().devlog?.body) {
-    <div class="post-devlog-body">
-      <p>{{ post().devlog!.body }}</p>
-    </div>
-  }
-
-  @if (post().devlog; as devlog) {
-    @if (devlog.buildTag || devlog.branchTag) {
-      <div class="devlog-build-tags">
-        @if (devlog.buildTag) {
-          <span class="tag tag-build">Build {{ devlog.buildTag }}</span>
-        }
-        @if (devlog.branchTag) {
-          <span class="tag tag-branch">{{ devlog.branchTag }}</span>
-        }
-      </div>
-    }
-
-    @if (devlog.patchLines.length > 0) {
-      <ul class="patch-lines">
-        @for (line of devlog.patchLines; track line.id) {
-          <li class="patch-line">
-            @switch (line.status) {
-              @case ('Shipped') {
-                <span class="patch-icon patch-shipped" title="Shipped">✓</span>
-              }
-              @case ('Fixed') {
-                <span class="patch-icon patch-fixed" title="Fixed">✓</span>
-              }
-              @case ('Investigating') {
-                <span class="patch-icon patch-investigating" title="Investigating">◷</span>
-              }
+            class="poll-opt"
+            [class.selected]="pollState.currentUserOptionId === option.id"
+            [attr.aria-pressed]="pollState.currentUserOptionId === option.id"
+            [disabled]="isVotingPoll() || pollState.isExpired"
+            (click)="votePoll(option.id)">
+            @if (showPollResults()) {
+              <span class="poll-fill" [style.width.%]="pollOptionPercent(option.voteCount)"></span>
             }
-            <span>{{ line.text }}</span>
-          </li>
-        }
-      </ul>
-    }
-  }
-
-  @if (post().review; as review) {
-    <div class="post-review">
-      <app-star-rating [score]="review.score" />
-      <span class="review-score">{{ review.score }}/10</span>
-      @switch (review.playStatus) {
-        @case ('Finished') {
-          <span class="badge status-finished">Finished</span>
-        }
-        @case ('StillPlaying') {
-          <span class="badge status-playing">Still playing</span>
-        }
-        @case ('Dropped') {
-          <span class="badge status-dropped">Dropped</span>
-        }
-      }
-      <span class="text-muted">{{ review.hoursPlayed }}h played</span>
-      @if (review.spoilerFree) {
-        <span class="badge status-spoiler-free">Spoiler-free</span>
-      }
-    </div>
-
-    @if (review.body) {
-      <div class="post-review-body">
-        <p>{{ review.body }}</p>
-      </div>
-    }
-  }
-
-  <!-- Photo posts never reach here: they render the design's photo card above. -->
-  @if (post().media.length > 0) {
-    <div class="post-media">
-      @for (media of post().media; track media.id) {
-        @if (media.mediaType === 'Photo') {
-          <img [src]="media.url" [alt]="post().caption || 'Post media'" />
-        } @else if (media.mediaType === 'Video') {
-          <div class="post-video-wrapper">
-            @if (media.processingStatus === 'Pending') {
-              <span class="badge badge-processing">Processing…</span>
+            <span class="poll-text">{{ option.text }}</span>
+            @if (showPollResults()) {
+              <span class="poll-pct mono">{{ pollOptionPercent(option.voteCount) }}%</span>
             }
+          </button>
+        }
+        <p class="poll-foot">
+          <span class="mono">{{ count(pollState.totalVotes) }}</span> vote{{ pollState.totalVotes === 1 ? '' : 's' }} ·
+          {{ pollState.isExpired ? 'Poll closed' : endsIn(pollState.expiresAt) }}
+        </p>
+      </div>
+    } @else if (post().media.length > 0) {
+      <div class="pc-media">
+        @for (media of post().media; track media.id) {
+          @if (media.mediaType === 'Photo') {
+            <img [src]="media.url" [alt]="post().caption || 'Post media'" />
+          } @else {
             <video [src]="media.url" controls></video>
-          </div>
-        }
-      }
-    </div>
-  }
-
-  @if (poll(); as pollState) {
-    <div class="post-poll">
-      @for (option of pollState.options; track option.id) {
-        <button
-          type="button"
-          class="poll-option"
-          [class.selected]="pollState.currentUserOptionId === option.id"
-          [disabled]="isVotingPoll() || pollState.hasCurrentUserVoted || pollState.isExpired"
-          (click)="votePoll(option.id)">
-          <span class="poll-option-text">{{ option.text }}</span>
-          @if (showPollResults()) {
-            <span class="poll-option-bar">
-              <span class="poll-option-bar-fill" [style.width.%]="pollOptionPercent(option.voteCount)"></span>
-            </span>
-            <span class="poll-option-count">{{ option.voteCount ?? 0 }} ({{ pollOptionPercent(option.voteCount) }}%)</span>
           }
-        </button>
-      }
-      <p class="text-muted poll-footer">
-        {{ pollState.totalVotes }} vote{{ pollState.totalVotes === 1 ? '' : 's' }}
-        @if (pollState.isExpired) {
-          · Poll closed
-        } @else {
-          · Ends {{ pollState.expiresAt | date: 'medium' }}
         }
-      </p>
-    </div>
-  }
-
-  <div class="post-interactions">
-    <button
-      type="button"
-      class="interaction-btn"
-      [class.active]="liked()"
-      [disabled]="isTogglingLike()"
-      [attr.aria-label]="(isUseful() ? 'Useful' : 'Like') + ' · ' + likeCount()"
-      (click)="toggleLike()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="liked() ? 'currentColor' : 'none'"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path
-          d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-      </svg>
-      {{ isUseful() ? (liked() ? 'Useful' : 'Mark useful') : (liked() ? 'Liked' : 'Like') }} · {{ likeCount() }}
-    </button>
-    <button type="button" class="interaction-btn" [class.active]="isCommentsOpen()" (click)="toggleComments()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-      Comment · {{ commentCount() }}
-    </button>
-    <!-- Share is out of scope — backend has no share/repost feature yet. -->
-    <button type="button" class="interaction-btn" disabled title="Share — coming soon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-        <polyline points="16 6 12 2 8 6" />
-        <line x1="12" x2="12" y1="2" y2="15" />
-      </svg>
-      Share
-    </button>
-  </div>
-  }
-
-  @if (isCommentsOpen()) {
-    <div class="post-comments" [class.post-comments-clip]="isClipCard()">
-      @if (isClipCard()) {
-        <div class="clip-thread-head">
-          <span class="clip-thread-title">Yorumlar</span>
-          <a routerLink="/clips" [queryParams]="{ clip: post().id }" class="clip-thread-link">Klip sayfasında aç →</a>
-        </div>
-      }
-
-      @if (isLoadingComments() && comments().length === 0) {
-        <p class="text-muted comments-status">Loading comments...</p>
-      }
-
-      @for (comment of comments(); track comment.id) {
-        <div class="comment">
-          <a [routerLink]="['/profile', comment.userId]" class="comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</a>
-          <div class="comment-body">
-            <div class="comment-meta">
-              <a [routerLink]="['/profile', comment.userId]" class="comment-author">{{ comment.username }}</a>
-              <span class="comment-date">{{ comment.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-            <p>{{ comment.body }}</p>
-          </div>
-          @if (isOwnComment(comment)) {
-            <button type="button" class="comment-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
-          }
-        </div>
-      }
-
-      @if (comments().length === 0 && !isLoadingComments()) {
-        <p class="text-muted comments-status">No comments yet. Be the first to comment.</p>
-      }
-
-      @if (hasMoreComments()) {
-        <button type="button" class="btn btn-secondary btn-sm" [disabled]="isLoadingComments()" (click)="loadMoreComments()">
-          {{ isLoadingComments() ? 'Loading...' : 'Load more comments' }}
-        </button>
-      }
-
-      <div class="comment-form">
-        <textarea
-          rows="2"
-          [ngModel]="newCommentBody()"
-          (ngModelChange)="newCommentBody.set($event)"
-          placeholder="Write a comment..."></textarea>
-        <button
-          type="button"
-          class="btn btn-primary btn-sm"
-          [disabled]="!newCommentBody().trim() || isSubmittingComment()"
-          (click)="submitComment()">
-          {{ isSubmittingComment() ? 'Posting...' : 'Comment' }}
-        </button>
       </div>
+    }
+
+    <div class="rv-actions">
+      <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+      <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
+      <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
     </div>
-  }
-</div>
+    @if (isCommentsOpen()) {
+      <ng-container *ngTemplateOutlet="thread" />
+    }
+  </article>
+}

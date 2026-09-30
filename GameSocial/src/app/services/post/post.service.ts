@@ -4,10 +4,31 @@ import { Observable } from 'rxjs';
 import { PostModel, PostPollModel, PostTypeName } from '../../models/post.model';
 import { PagedResult } from '../../models/paged-result.model';
 
+/** `GET /api/posts` sort: "hot"/"top" rank by engagement (votes·3 + comments·2 + views). */
+export type PostSort = 'new' | 'hot' | 'top' | 'useful';
+
+/** `GET /api/posts` window: lower bound on createdAt ("Hot today", "Top this week"). */
+export type PostWindow = 'day' | 'week' | 'month';
+
+/** Every optional query param of ListPostsQuery. Drafts are never listed. */
 export interface PostListFilters {
   postType?: PostTypeName;
   gameId?: number;
   squadId?: string;
+  userId?: string;
+  sort?: PostSort;
+  window?: PostWindow;
+  /** Only people you follow. */
+  followingOnly?: boolean;
+  /** Only games you follow ("Games you play"). */
+  followedGamesOnly?: boolean;
+  /** Reviews: "20 h+ played only". */
+  minHoursPlayed?: number;
+  /** Reviews: "No spoilers". */
+  spoilerFreeOnly?: boolean;
+  tag?: string;
+  /** Leave the currently playing clip out of an "Up next" list. */
+  excludePostId?: string;
 }
 
 @Service()
@@ -15,54 +36,84 @@ export class PostService {
   private http = inject(HttpClient);
   private apiUrl = '/api/posts';
 
-  /**
-   * `postType`/`gameId`/`squadId` are confirmed real optional query params on
-   * `GET /api/posts` (ListPostsQuery) — `postType` binds by enum name, e.g.
-   * `?postType=Review`.
-   */
   getPosts(page = 1, pageSize = 10, filters?: PostListFilters): Observable<PagedResult<PostModel>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
-    if (filters?.postType) {
-      params = params.set('postType', filters.postType);
-    }
-    if (filters?.gameId != null) {
-      params = params.set('gameId', filters.gameId);
-    }
-    if (filters?.squadId != null) {
-      params = params.set('squadId', filters.squadId);
+    for (const [key, value] of Object.entries(filters ?? {})) {
+      if (value !== undefined && value !== null && value !== '' && value !== false) {
+        params = params.set(key, String(value));
+      }
     }
     return this.http.get<PagedResult<PostModel>>(this.apiUrl, { params });
   }
 
   /**
-   * "Takip Ettiklerim" feed sekmesi — `GET /api/posts/following` (ayrı bir
-   * backend command/endpoint, `ListPostsQuery`'ye bayrak eklenerek değil,
-   * bkz. ListFollowingPostsQuery). Kendi sayfalaması var.
+   * "Takip Ettiklerim" — `GET /api/posts/following`: your own posts plus people
+   * and games you follow. Optional `postType` narrows it (Clips "Following").
    */
-  getFollowingPosts(page = 1, pageSize = 10): Observable<PagedResult<PostModel>> {
-    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+  getFollowingPosts(page = 1, pageSize = 10, postType?: PostTypeName): Observable<PagedResult<PostModel>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (postType) {
+      params = params.set('postType', postType);
+    }
     return this.http.get<PagedResult<PostModel>>(`${this.apiUrl}/following`, { params });
+  }
+
+  /** Single post (deep links, Clip Player). Drafts resolve only for their author. */
+  getPost(postId: string): Observable<PostModel> {
+    return this.http.get<PostModel>(`${this.apiUrl}/${postId}`);
   }
 
   /**
    * Backend expects multipart/form-data with PascalCase fields
    * (PostType, GameId, Caption/Title+Body, MediaType, PhotoType, Media,
-   * SquadId, Score/PlayStatus/HoursPlayed/SpoilerFree, PollOptions/
-   * ExpiresAt/HideResultsUntilVoted, BuildTag/BranchTag/PatchLinesJson) —
-   * see PostComposer for how the FormData is assembled per post type.
+   * MediaRoles, SquadId, IsDraft, Tags, Score/PlayStatus/HoursPlayed/SpoilerFree/
+   * EmbeddedClipPostIds, PollOptions/ExpiresAt/HideResultsUntilVoted,
+   * BuildTag/BranchTag/TestBranchUrl/PatchLinesJson). With IsDraft=true the post is
+   * saved as a draft: hidden everywhere, no XP until publishDraft().
    */
   createPost(formData: FormData): Observable<PostModel> {
     return this.http.post<PostModel>(this.apiUrl, formData);
   }
 
-  /**
-   * Casts (or changes) the current user's vote on a poll post. Confirmed by
-   * reading WebApi/Endpoints/Posts/PollVote/CastPollVoteEndpoint.cs directly:
-   * `POST posts/{postId}/poll-votes`, body `{ optionId }`. No separate
-   * PollService exists — polls have no CRUD beyond voting; creation goes
-   * through the normal create-post flow.
-   */
+  /** `POST posts/{postId}/poll-votes`, body `{ optionId }` — casting again changes the vote. */
   votePoll(postId: string, optionId: string): Observable<PostPollModel> {
     return this.http.post<PostPollModel>(`${this.apiUrl}/${postId}/poll-votes`, { optionId });
+  }
+
+  /** "◇ Save" / "◆ Saved" / ◷ watch later toggle. Awards no XP. */
+  toggleSave(postId: string): Observable<{ saved: boolean }> {
+    return this.http.post<{ saved: boolean }>(`${this.apiUrl}/${postId}/save`, {});
+  }
+
+  /** Account menu "◇ Kaydedilenler", newest save first. */
+  getSavedPosts(page = 1, pageSize = 20, postType?: PostTypeName): Observable<PagedResult<PostModel>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (postType) {
+      params = params.set('postType', postType);
+    }
+    return this.http.get<PagedResult<PostModel>>(`${this.apiUrl}/saved`, { params });
+  }
+
+  /** Counts one unique view per user; call once playback has actually started. */
+  recordView(postId: string): Observable<{ viewCount: number }> {
+    return this.http.post<{ viewCount: number }>(`${this.apiUrl}/${postId}/view`, {});
+  }
+
+  /** Account menu "◫ Taslaklar". */
+  getDrafts(postType?: PostTypeName): Observable<PostModel[]> {
+    let params = new HttpParams();
+    if (postType) {
+      params = params.set('postType', postType);
+    }
+    return this.http.get<PostModel[]>(`${this.apiUrl}/drafts`, { params });
+  }
+
+  /** Publishes a draft — XP, streak and achievements are awarded now. */
+  publishDraft(postId: string): Observable<PostModel> {
+    return this.http.post<PostModel>(`${this.apiUrl}/${postId}/publish`, {});
+  }
+
+  deleteDraft(postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/drafts/${postId}`);
   }
 }

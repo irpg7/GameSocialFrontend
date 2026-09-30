@@ -1,32 +1,38 @@
 @use '../../../../styles/variables' as *;
 
-// Gamer Feed.dc.html's left rail is 212px of *bare* sections on the page
-// ground — only the streak block is a card, and it is pushed to the bottom.
-// Row metrics (22/24px icon tiles, 7-8px vertical padding, 10px radius,
-// 13/17 type) are the design's.
+// Gamer Feed.dc.html's left rail: 212px of bare sections on the page ground,
+// 20px apart — only the streak block is a card, pushed to the bottom.
+
+:host {
+  display: block;
+  height: 100%;
+}
 
 .feed-sidebar {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
-  position: sticky;
-  top: 0;
+  gap: 20px;
+  height: 100%;
   min-height: 0;
 }
 
-.side-section {
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-follow {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-height: 0;
 }
 
 .side-label {
-  font-size: 11px;
-  line-height: 14px;
-  font-weight: 700;
+  font: 700 11px/14px $font-family-primary;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
   margin-bottom: 10px;
 }
 
@@ -40,30 +46,27 @@
 
 .follow-tab {
   flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 6px 11px;
+  height: 28px;
+  padding: 0;
+  border-radius: 9px;
   border: 1px solid $color-border;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-secondary;
+  background: $color-bg-secondary;
   color: $color-text-secondary;
-  font-family: $font-family-primary;
-  font-size: 12px;
-  line-height: 15px;
-  font-weight: 600;
+  font: 700 11px/1 $font-family-primary;
   cursor: pointer;
-  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
-
-  &:hover:not(.active) {
-    border-color: $color-text-secondary;
-    color: $color-text-primary;
-  }
 
   &.active {
-    background-color: $color-accent-primary;
+    background: $color-accent-primary;
     border-color: $color-accent-primary;
     color: #fff;
-    font-weight: 700;
+  }
+
+  &:hover:not(.active) {
+    color: $color-text-primary;
   }
 }
 
@@ -73,20 +76,48 @@
 }
 
 .follow-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   height: 32px;
   padding: 0 10px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-secondary;
-  font-size: 12px !important;
+  border-radius: 10px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  font: 500 12px/32px $font-family-primary;
+  color: $color-text-tertiary;
   margin-bottom: 7px;
+
+  &:focus-within {
+    border-color: $color-border-dashed;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: $color-text-primary;
+    font: 500 12px $font-family-primary;
+
+    &::placeholder {
+      color: $color-text-tertiary;
+    }
+
+    &:focus {
+      border: none;
+      box-shadow: none;
+    }
+  }
 }
 
 .follow-list {
-  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
-  min-height: 232px;
+  gap: 2px;
   max-height: 232px;
   overflow-y: auto;
   padding-right: 4px;
@@ -95,99 +126,89 @@
 .follow-row {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-xs;
-  border-radius: $border-radius-md;
-  transition: background-color $transition-speed-fast;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: $color-text-secondary;
+  font: 600 13px/17px $font-family-primary;
+  text-align: left;
   cursor: pointer;
+
   &:hover {
-    background-color: $color-bg-secondary;
+    background: $color-bg-row;
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background: $color-bg-row;
+    color: $color-text-primary;
+    font-weight: 700;
   }
 }
 
 .follow-icon {
-  width: 23px;
-  height: 23px;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-tertiary;
-  color: $color-text-secondary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.65rem;
-  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .follow-name {
-  flex: 1;
   min-width: 0;
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 600;
-  color: $color-text-secondary;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-// The design marks a row you follow by weighting it, not by adding chrome.
-.follow-row:has(.follow-toggle.following) .follow-name {
-  color: $color-text-primary;
-  font-weight: 700;
+.new-dot {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: $color-accent-primary;
+  flex: none;
+}
+
+.new-count {
+  margin-left: auto;
+  font: 700 10px $font-family-mono;
+  color: $color-accent-light;
 }
 
 .dev-tag {
-  flex-shrink: 0;
+  margin-left: auto;
   padding: 2px 5px;
   border-radius: 5px;
-  background-color: $color-accent-primary;
+  background: $color-accent-primary;
   color: #fff;
-  font-family: $font-family-mono;
-  font-size: 8px;
-  line-height: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-// A bare accent word at the end of the row, the way the design ends its rows
-// with a small marker rather than a bordered button.
-.follow-toggle {
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  padding: 0;
-  color: $color-text-secondary;
-  font-family: $font-family-mono;
-  font-weight: 700;
-  font-size: 10px;
-  line-height: 13px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color $transition-speed-fast;
-
-  &:hover {
-    color: $color-accent-primary;
-  }
-
-  &.following {
-    color: $color-accent-primary;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  font: 800 8px/11px $font-family-mono;
 }
 
 .follow-empty {
-  font-size: 12px;
-  line-height: 17px;
+  font: 500 12px/17px $font-family-primary;
+  color: $color-text-tertiary;
+  padding: 4px 10px;
+  margin: 0;
+
+  a {
+    color: $color-accent-light;
+  }
 }
 
 // ─── Squads ──────────────────────────────────────────────────
 .squads-list {
-  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -197,13 +218,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 8px 10px;
-  border-radius: $border-radius-md;
+  border: none;
+  border-radius: 10px;
+  background: none;
   color: $color-text-secondary;
-  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+  font: 600 13px/17px $font-family-primary;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
-    background-color: $color-bg-secondary;
+    background: $color-bg-row;
     color: $color-text-primary;
   }
 }
@@ -211,83 +238,68 @@
 .squad-icon {
   width: 24px;
   height: 24px;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 11px;
-  flex-shrink: 0;
+  border-radius: 8px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .squad-name {
-  flex: 1;
   min-width: 0;
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-
-.squads-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 2px;
-}
-
-.squad-action {
-  padding: 8px 10px;
-  border-radius: $border-radius-md;
-  font-size: 0.82rem;
-  line-height: 17px;
-  font-weight: 600;
-  color: $color-text-secondary;
-  transition: background-color $transition-speed-fast, color $transition-speed-fast;
-
-  &:hover {
-    background-color: $color-bg-secondary;
-    color: $color-text-primary;
-  }
+.squad-dot {
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  background: $color-accent-primary;
+  flex: none;
 }
 
 .squad-action-primary {
-  color: $color-accent-primary;
+  color: $color-accent-light;
   font-weight: 700;
 
   &:hover {
-    color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}
+
+.squad-action-find {
+  color: $color-text-tertiary;
+
+  &:hover {
+    color: $color-text-secondary;
   }
 }
 
 // ─── Streak ──────────────────────────────────────────────────
-// Bottom of the rail, and the streak count is the design's big mono numeral.
 .streak-card {
   margin-top: auto;
   padding: 14px;
-  background: linear-gradient(135deg, rgba($color-accent-primary, 0.14), rgba($color-accent-primary, 0.04));
+  background: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-color: rgba($color-accent-primary, 0.3);
-  border-radius: $border-radius-xl;
+  border-radius: 20px;
 }
 
 .streak-days {
-  font-family: $font-family-mono;
-  font-size: 26px;
-  line-height: 28px;
-  font-weight: 800;
-  color: $color-accent-primary;
+  font: 800 26px/28px $font-family-mono;
+  color: $color-accent-light;
 }
 
 .streak-hint {
-  font-size: 0.78rem;
-  line-height: 16px;
-  font-weight: 600;
+  font: 600 12px/16px $font-family-primary;
   color: $color-text-secondary;
   margin-top: 2px;
 }

@@ -22,8 +22,8 @@ import { PostMediaModel } from '../../models/post.model';
  * The parent owns visibility (wrap usage in an `@if`) and hands over the tile
  * that was clicked; navigating within the set belongs to the viewer.
  *
- * The design's "Save all" action is left out — as on the clip surfaces, the
- * backend has no bookmark feature to bind it to.
+ * "◇ Save all" / "◆ Saved" is the post-level save toggle: the parent owns the
+ * state (`saved`) and the request (`saveToggle`).
  */
 @Component({
   selector: 'app-photo-viewer',
@@ -46,6 +46,11 @@ export class PhotoViewer implements OnDestroy {
   userId = input.required<string>();
   gameName = input<string | undefined>(undefined);
   caption = input<string | undefined>(undefined);
+  /** "LV 41" chip next to the author. */
+  authorLevel = input<number | undefined>(undefined);
+  authorAvatarUrl = input<string | undefined>(undefined);
+  saved = input(false);
+  saveToggle = output<void>();
 
   closed = output<void>();
 
@@ -58,8 +63,12 @@ export class PhotoViewer implements OnDestroy {
   protected readonly initial = computed(() => this.username().charAt(0).toUpperCase());
   protected readonly indexLabel = computed(() => `${this.current() + 1} / ${this.photos().length}`);
   protected readonly hasMany = computed(() => this.photos().length > 1);
-  /** The design's second chip is a camera spec; the closest real data we hold is the photo's kind. */
-  protected readonly kindLabel = computed(() => (this.active()?.photoType === 'ConceptArt' ? 'Concept art' : 'Photo mode'));
+  /** The design's second chip is the capture spec ("3840×2160 · f/1.8"): the real pixel size, else the photo's kind. */
+  protected readonly kindLabel = computed(() => {
+    const photo = this.active();
+    const kind = photo?.photoType === 'ConceptArt' ? 'Concept art' : 'Photo mode';
+    return photo?.width && photo?.height ? `${photo.width}×${photo.height} · ${kind}` : kind;
+  });
 
   constructor() {
     // The lightbox covers the page, so the feed behind it must not scroll away under it.

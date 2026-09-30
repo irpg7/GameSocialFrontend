@@ -1,24 +1,73 @@
+<div class="rail-sort">
+  <button type="button" class="rail-sort-chip" [class.active]="sort() === 'new'" [attr.aria-pressed]="sort() === 'new'" (click)="setSort('new')">En yeni</button>
+  <button type="button" class="rail-sort-chip" [class.active]="sort() === 'top'" [attr.aria-pressed]="sort() === 'top'" (click)="setSort('top')">En çok oylanan</button>
+  <span class="rail-sort-hint">zaman damgasına tıkla → o ana git</span>
+</div>
+
+<ng-template #commentCard let-comment let-reply="reply">
+  <div class="rail-comment" [class.is-own]="isFresh(comment)" [class.is-reply]="reply" [class.is-pinned]="comment.isPinned">
+    <div class="rail-comment-head">
+      <a [routerLink]="['/profile', comment.userId]" class="rail-comment-avatar" [attr.aria-label]="comment.username">
+        @if (comment.authorAvatarUrl) {
+          <img [src]="comment.authorAvatarUrl" alt="" />
+        } @else {
+          {{ comment.username.charAt(0).toUpperCase() }}
+        }
+      </a>
+      <a [routerLink]="['/profile', comment.userId]" class="rail-comment-author">{{ comment.username }}</a>
+      <span class="rail-comment-lv">LV {{ comment.authorLevel }}</span>
+      @if (stamp(comment); as label) {
+        <button type="button" class="rail-comment-stamp" [attr.aria-label]="'Klipte ' + label + ' anına git'" (click)="seek.emit(comment.timestampSeconds!)">{{ label }}</button>
+      }
+      <span class="rail-comment-ago">{{ ago(comment.createdAt) }}</span>
+      @if (isOwn(comment)) {
+        <button type="button" class="rail-comment-delete" aria-label="Yorumu sil" (click)="remove(comment)">&times;</button>
+      }
+    </div>
+    @if (comment.isPinned) {
+      <span class="rail-comment-pin">◆ YAPIMCI YANITI · en üstte sabit</span>
+    }
+    <p class="rail-comment-text">{{ comment.body }}</p>
+    <div class="rail-comment-actions">
+      <button
+        type="button"
+        class="rail-comment-vote"
+        [class.active]="comment.isVotedByCurrentUser"
+        [attr.aria-pressed]="comment.isVotedByCurrentUser"
+        (click)="toggleVote(comment)">▲ {{ count(comment.voteCount) }}</button>
+      <button type="button" class="rail-comment-reply" (click)="startReply(comment)">Yanıtla</button>
+      @if (!reply && comment.replyCount > 0) {
+        <button type="button" class="rail-comment-reply rail-comment-thread" [attr.aria-expanded]="thread(comment.id)?.open ?? false" (click)="toggleReplies(comment)">
+          {{ thread(comment.id)?.open ? 'Yanıtları gizle' : comment.replyCount + ' yanıt' }}
+        </button>
+      }
+    </div>
+  </div>
+</ng-template>
+
 <div class="rail-comments-list">
   @if (isLoading() && comments().length === 0) {
-    <p class="text-muted rail-status">Yorumlar yükleniyor…</p>
+    <p class="rail-status">Yorumlar yükleniyor…</p>
   }
 
   @for (comment of comments(); track comment.id) {
-    <div class="rail-comment">
-      <div class="rail-comment-head">
-        <a [routerLink]="['/profile', comment.userId]" class="rail-comment-avatar">{{ comment.username.charAt(0).toUpperCase() }}</a>
-        <a [routerLink]="['/profile', comment.userId]" class="rail-comment-author">{{ comment.username }}</a>
-        <span class="rail-comment-ago">{{ timeAgo(comment.createdAt) }}</span>
-        @if (isOwn(comment)) {
-          <button type="button" class="rail-comment-delete" aria-label="Yorumu sil" (click)="remove(comment)">&times;</button>
-        }
-      </div>
-      <p class="rail-comment-text">{{ comment.body }}</p>
-    </div>
+    <ng-container *ngTemplateOutlet="commentCard; context: { $implicit: comment, reply: false }" />
+    @if (thread(comment.id); as t) {
+      @if (t.open) {
+        <div class="rail-replies">
+          @if (t.loading && t.items.length === 0) {
+            <p class="rail-status">Yanıtlar yükleniyor…</p>
+          }
+          @for (reply of t.items; track reply.id) {
+            <ng-container *ngTemplateOutlet="commentCard; context: { $implicit: reply, reply: true }" />
+          }
+        </div>
+      }
+    }
   }
 
   @if (comments().length === 0 && !isLoading()) {
-    <p class="text-muted rail-status">Henüz yorum yok. İlk yorumu sen yaz.</p>
+    <p class="rail-status">Henüz yorum yok. İlk yorumu sen yaz.</p>
   }
 
   @if (hasMore()) {
@@ -29,15 +78,27 @@
 </div>
 
 <div class="rail-composer">
-  <input
-    type="text"
-    class="rail-input"
-    placeholder="Yorum yaz…"
-    aria-label="Yorum yaz"
-    [ngModel]="draft()"
-    (ngModelChange)="draft.set($event)"
-    (keydown.enter)="submit()" />
-  <button type="button" class="rail-send" [class.ready]="draft().trim().length > 0" [disabled]="!draft().trim() || isSubmitting()" (click)="submit()">
-    {{ isSubmitting() ? '…' : 'Gönder' }}
-  </button>
+  <div class="rail-composer-head">
+    <span class="rail-composer-stamp">{{ stampLabel() }}</span>
+    @if (replyTo(); as target) {
+      <span class="rail-composer-hint">↩ {{ target.username }} yanıtlanıyor</span>
+      <button type="button" class="rail-composer-cancel" aria-label="Yanıtı iptal et" (click)="cancelReply()">✕</button>
+    } @else {
+      <span class="rail-composer-hint">bu kare zaman damgası olarak eklenir</span>
+    }
+  </div>
+  <div class="rail-composer-row">
+    <input
+      type="text"
+      class="rail-input"
+      placeholder="Yorum yaz…"
+      aria-label="Yorum yaz"
+      maxlength="1000"
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      (keydown.enter)="submit()" />
+    <button type="button" class="rail-send" [class.ready]="draft().trim().length > 0" [disabled]="!canSend()" (click)="submit()">
+      {{ isSubmitting() ? '…' : 'Gönder' }}
+    </button>
+  </div>
 </div>

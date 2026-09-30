@@ -1,7 +1,7 @@
 import { Service, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { MeModel } from '../../models/me.model';
+import { MeModel, PresenceStatusName } from '../../models/me.model';
 
 /**
  * Live "gamification state" for the current user (xp, level, streak, ...),
@@ -23,5 +23,22 @@ export class MeService {
 
   refresh(): Observable<MeModel> {
     return this.http.get<MeModel>('/api/users/me').pipe(tap((me) => this.meState.set(me)));
+  }
+
+  /** Account menu status row ("değiştir" cycles it). Optimistically updates `me`. */
+  setStatus(status: PresenceStatusName): Observable<void> {
+    const current = this.meState();
+    if (current) {
+      this.meState.set({ ...current, presenceStatus: status });
+    }
+    return this.http.put<void>('/api/users/me/status', { status });
+  }
+
+  /**
+   * Presence ping — "online" means a heartbeat in the last 2 minutes. `activity`
+   * is the free-text roster line ("Ashfall · Boss 7 · 2. deneme").
+   */
+  heartbeat(activity?: string): Observable<void> {
+    return this.http.post<void>('/api/users/me/heartbeat', { activity: activity ?? null });
   }
 }

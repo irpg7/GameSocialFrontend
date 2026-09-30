@@ -1,0 +1,114 @@
+<div class="cp-page" [class.is-theater]="theater()">
+  @if (post(); as clip) {
+    <div class="cp-main">
+      <app-clip-stage
+        [post]="clip"
+        [variant]="isMobile() ? 'vertical' : 'full'"
+        [rankLabel]="rankLabel()"
+        [autoplay]="true"
+        [startAt]="startAt()"
+        [hotMoments]="hotMoments()"
+        [commentCount]="commentTotal()"
+        [commentsActive]="commentsOpen()"
+        [hasPrev]="prevPost() !== null"
+        [hasNext]="nextPost() !== null"
+        [theater]="theater()"
+        (prev)="go(prevPost())"
+        (next)="go(nextPost())"
+        (theaterToggle)="theater.set(!theater())"
+        (toggleComments)="toggleComments()"
+        (timeChanged)="time.set($event)"
+        (playingChange)="playing.set($event)"
+        (ended)="onEnded()" />
+
+      @if (hotMoments().length > 0) {
+        <div class="cp-moments" role="list" aria-label="Hot moments">
+          <span class="cp-moments-label">Hot moments</span>
+          @for (moment of hotMoments(); track moment.atSeconds) {
+            <button type="button" role="listitem" class="cp-moment" (click)="seek(moment.atSeconds)">
+              <span class="cp-moment-time">{{ momentClock(moment.atSeconds) }}</span>
+              <span class="cp-moment-label">{{ moment.label }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <h1 class="cp-title">{{ title() }}</h1>
+      <div class="cp-meta">
+        <span>{{ metaViews() }}</span>
+        <span aria-hidden="true">·</span>
+        <span>{{ metaAgo() }}</span>
+        @if (metaChip(); as chip) {
+          <span aria-hidden="true">·</span>
+          <span class="cp-meta-chip">{{ chip }}</span>
+        }
+      </div>
+
+      <div class="cp-author">
+        <a [routerLink]="['/profile', clip.userId]" class="cp-avatar" [attr.aria-label]="clip.username">
+          @if (clip.authorAvatarUrl; as avatar) {
+            <img [src]="avatar" alt="" />
+          } @else {
+            {{ clip.username.charAt(0).toUpperCase() }}
+          }
+        </a>
+        <div class="cp-author-text">
+          <a [routerLink]="['/profile', clip.userId]" class="cp-author-name">{{ clip.username }}</a>
+          <span class="cp-author-followers">{{ followersLabel() }}</span>
+        </div>
+        @if (!isOwn()) {
+          <button type="button" class="cp-follow" [class.following]="following()" [attr.aria-pressed]="following()" [disabled]="isTogglingFollow()" (click)="toggleFollow()">
+            {{ following() ? 'Following' : 'Follow' }}
+          </button>
+        }
+        <div class="cp-actions">
+          <button type="button" class="cp-action cp-fire" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ {{ likeLabel() }}</button>
+          <button type="button" class="cp-action" [class.active]="commentsOpen()" [attr.aria-expanded]="commentsOpen()" (click)="toggleComments()">Comment {{ commentTotal() }}</button>
+          <button type="button" class="cp-action cp-icon" aria-label="Share" (click)="share()">↗</button>
+          <button type="button" class="cp-action cp-icon" [class.active]="saved()" [attr.aria-pressed]="saved()" [attr.aria-label]="saved() ? 'Watch later — saved' : 'Watch later'" [disabled]="isTogglingSave()" (click)="toggleSave()">◷</button>
+        </div>
+      </div>
+
+      @if (commentsOpen()) {
+        <section class="cp-comments" aria-label="Yorumlar">
+          <app-clip-rail-comments [postId]="clip.id" [currentTime]="time()" (seek)="seek($event)" (countChanged)="commentDelta.set(commentDelta() + $event)" />
+        </section>
+      }
+    </div>
+
+    <aside class="cp-queue" aria-label="Queue">
+      <div class="cp-queue-head">
+        <span class="cp-queue-from">Playing from <b>{{ sourceLabel() }}</b> · <span class="cp-mono">{{ positionLabel() }}</span></span>
+        <button type="button" class="cp-autoplay" role="switch" [class.on]="autoplay()" [attr.aria-checked]="autoplay()" (click)="toggleAutoplay()">
+          <span class="cp-autoplay-label">Autoplay</span>
+          <span class="cp-switch" aria-hidden="true"><span class="cp-knob"></span></span>
+        </button>
+      </div>
+      <div class="cp-queue-list">
+        @for (item of queue(); track item.id) {
+          <button type="button" class="cp-item" [class.is-current]="item.id === clip.id" [attr.aria-current]="item.id === clip.id" (click)="go(item)">
+            <span class="cp-thumb">
+              @if (thumb(item); as src) {
+                <img [src]="src" alt="" />
+              } @else {
+                <video [src]="thumbVideo(item)" muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"></video>
+              }
+              <span class="cp-duration">{{ duration(item) }}</span>
+              @if (item.id === clip.id) {
+                <span class="cp-now" aria-hidden="true">▶</span>
+              }
+            </span>
+            <span class="cp-item-text">
+              <span class="cp-item-title">{{ queueTitle(item) }}</span>
+              <span class="cp-item-meta">{{ queueMeta(item) }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    </aside>
+  } @else if (isLoading()) {
+    <p class="cp-status">Klip yükleniyor…</p>
+  } @else if (notFound()) {
+    <p class="cp-status">Bu klip bulunamadı. <a routerLink="/clips">Klipler'e dön →</a></p>
+  }
+</div>

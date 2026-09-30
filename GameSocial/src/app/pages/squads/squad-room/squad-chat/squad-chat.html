@@ -1,120 +1,157 @@
 <div class="chat">
-  <!-- Design: `#channel ———————— Today` -->
-  <div class="section-head chat-head">
-    <span class="section-head-label">#{{ channelName() ?? "channel" }}</span>
-    <span class="section-head-rule"></span>
-    @if (groups().length > 0) {
-      <span class="section-head-note">{{ groups()[0].label }}</span>
-    }
+  <!-- 05-squad.html L210: `#GENEL ———————— Today` -->
+  <div class="chat-head">
+    <span class="chat-head-label">#{{ channelName() ?? 'genel' }}</span>
+    <span class="chat-head-rule" aria-hidden="true"></span>
+    <span class="chat-head-note">{{ groups()[0]?.label ?? 'Today' }}</span>
   </div>
 
-  <div class="chat-scroll">
+  <div class="chat-scroll" #scroller aria-live="polite">
     @if (hasMore()) {
       <button type="button" class="chat-load-earlier" [disabled]="isLoading()" (click)="loadEarlier.emit()">
-        {{ isLoading() ? 'Loading…' : 'Load earlier messages' }}
+        {{ isLoading() ? 'Yükleniyor…' : 'Önceki mesajlar' }}
       </button>
     }
 
     @if (isLoading() && messages().length === 0) {
-      <p class="text-muted chat-status">Loading messages…</p>
+      <p class="chat-status">Mesajlar yükleniyor…</p>
     } @else if (messages().length === 0) {
-      <p class="text-muted chat-status">No messages yet — say something.</p>
+      <p class="chat-status">#{{ channelName() }} kanalında henüz mesaj yok — ilk yazan sen ol.</p>
     }
 
     @for (group of groups(); track group.label; let groupIndex = $index) {
-      <!-- The header already names the first day; later days get their own divider. -->
       @if (groupIndex > 0) {
-        <div class="section-head chat-day">
-          <span class="section-head-rule"></span>
-          <span class="section-head-note">{{ group.label }}</span>
-          <span class="section-head-rule"></span>
+        <div class="chat-day" role="separator">
+          <span class="chat-head-rule" aria-hidden="true"></span>
+          <span class="chat-head-note">{{ group.label }}</span>
+          <span class="chat-head-rule" aria-hidden="true"></span>
         </div>
       }
 
       @for (message of group.messages; track message.id) {
-        <article class="message">
-          <span class="message-avatar" aria-hidden="true">{{ initial(message.username) }}</span>
-
-          <div class="message-main">
-            <div class="message-meta">
-              <span class="message-author">{{ message.username }}</span>
-              @if (level(message.userId); as lv) {
-                <span class="message-level mono">LV {{ lv }}</span>
+        @if (message.kind === 'Event') {
+          <!-- L238: system row -->
+          <div class="event-row">
+            <span class="event-icon" aria-hidden="true">◎</span>
+            <p class="event-text">
+              <b class="event-user">{{ message.username }}</b> unlocked
+              <b class="event-title">{{ message.body }}</b>
+              @if (message.eventXp) {
+                — squad earned <span class="mono event-xp">+{{ message.eventXp }} XP</span>
               }
-              <span class="message-time">{{ time(message.createdAt) }}</span>
-              @if (message.sharedPost) {
-                <span class="message-time">· shared a {{ message.sharedPost.postType | lowercase }}</span>
+            </p>
+            <span class="event-time">{{ time(message.createdAt) }}</span>
+          </div>
+        } @else {
+          <article class="message">
+            <span class="message-avatar" aria-hidden="true">
+              @if (message.userAvatarUrl) {
+                <img [src]="message.userAvatarUrl" alt="" />
+              }
+            </span>
+
+            <div class="message-main">
+              <div class="message-meta">
+                <span class="message-author">{{ message.username }}</span>
+                @if (!message.sharedPost && level(message.userId); as lv) {
+                  <span class="message-level mono">LV {{ lv }}</span>
+                }
+                <span class="message-time">
+                  {{ time(message.createdAt) }}@if (message.sharedPost) { · shared a {{ sharedNoun(message.sharedPost.postType) }}}
+                </span>
+              </div>
+
+              @if (message.body) {
+                <p class="message-body">{{ message.body }}</p>
+              }
+
+              @if (message.sharedPost; as shared) {
+                <!-- L228: large inline SQUAD CLIP card -->
+                <div class="shared-card">
+                  <button type="button" class="shared-stage" [attr.aria-label]="'Aç: ' + (shared.caption || 'paylaşım')" (click)="openShared.emit(shared)">
+                    @if (shared.thumbnailUrl) {
+                      <img [src]="shared.thumbnailUrl" alt="" />
+                    }
+                    @if (shared.postType === 'Clip') {
+                      <span class="shared-play" aria-hidden="true">▶</span>
+                    }
+                    <span class="shared-badge mono">SQUAD {{ shared.postType === 'Clip' ? 'CLIP' : 'SCREENS' }}</span>
+                    @if (shared.durationSeconds) {
+                      <span class="shared-duration mono">{{ clock(shared.durationSeconds) }}</span>
+                    }
+                  </button>
+                  <div class="shared-foot">
+                    <span class="shared-votes">▲ {{ shared.likeCount }}</span>
+                    <span>💬 {{ shared.commentCount }}</span>
+                    <button type="button" class="shared-push" (click)="openShared.emit(shared)">Push to main feed →</button>
+                  </div>
+                </div>
+              }
+
+              @if (message.reactions.length > 0) {
+                <div class="reactions">
+                  @for (reaction of message.reactions; track reaction.emoji) {
+                    <button
+                      type="button"
+                      class="reaction"
+                      [class.mine]="reaction.reactedByCurrentUser"
+                      [attr.aria-pressed]="reaction.reactedByCurrentUser"
+                      [attr.aria-label]="reaction.emoji + ' ' + reaction.count"
+                      [disabled]="!isMember()"
+                      (click)="react.emit({ message, emoji: reaction.emoji })">{{ reaction.emoji }} {{ reaction.count }}</button>
+                  }
+                </div>
               }
             </div>
 
-            @if (message.body) {
-              <p class="message-body">{{ message.body }}</p>
-            }
-
-            @if (message.sharedPost; as shared) {
-              <!-- Design: large inline clip card, not a thumbnail strip -->
-              <div class="shared-card">
-                <div class="shared-stage">
-                  @if (shared.thumbnailUrl) {
-                    <img [src]="shared.thumbnailUrl" [alt]="shared.caption ?? 'Shared ' + shared.postType" />
-                  }
-                  <span class="shared-badge mono">SQUAD {{ shared.postType | uppercase }}</span>
-                  @if (shared.postType === 'Clip') {
-                    <span class="shared-play" aria-hidden="true">▶</span>
-                  }
-                </div>
-                <div class="shared-foot">
-                  @if (shared.caption) {
-                    <span class="shared-caption">{{ shared.caption }}</span>
-                  }
-                  @if (shared.gameName) {
-                    <span class="shared-game">{{ shared.gameName }}</span>
-                  }
-                  <a class="shared-link" routerLink="/feed">View in feed →</a>
-                </div>
+            @if (isMember()) {
+              <div class="message-tools" role="group" aria-label="Tepki ver">
+                @for (emoji of quickReactions; track emoji) {
+                  <button type="button" class="message-tool" [attr.aria-label]="emoji + ' tepkisi'" (click)="react.emit({ message, emoji })">{{ emoji }}</button>
+                }
               </div>
             }
-          </div>
-
-          <button
-            type="button"
-            class="message-pin"
-            [class.pinned]="message.isPinned"
-            [attr.aria-label]="message.isPinned ? 'Unpin message' : 'Pin message'"
-            [attr.aria-pressed]="message.isPinned"
-            (click)="togglePin.emit(message)">
-            📌
-          </button>
-        </article>
+          </article>
+        }
       }
     }
   </div>
 
+  @if (typingLine(); as line) {
+    <p class="chat-typing">{{ line }}</p>
+  }
+
   @if (isMember()) {
-    <!-- Design: avatar + field + clip / screens / send actions -->
+    <!-- L244: avatar + field + clip / screens / send -->
     <div class="composer">
-      <span class="composer-avatar" aria-hidden="true">{{ initial(currentUsername()) }}</span>
-      <label class="visually-hidden" for="squad-chat-input">Message #{{ channelName() }}</label>
+      <span class="composer-avatar" aria-hidden="true">
+        @if (currentAvatarUrl()) {
+          <img [src]="currentAvatarUrl()" alt="" />
+        }
+      </span>
+      <label class="visually-hidden" for="squad-chat-input">#{{ channelName() }} kanalına yaz</label>
       <input
         id="squad-chat-input"
         type="text"
         class="composer-input"
+        maxlength="1000"
+        autocomplete="off"
         [ngModel]="draft()"
-        (ngModelChange)="draft.set($event)"
-        [placeholder]="'Message #' + (channelName() ?? 'channel') + ' — or drop a clip'"
+        (ngModelChange)="onDraft($event)"
+        [placeholder]="'#' + (channelName() ?? 'genel') + ' kanalına yaz — ya da klip bırak'"
         (keydown.enter)="$event.preventDefault(); submit()">
       <div class="composer-actions">
-        <button type="button" class="composer-action" aria-label="Post a clip to this squad" (click)="attachClip.emit()">▶</button>
-        <button type="button" class="composer-action" aria-label="Post screenshots to this squad" (click)="attachScreens.emit()">▣</button>
+        <button type="button" class="composer-action" aria-label="Klip bırak" (click)="attachClip.emit()">▶</button>
+        <button type="button" class="composer-action" aria-label="Ekran görüntüsü ekle" (click)="attachScreens.emit()">▣</button>
         <button
           type="button"
           class="composer-action composer-send"
-          aria-label="Send message"
+          aria-label="Gönder"
           [disabled]="!draft().trim() || isSending()"
           (click)="submit()">↵</button>
       </div>
     </div>
   } @else {
-    <p class="text-muted chat-status chat-not-member">You're not a member of this squad, so you can't post here.</p>
+    <p class="chat-status">Bu squad'ın üyesi değilsin, bu yüzden buraya yazamazsın.</p>
   }
 </div>

@@ -1,0 +1,83 @@
+@use '../../../styles/variables' as *;
+
+.frame-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(6, 6, 8, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  @media (max-width: 640px) {
+    padding: $spacing-md;
+  }
+}
+
+.frame-panel {
+  max-width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  background: $color-bg-sheet;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-sheet;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  color: $color-text-primary;
+}
+
+.frame-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 22px 0;
+}
+
+.frame-heading {
+  min-width: 0;
+}
+
+.frame-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.frame-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+  color: $color-text-hint;
+}
+
+.frame-close {
+  margin-left: auto;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-border-dashed;
+    color: $color-text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}

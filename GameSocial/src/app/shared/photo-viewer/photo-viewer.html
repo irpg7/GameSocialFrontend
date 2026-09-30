@@ -1,11 +1,17 @@
 <div class="viewer" role="dialog" aria-modal="true" aria-label="Photos" (click)="onBackdrop($event)" (keydown)="onKeydown($event)">
   <div class="viewer-head">
-    <a [routerLink]="['/profile', userId()]" class="viewer-avatar" (click)="closed.emit()">{{ initial() }}</a>
+    <a [routerLink]="['/profile', userId()]" class="viewer-avatar" (click)="closed.emit()">
+      @if (authorAvatarUrl()) { <img [src]="authorAvatarUrl()" alt="" /> } @else { {{ initial() }} }
+    </a>
     <a [routerLink]="['/profile', userId()]" class="viewer-author" (click)="closed.emit()">{{ username() }}</a>
+    @if (authorLevel() != null) {
+      <span class="viewer-lv">LV {{ authorLevel() }}</span>
+    }
     @if (hasMany()) {
       <span class="viewer-index">{{ indexLabel() }}</span>
     }
     <div class="viewer-head-actions">
+      <button type="button" class="viewer-action" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="saveToggle.emit()">{{ saved() ? '◆ Saved' : '◇ Save all' }}</button>
       <a [href]="active().url" class="viewer-action" target="_blank" rel="noopener">↓ Full size</a>
       <button #closeButton type="button" class="viewer-close" aria-label="Close photo viewer" (click)="closed.emit()">✕</button>
     </div>

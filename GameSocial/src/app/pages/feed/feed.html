@@ -1,47 +1,45 @@
 <div class="feed-page">
-  <aside class="feed-col feed-col-sidebar">
+  <aside class="feed-col feed-col-sidebar" aria-label="Following">
     <app-feed-sidebar />
   </aside>
 
-  <div class="feed-col feed-col-center">
+  <main class="feed-col feed-col-center">
     <app-post-composer [games]="games()" (posted)="onPosted($event)" />
 
-    <div class="feed-tabs">
-      <button type="button" class="feed-tab" [class.active]="activeTab() === 'following'" (click)="selectTab('following')">
-        Takip Ettiklerim
-      </button>
-      <button type="button" class="feed-tab" [class.active]="activeTab() === 'discover'" (click)="selectTab('discover')">
-        Keşfet
-      </button>
-    </div>
-
-    <div class="posts-list">
-      @for (post of posts(); track post.id) {
+    @if (!filter()) {
+      @if (featured(); as hero) {
+        <app-post-card [post]="hero" [mySquads]="mySquads()" [featured]="true" />
+      }
+      @for (post of devlogs(); track post.id) {
         <app-post-card [post]="post" [mySquads]="mySquads()" />
       }
+    }
 
-      @if (isLoadingFeed()) {
-        <p class="text-muted feed-status">Loading feed...</p>
-      } @else if (posts().length === 0 && activeTab() === 'following') {
-        <div class="empty-feed">
-          <p class="text-muted">Henüz bir şeyleri takip etmiyorsun.</p>
-          <button type="button" class="btn btn-secondary mt-md" (click)="selectTab('discover')">Keşfet'e git</button>
-        </div>
-      } @else if (posts().length === 0) {
-        <div class="empty-feed">
-          <p class="text-muted">No posts yet. Be the first to share something!</p>
-        </div>
-      }
-
-      @if (hasMore() && !isLoadingFeed()) {
-        <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
-          {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
-        </button>
-      }
+    <div class="section-head feed-rule">
+      <span class="feed-rule-label">{{ ruleLabel() }}</span>
+      <span class="section-head-rule"></span>
     </div>
-  </div>
 
-  <aside class="feed-col feed-col-rail">
+    @for (post of visiblePosts(); track post.id) {
+      <app-post-card [post]="post" [mySquads]="mySquads()" />
+    }
+
+    @if (isLoadingFeed()) {
+      <p class="feed-status">Loading feed...</p>
+    } @else if (visiblePosts().length === 0) {
+      <div class="empty-feed">
+        <p>{{ filter() ? 'Nothing posted here yet.' : 'No posts yet. Be the first to share something!' }}</p>
+      </div>
+    }
+
+    @if (hasMore() && !isLoadingFeed()) {
+      <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+        {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+      </button>
+    }
+  </main>
+
+  <aside class="feed-col feed-col-rail" aria-label="Your progress">
     <app-feed-right-rail />
   </aside>
 </div>

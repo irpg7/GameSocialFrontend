@@ -1,37 +1,25 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { PostModel, PostMediaModel } from '../../../../models/post.model';
+import { SquadGameModel } from '../../../../models/squad.model';
 import { PhotoViewer } from '../../../../shared/photo-viewer/photo-viewer';
-import { formatTimeAgo } from '../../../../shared/clip-format';
+import { agoShortEn } from '../squad-format';
 
-/** One tile in the mosaic, kept with the post it came from so the viewer can open it. */
 interface ScreenTile {
   post: PostModel;
   media: PostMediaModel;
-  /** Index of this photo within its own post — what PhotoViewer's startIndex wants. */
+  /** Index of this photo within its own post — PhotoViewer's startIndex. */
   indexInPost: number;
 }
 
-interface GameFilter {
-  id: number | null;
-  label: string;
-}
-
-/** The design's mosaic shows 8 tiles, the last carrying a "+N" overflow badge. */
-const MAX_TILES = 8;
+/** The design's mosaic: one 2×2 lead tile + four singles; the last carries "+N". */
+const MAX_TILES = 5;
 
 /**
- * Screens tab of the squad room, from Gamer Feed.dc.html `onSquad` +
- * `onScreens`: a filter chip row with a trailing add action, a four-column
- * mosaic whose lead tile spans 2×2 and whose last tile carries a "+N"
- * overflow overlay, and an activity line underneath.
- *
- * `app-photo-grid` is not reused here: it lays out the photos of a *single*
- * post and hard-caps at five visible tiles, whereas this mosaic pools the
- * photos of every screenshot post in the squad. Clicking a tile still opens
- * the shared `app-photo-viewer`, scoped to the post that photo belongs to.
- *
- * The mock's "Photo mode / Builds / Maps" chips are invented album categories
- * with no backing concept; real game filters take their place.
+ * Screens tab of the squad room, `onSquad` + `onScreens` (05-squad.html
+ * L157–179): "All N" + one chip per squad game + "＋ Add screens", a 4-column
+ * mosaic (104px rows, 2×2 lead tile, 5 tiles, "+N" overlay on the last where
+ * N = real photo total − 5), and the "X added N screens to Y · 3 h" line.
+ * Tiles open the shared photo viewer scoped to their post.
  */
 @Component({
   selector: 'app-squad-screens',
@@ -41,7 +29,11 @@ const MAX_TILES = 8;
 })
 export class SquadScreens {
   posts = input.required<PostModel[]>();
+  games = input<SquadGameModel[]>([]);
+  /** All photos in the squad (the "All N" chip). */
   totalCount = input(0);
+  /** Photos in the current filter (server count) — drives "+N". */
+  filteredCount = input(0);
   isLoading = input(false);
   canPost = input(false);
   activeGameId = input<number | null>(null);
@@ -51,48 +43,37 @@ export class SquadScreens {
 
   protected readonly viewerTile = signal<ScreenTile | null>(null);
 
-  private readonly tiles = computed<ScreenTile[]>(() =>
-    this.posts().flatMap((post) => {
-      const photos = post.media.filter((media) => media.mediaType === 'Photo');
-      return photos.map((media, indexInPost) => ({ post, media, indexInPost }));
-    }),
+  protected readonly tiles = computed<ScreenTile[]>(() =>
+    this.posts().flatMap((post) =>
+      post.media
+        .filter((media) => media.mediaType === 'Photo')
+        .map((media, indexInPost) => ({ post, media, indexInPost })),
+    ),
   );
 
   protected readonly visibleTiles = computed(() => this.tiles().slice(0, MAX_TILES));
 
-  protected readonly hiddenCount = computed(() => Math.max(0, this.tiles().length - MAX_TILES));
-
-  protected readonly filters = computed<GameFilter[]>(() => {
-    const seen = new Map<number, string>();
-    for (const post of this.posts()) {
-      if (post.gameId != null && post.gameName) {
-        seen.set(post.gameId, post.gameName);
-      }
-    }
-    return [
-      { id: null, label: `All ${this.totalCount()}` },
-      ...[...seen.entries()].map(([id, label]) => ({ id, label })),
-    ];
+  protected readonly hiddenCount = computed(() => {
+    const total = Math.max(this.filteredCount(), this.tiles().length);
+    return Math.max(0, total - this.visibleTiles().length);
   });
 
-  /** The design's footer line: who last added screens, how many, and when. */
   protected readonly latestActivity = computed(() => {
     const newest = this.posts()[0];
     if (!newest) {
       return null;
     }
-    const count = newest.media.filter((media) => media.mediaType === 'Photo').length;
     return {
       username: newest.username,
-      initial: newest.username.charAt(0).toUpperCase(),
-      count,
+      avatarUrl: newest.authorAvatarUrl,
+      count: newest.media.filter((media) => media.mediaType === 'Photo').length,
       gameName: newest.gameName,
-      when: formatTimeAgo(newest.createdAt),
+      when: agoShortEn(newest.createdAt),
     };
   });
 
-  protected readonly viewerPhotos = computed(() =>
-    this.viewerTile()?.post.media.filter((media) => media.mediaType === 'Photo') ?? [],
+  protected readonly viewerPhotos = computed(
+    () => this.viewerTile()?.post.media.filter((media) => media.mediaType === 'Photo') ?? [],
   );
 
   protected openTile(tile: ScreenTile): void {

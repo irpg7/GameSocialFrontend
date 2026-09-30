@@ -1,0 +1,355 @@
+@use '../../../styles/variables' as *;
+
+// Values from Gamer Feed.dc.html's `sheetClip` block (08-sheets.html).
+
+.cu-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.cu-drop:focus-visible {
+  outline: 2px solid $color-accent-light;
+  outline-offset: 2px;
+}
+
+.cu-hidden {
+  display: none;
+}
+
+// ─── Dropzone ────────────────────────────────────────────────────────────
+.cu-drop {
+  position: relative;
+  height: 150px;
+  border-radius: 16px;
+  border: 1.5px dashed $color-border-dashed;
+  background-color: $color-bg-secondary;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color $transition-speed-fast;
+
+  &.dragging,
+  &:hover {
+    border-color: $color-accent-light;
+  }
+
+  &.has-file {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 14px;
+    border-style: solid;
+    border-color: $color-border;
+  }
+}
+
+.cu-drop-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  background-color: $color-accent-tint;
+  color: $color-accent-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.cu-drop-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.cu-drop-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.cu-preview {
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 11px;
+  background-color: #000;
+  object-fit: cover;
+  flex: none;
+}
+
+.cu-file {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.cu-file-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cu-file-meta {
+  font-size: 11px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.cu-mono {
+  font-family: $font-family-mono;
+  color: $color-text-secondary;
+}
+
+.cu-file-clear {
+  margin-left: auto;
+  align-self: flex-start;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: none;
+  background-color: $color-bg-tertiary;
+  color: $color-text-tertiary;
+  font-size: 12px;
+  cursor: pointer;
+  flex: none;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+// ─── Fields ──────────────────────────────────────────────────────────────
+.cu-title {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.cu-row {
+  display: flex;
+  gap: 10px;
+}
+
+.cu-select {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.empty {
+    color: $color-text-tertiary;
+    font-weight: 500;
+  }
+
+  option {
+    background-color: $color-bg-sheet;
+    color: $color-text-primary;
+  }
+}
+
+// ─── Tags ────────────────────────────────────────────────────────────────
+.cu-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cu-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  background-color: $color-bg-tertiary;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.cu-tag-remove {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $color-text-tertiary;
+  font-size: 10px;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.cu-tag-add {
+  padding: 6px 11px;
+  border-radius: 10px;
+  border: 1px dashed $color-border-dashed;
+  background: none;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.cu-tag-input {
+  width: 120px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px dashed $color-border-dashed;
+  background-color: $color-bg-inset;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+}
+
+// ─── Also post to squad ──────────────────────────────────────────────────
+.cu-also {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+}
+
+.cu-also-text {
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 600;
+  color: $color-text-secondary;
+
+  b {
+    color: $color-text-primary;
+  }
+}
+
+.cu-switch {
+  margin-left: auto;
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background-color: $color-border-strong;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 3px;
+  cursor: pointer;
+  flex: none;
+  transition: background-color $transition-speed-fast;
+
+  &.on {
+    background-color: $color-accent-primary;
+    justify-content: flex-end;
+  }
+}
+
+.cu-switch-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.cu-xp {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+}
+
+.cu-xp-value {
+  font-family: $font-family-mono;
+  color: $color-accent-light;
+}
+
+.cu-error {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-accent-light;
+}
+
+// ─── Footer ──────────────────────────────────────────────────────────────
+.cu-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.cu-btn {
+  padding: 11px 16px;
+  border-radius: 13px;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+}
+
+.cu-btn-cancel {
+  border: 1px solid $color-border-strong;
+  background: none;
+  color: $color-text-secondary;
+}
+
+.cu-btn-draft {
+  margin-left: auto;
+  background-color: $color-bg-tertiary;
+  border: 1px solid $color-border;
+  color: $color-text-primary;
+}
+
+.cu-btn-post {
+  padding: 11px 20px;
+  border: none;
+  background-color: $color-accent-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: #c4172a;
+  }
+}

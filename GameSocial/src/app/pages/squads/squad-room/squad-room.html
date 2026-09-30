@@ -1,9 +1,9 @@
 @if (isLoading() && !squad()) {
-  <p class="text-muted room-status">Loading squad…</p>
+  <p class="room-status">Squad yükleniyor…</p>
 } @else if (notFound()) {
   <div class="card room-empty">
-    <p class="text-muted">Squad not found, or you don't have access to it.</p>
-    <a routerLink="/squads" class="btn btn-secondary mt-md">Back to squads</a>
+    <p class="text-muted">Squad bulunamadı ya da erişimin yok.</p>
+    <a routerLink="/squads" class="btn btn-secondary mt-md">Squad'lara dön</a>
   </div>
 } @else if (squad(); as squad) {
   <!-- onSquad: sidebar | (banner + tabs) | rail, full-bleed under the topbar -->
@@ -13,7 +13,8 @@
       [activeSquadId]="squad.id"
       [channels]="channels()"
       [activeChannelId]="activeChannelId()"
-      [canAddChannel]="isCaptain()"
+      [activity]="activity()"
+      [canAddChannel]="isManager()"
       (channelPicked)="selectChannel($event)"
       (createSquad)="openCreateSquad()"
       (addChannel)="openAddChannel()" />
@@ -22,45 +23,19 @@
       <app-squad-banner
         [squad]="squad"
         [canPost]="isMember()"
+        [onlineCount]="onlineCount()"
         (postToSquad)="openComposer('clip')"
         (openSettings)="openSettings()" />
 
       <div class="room-body">
         <div class="room-column">
-          <!-- Design: pill tabs with glyphs and monospace counts -->
-          <div class="tab-row" role="tablist" aria-label="Squad sections">
-            <button
-              type="button"
-              class="tab"
-              role="tab"
-              [class.active]="activeTab() === 'chat'"
-              [attr.aria-selected]="activeTab() === 'chat'"
-              (click)="selectTab('chat')">💬 Chat</button>
-            <button
-              type="button"
-              class="tab"
-              role="tab"
-              [class.active]="activeTab() === 'clips'"
-              [attr.aria-selected]="activeTab() === 'clips'"
-              (click)="selectTab('clips')">▶ Clips <span class="tab-count mono">{{ clipCount() }}</span></button>
-            <button
-              type="button"
-              class="tab"
-              role="tab"
-              [class.active]="activeTab() === 'screens'"
-              [attr.aria-selected]="activeTab() === 'screens'"
-              (click)="selectTab('screens')">▣ Screens <span class="tab-count mono">{{ screenCount() }}</span></button>
-            <button
-              type="button"
-              class="tab"
-              role="tab"
-              [class.active]="activeTab() === 'pinned'"
-              [attr.aria-selected]="activeTab() === 'pinned'"
-              (click)="selectTab('pinned')">◫ Pinned <span class="tab-count mono">{{ squad.pinnedMessageCount }}</span></button>
-
-            <!-- Design: a library summary sits at the right of the tab row. Member
-                 count would just repeat the banner, so this is the real library size. -->
-            <span class="tab-library">{{ clipCount() }} clips · {{ screenCount() }} screens</span>
+          <!-- 05-squad.html L102: pill tabs with glyphs and monospace counts -->
+          <div class="tab-row" role="tablist" aria-label="Squad bölümleri">
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'chat'" [attr.aria-selected]="activeTab() === 'chat'" (click)="selectTab('chat')">💬 Chat</button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'clips'" [attr.aria-selected]="activeTab() === 'clips'" (click)="selectTab('clips')">▶ Clips <span class="tab-count mono">{{ library().clipCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'screens'" [attr.aria-selected]="activeTab() === 'screens'" (click)="selectTab('screens')">▣ Screens <span class="tab-count mono">{{ library().screenCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'pinned'" [attr.aria-selected]="activeTab() === 'pinned'" (click)="selectTab('pinned')">◫ Pinned guides <span class="tab-count mono">{{ library().guideCount }}</span></button>
+            <span class="tab-library">{{ squad.name }} library</span>
           </div>
 
           @if (activeTab() === 'chat') {
@@ -72,10 +47,13 @@
               [isLoading]="isLoadingMessages()"
               [hasMore]="hasMoreMessages()"
               [isSending]="isSendingMessage()"
-              [currentUsername]="currentUsername()"
+              [currentAvatarUrl]="currentAvatarUrl()"
+              [typingUsers]="typingUsers()"
               (send)="sendMessage($event)"
               (loadEarlier)="loadEarlierMessages()"
-              (togglePin)="togglePin($event)"
+              (react)="react($event)"
+              (typing)="onTyping()"
+              (openShared)="openShared($event)"
               (attachClip)="openComposer('clip')"
               (attachScreens)="openComposer('screenshots')" />
           }
@@ -83,19 +61,23 @@
           @if (activeTab() === 'clips') {
             <app-squad-clips
               [posts]="clipPosts()"
-              [totalCount]="clipCount()"
+              [games]="squad.games"
               [isLoading]="isLoadingClips()"
               [canPost]="isMember()"
               [activeGameId]="clipGameId()"
+              [sort]="clipSort()"
               (gamePicked)="setClipGame($event)"
+              (sortPicked)="setClipSort($event)"
               (upload)="openComposer('clip')"
-              (openClip)="openClip($event)" />
+              (openClip)="openClip($event.id)" />
           }
 
           @if (activeTab() === 'screens') {
             <app-squad-screens
               [posts]="screenPosts()"
-              [totalCount]="screenCount()"
+              [games]="squad.games"
+              [totalCount]="library().screenCount"
+              [filteredCount]="filteredScreenCount()"
               [isLoading]="isLoadingScreens()"
               [canPost]="isMember()"
               [activeGameId]="screenGameId()"
@@ -105,22 +87,22 @@
 
           @if (activeTab() === 'pinned') {
             <app-squad-pins
-              [pins]="pins()"
-              [isLoading]="isLoadingPins()"
-              (openPin)="openPin($event)"
-              (goToChat)="selectTab('chat')" />
+              [guides]="guides()"
+              [isLoading]="isLoadingGuides()"
+              [canCreate]="isMember()"
+              [channelName]="channels()[0]?.name ?? 'genel'"
+              (openGuide)="guideSheet.set({ guide: $event })"
+              (createGuide)="guideSheet.set({ guide: null })" />
           }
         </div>
 
         <app-squad-rail
-          [roster]="rosterEntries()"
+          [roster]="activeMembers()"
           [leaderboard]="leaderboard()"
           [currentUserId]="currentUserId()"
-          [isCaptain]="isCaptain()"
           [rosterError]="rosterError()"
           [leaderboardError]="leaderboardError()"
-          (invite)="openSettings()"
-          (manageMembers)="openSettings()" />
+          (invite)="openSettings()" />
       </div>
     </main>
   </div>
@@ -134,17 +116,26 @@
       [currentUserId]="currentUserId()"
       (saved)="onSettingsSaved($event)"
       (membersChanged)="onMembersChanged()"
+      (iconChanged)="reloadSquad()"
       (left)="onLeftSquad()"
       (closed)="closeSettings()" />
   }
 
+  @if (guideSheet(); as sheet) {
+    <app-squad-guide-sheet
+      [squadId]="squad.id"
+      [guide]="sheet.guide"
+      [games]="squad.games"
+      [canManage]="isManager()"
+      [currentUserId]="currentUserId()"
+      (saved)="onGuideSaved()"
+      (deleted)="onGuideSaved()"
+      (openItem)="openGuideItem($event)"
+      (closed)="guideSheet.set(null)" />
+  }
+
   @if (composerTarget(); as target) {
-    <!-- The composer is a feed component; here it is hosted in a sheet and
-         locked to this squad (see PostComposer.preselectedSquadId). -->
-    <app-sheet-modal
-      title="Post to squad"
-      [subtitle]="'Goes to ' + squad.name"
-      (closed)="closeComposer()">
+    <app-sheet-modal title="Post to squad" [subtitle]="'Goes to ' + squad.name" (closed)="closeComposer()">
       <app-post-composer
         [games]="games()"
         [preselectedSquadId]="squad.id"
@@ -155,9 +146,9 @@
   }
 
   @if (isAddChannelOpen()) {
-    <app-sheet-modal title="Add a channel" subtitle="Channels keep a squad's clips and talk separated" (closed)="closeAddChannel()">
+    <app-sheet-modal title="Kanal ekle" subtitle="Kanallar squad'ın kliplerini ve sohbetini ayrı tutar" (closed)="closeAddChannel()">
       <div class="form-group">
-        <label for="new-channel-name">Channel name</label>
+        <label for="new-channel-name">Kanal adı</label>
         <input
           id="new-channel-name"
           type="text"
@@ -171,9 +162,9 @@
         <p class="form-error">{{ addChannelError() }}</p>
       }
       <div class="composer-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeAddChannel()">Cancel</button>
+        <button type="button" class="btn btn-secondary" (click)="closeAddChannel()">Vazgeç</button>
         <button type="button" class="btn btn-primary" [disabled]="isAddingChannel()" (click)="addChannel()">
-          {{ isAddingChannel() ? 'Adding…' : 'Add channel' }}
+          {{ isAddingChannel() ? 'Ekleniyor…' : 'Kanal ekle' }}
         </button>
       </div>
     </app-sheet-modal>

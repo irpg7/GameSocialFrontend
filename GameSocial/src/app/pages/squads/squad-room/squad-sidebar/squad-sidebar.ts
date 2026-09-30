@@ -1,19 +1,13 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SquadChannelModel, SquadModel } from '../../../../models/squad.model';
+import { SquadChannelModel, SquadLatestActivityModel, SquadModel } from '../../../../models/squad.model';
+import { agoTr } from '../squad-format';
 
 /**
- * The squad room's left sidebar, from Gamer Feed.dc.html `onSquad`: a
- * "Your squads" switcher, a dashed "＋ New squad" action, then the channel
- * list. This is what replaces the old standalone `/squads` list page — the
- * design puts squad switching and squad creation here, inside the room.
- *
- * Three things the mock shows on each squad card are deliberately absent
- * because no API backs them, and inventing numbers would be worse than
- * omitting them: the green presence dot with "N online", the squad LV chip,
- * and the unread badges ("2 yeni klip" / "5 mesaj"). The card's geometry —
- * 34px mark, two-line identity block, right-aligned meta slot — is kept, and
- * filled with real data: member count and the squad's main game.
+ * The squad room's left sidebar, from `onSquad` (05-squad.html L22–76):
+ * "Squad'larım" switcher cards (icon, name, green dot + "N online", LV chip,
+ * activity line, "N yeni klip" / "N mesaj" badges when not selected), the
+ * dashed "＋ Yeni squad" action, then the "Kanallar" list with unread pills.
  */
 @Component({
   selector: 'app-squad-sidebar',
@@ -26,18 +20,31 @@ export class SquadSidebar {
   activeSquadId = input.required<string>();
   channels = input.required<SquadChannelModel[]>();
   activeChannelId = input<string | null>(null);
-  /** Only captains can create channels (server-enforced). */
+  /** squadId → latest chat event (GET squads/mine/activity). */
+  activity = input<Record<string, SquadLatestActivityModel>>({});
+  /** Founder/admin only (server-enforced). */
   canAddChannel = input(false);
 
   channelPicked = output<string>();
   createSquad = output<void>();
   addChannel = output<void>();
 
-  protected initial(name: string): string {
-    return name.charAt(0).toUpperCase();
-  }
-
-  protected memberLabel(squad: SquadModel): string {
-    return `${squad.memberCount} member${squad.memberCount === 1 ? '' : 's'}`;
+  /** "mavikedi az önce 3 klip paylaştı — Boss 7 denemeleri" */
+  protected activityLine(squadId: string): string | null {
+    const event = this.activity()[squadId];
+    if (!event) {
+      return null;
+    }
+    const when = agoTr(event.createdAt);
+    if (event.kind === 'Event') {
+      return `${event.username} ${when} ${event.body ?? ''} başarımını açtı`.replace(/\s+/g, ' ').trim();
+    }
+    if (event.kind === 'SharedPost') {
+      const count = event.sharedCount > 1 ? `${event.sharedCount} ` : '';
+      const noun = event.postType === 'Clip' ? 'klip' : event.postType === 'Screenshots' ? 'ekran görüntüsü' : 'gönderi';
+      const caption = event.caption?.trim() ? ` — ${event.caption.trim()}` : '';
+      return `${event.username} ${when} ${count}${noun} paylaştı${caption}`;
+    }
+    return `${event.username}: ${event.body ?? ''}`;
   }
 }

@@ -1,0 +1,209 @@
+@use '../../../../styles/variables' as *;
+
+// Shared body/footer styling for the hub's small sheets (invite, start a
+// session, peek) — same language as the create/settings sheets.
+
+.hs-body {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hs-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: $color-text-hint;
+}
+
+.hs-input {
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 13px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hs-row {
+  display: flex;
+  gap: 10px;
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.hs-toggle {
+  display: flex;
+  gap: 8px;
+
+  button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    background: $color-bg-row;
+    border: 1px solid $color-border;
+    color: $color-text-secondary;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &.on {
+      background: rgba(225, 29, 46, 0.1);
+      border-color: $color-accent-primary;
+      color: $color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.hs-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.hs-error {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-accent-light;
+}
+
+.hs-sent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  span {
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: $color-accent-tint;
+    color: $color-accent-light;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.hs-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px 20px;
+
+  button {
+    padding: 11px 16px;
+    border-radius: 13px;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 14px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.hs-cancel {
+  background: transparent;
+  border: 1px solid $color-border-strong;
+  color: $color-text-secondary;
+}
+
+.hs-primary {
+  margin-left: auto;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #c4172a;
+  }
+}
+
+// Peek
+.hs-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.hs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  span {
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: $color-bg-tertiary;
+    font-size: 11px;
+    font-weight: 600;
+    color: $color-text-secondary;
+  }
+}
+
+.hs-level-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-hint;
+
+  span:last-child {
+    font-family: $font-family-mono;
+    color: $color-accent-light;
+  }
+}
+
+.hs-level-track {
+  height: 6px;
+  background: $color-border;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+
+  span {
+    display: block;
+    height: 100%;
+    background: $color-accent-primary;
+  }
+}

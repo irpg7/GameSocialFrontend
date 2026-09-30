@@ -5,42 +5,58 @@
         <span class="rail-label">Level {{ me.level }}</span>
         <span class="rail-figure">{{ me.xpToNextLevel }} XP to {{ me.level + 1 }}</span>
       </div>
-      <div class="xp-bar">
+      <div class="xp-bar" role="progressbar" [attr.aria-valuenow]="me.xpProgressPercent" aria-valuemin="0" aria-valuemax="100" aria-label="Level progress">
         <div class="xp-bar-fill" [style.width.%]="me.xpProgressPercent"></div>
       </div>
-      <p class="rail-hint">Posting a clip is worth 120 XP. Reviews are worth 200.</p>
+      @if (xpHint()) {
+        <p class="rail-hint">{{ xpHint() }}</p>
+      }
     </div>
   }
 
   <div class="rail-card">
-    <div class="rail-card-head">
+    <div class="rail-card-head rail-card-head-gap">
       <span class="rail-label">Squad activity</span>
-      <a routerLink="/squads" class="rail-link">Open room →</a>
+      <a [routerLink]="roomLink()" class="rail-link">Open room →</a>
     </div>
 
-    @if (isLoadingActivity()) {
-      <p class="text-muted rail-hint">Loading...</p>
-    } @else if (activityItems().length > 0) {
+    @if (squads().length > 0) {
+      <div class="squad-chips" role="group" aria-label="Filter squad activity">
+        <button type="button" class="squad-chip" [class.active]="selectedSquadId() === null" [attr.aria-pressed]="selectedSquadId() === null" (click)="selectSquad(null)">
+          All {{ squads().length }}
+        </button>
+        @for (squad of squads(); track squad.id) {
+          <button type="button" class="squad-chip" [class.active]="selectedSquadId() === squad.id" [attr.aria-pressed]="selectedSquadId() === squad.id" (click)="selectSquad(squad.id)">
+            {{ squad.name }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (isLoading() && items().length === 0) {
+      <p class="rail-hint">Loading...</p>
+    } @else if (items().length > 0) {
       <ul class="activity-list">
-        @for (item of activityItems(); track item.squadId + '-' + item.createdAt + '-' + item.username) {
+        @for (item of items(); track item.kind + item.userId + item.createdAt) {
           <li>
             <a [routerLink]="['/squads', item.squadId]" class="activity-row">
-              <span class="activity-avatar">{{ item.username.charAt(0).toUpperCase() }}</span>
+              <span class="activity-avatar">
+                @if (item.avatarUrl) { <img [src]="item.avatarUrl" alt="" /> }
+              </span>
               <span class="activity-body">
                 <span class="activity-text">
                   <b>{{ item.username }}</b>
-                  @if (item.body) {
-                    {{ item.body }}
-                  } @else if (item.sharedPostType) {
-                    shared a {{ item.sharedPostType }}
-                  } @else {
-                    sent a message
+                  @switch (item.kind) {
+                    @case ('achievement') { unlocked <b class="accent">{{ item.subject }}</b> }
+                    @case ('started') { started <b>{{ item.subject }}</b> }
+                    @default { posted a clip @if (item.subject) { — <b>{{ item.subject }}</b> } }
                   }
                 </span>
                 <span class="activity-meta">
-                  <span class="activity-squad-icon">{{ item.squadName.charAt(0).toUpperCase() }}</span>
+                  <span class="activity-squad-icon">
+                    @if (item.squadIconUrl) { <img [src]="item.squadIconUrl" alt="" /> }
+                  </span>
                   <span class="activity-squad">{{ item.squadName }}</span>
-                  <span class="activity-time">{{ item.createdAt | date: 'short' }}</span>
                 </span>
               </span>
             </a>
@@ -48,7 +64,7 @@
         }
       </ul>
     } @else {
-      <p class="text-muted rail-hint">No squad activity yet — join or create a squad to see it here.</p>
+      <p class="rail-hint">{{ squads().length ? 'Quiet in your squads right now.' : 'No squad activity yet — join or create a squad to see it here.' }}</p>
     }
   </div>
 </div>

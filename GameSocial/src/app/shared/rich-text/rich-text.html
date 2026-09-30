@@ -1,0 +1,36 @@
+<ng-template #inline let-nodes>
+  @for (node of nodes; track $index) {
+    @switch (node.kind) {
+      @case ('text') {{{ node.text }}}
+      @case ('bold') {<b class="rt-bold"><ng-container *ngTemplateOutlet="inline; context: { $implicit: asChildren(node) }" /></b>}
+      @case ('italic') {<i><ng-container *ngTemplateOutlet="inline; context: { $implicit: asChildren(node) }" /></i>}
+      @case ('underline') {<u><ng-container *ngTemplateOutlet="inline; context: { $implicit: asChildren(node) }" /></u>}
+      @case ('link') {<a class="rt-link" [href]="node.href" target="_blank" rel="noopener noreferrer nofollow"><ng-container *ngTemplateOutlet="inline; context: { $implicit: asChildren(node) }" /></a>}
+      @case ('spoiler') {
+        @if (isRevealed(node.id)) {
+          <span class="rt-spoiler-open"><ng-container *ngTemplateOutlet="inline; context: { $implicit: asChildren(node) }" /></span>
+        } @else {
+          <button type="button" class="rt-spoiler" (click)="reveal(node.id)" [attr.aria-label]="'Spoiler — göstermek için tıkla'">▨ spoiler hidden{{ node.label ? ' — ' + node.label : '' }}</button>
+        }
+      }
+    }
+  }
+</ng-template>
+
+@for (block of blocks(); track $index) {
+  @switch (block.kind) {
+    @case ('paragraph') {
+      <p class="rt-p"><ng-container *ngTemplateOutlet="inline; context: { $implicit: block.children }" /></p>
+    }
+    @case ('quote') {
+      <blockquote class="rt-quote"><ng-container *ngTemplateOutlet="inline; context: { $implicit: block.children }" /></blockquote>
+    }
+    @case ('bullets') {
+      <ul class="rt-list">
+        @for (item of block.items; track $index) {
+          <li><ng-container *ngTemplateOutlet="inline; context: { $implicit: item }" /></li>
+        }
+      </ul>
+    }
+  }
+}

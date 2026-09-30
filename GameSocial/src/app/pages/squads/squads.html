@@ -1,23 +1,185 @@
-@if (isLoading()) {
-  <p class="text-muted squads-entry-status">Opening your squad…</p>
-} @else if (loadError(); as error) {
-  <div class="card squads-entry">
-    <h2>Squads</h2>
-    <p class="text-muted">{{ error }}</p>
-    <button type="button" class="btn btn-secondary mt-md" (click)="retry()">Try again</button>
+<div class="hub">
+  <div class="hub-main">
+    <header class="page-head hub-head">
+      <div>
+        <h1>Squads</h1>
+        <p class="hub-sub">{{ subtitle() }}</p>
+      </div>
+      <div class="hub-head-actions">
+        <div class="hub-search">
+          <span aria-hidden="true">⌕</span>
+          <label class="visually-hidden" for="hub-search">Search squads by game or vibe</label>
+          <input
+            id="hub-search"
+            type="search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search squads by game or vibe" />
+        </div>
+        <button type="button" class="hub-btn hub-btn-primary" (click)="isCreateSheetOpen.set(true)">＋ Create a squad</button>
+        <button type="button" class="hub-btn hub-btn-outline" [attr.aria-pressed]="isBrowsingAll()" (click)="toggleBrowseAll()">
+          {{ isBrowsingAll() ? 'Show picks' : 'Browse all' }}
+        </button>
+      </div>
+    </header>
+
+    @if (isLoading()) {
+      <p class="hub-status">Loading your squads…</p>
+    } @else if (loadError(); as error) {
+      <div class="card hub-error">
+        <p>{{ error }}</p>
+        <button type="button" class="btn btn-secondary" (click)="load()">Try again</button>
+      </div>
+    } @else {
+      <!-- Open sessions right now -->
+      @if (mySquads().length > 0) {
+        <section aria-labelledby="hub-sessions">
+          <div class="section-head hub-section-head">
+            <h2 class="section-head-label" id="hub-sessions">Open sessions right now</h2>
+            <span class="section-head-rule"></span>
+            <span class="hub-count">{{ sessions().length }} open</span>
+          </div>
+          @if (sessions().length > 0) {
+            <div class="hub-grid-2">
+              @for (session of sessions(); track session.id) {
+                <app-hub-session-card [session]="session" [busy]="busyId() === session.id" (toggle)="toggleRsvp(session)" />
+              }
+            </div>
+          } @else {
+            <button type="button" class="hub-dashed" (click)="isSessionSheetOpen.set(true)">
+              Nobody's on right now — ＋ start a session
+            </button>
+          }
+        </section>
+      }
+
+      <!-- Your squads -->
+      <section aria-labelledby="hub-mine">
+        <div class="section-head hub-section-head">
+          <h2 class="section-head-label" id="hub-mine">Your squads</h2>
+          <span class="section-head-rule"></span>
+        </div>
+        @if (mySquads().length > 0) {
+          <div class="hub-list">
+            @for (squad of mySquads(); track squad.id) {
+              <app-hub-squad-card [squad]="squad" [stats]="stats()[squad.id]" (invite)="inviteTarget.set(squad)" />
+            }
+          </div>
+        } @else {
+          <button type="button" class="hub-dashed" (click)="isCreateSheetOpen.set(true)">
+            You're not in a squad yet — ＋ create one, or join one below
+          </button>
+        }
+      </section>
+    }
+
+    <!-- Squads looking for you / search / browse all -->
+    <section aria-labelledby="hub-discover">
+      <div class="section-head hub-section-head">
+        <h2 class="section-head-label" id="hub-discover">{{ discoverLabel() }}</h2>
+        <span class="section-head-rule"></span>
+        <span class="section-head-note">{{ discoverNote() }}</span>
+      </div>
+      @if (discover(); as result) {
+        @if (result.items.length > 0) {
+          <div class="hub-grid-3">
+            @for (squad of result.items; track squad.id) {
+              <app-hub-discover-card
+                [squad]="squad"
+                [requested]="requestedIds().includes(squad.id)"
+                [busy]="busyId() === squad.id"
+                (join)="joinSquad(squad)"
+                (peek)="peekTarget.set(squad)" />
+            }
+          </div>
+          @if (canLoadMore()) {
+            <button type="button" class="hub-more" [disabled]="isDiscoverLoading()" (click)="loadDiscover(false)">
+              {{ isDiscoverLoading() ? 'Loading…' : 'Load more' }}
+            </button>
+          }
+        } @else {
+          <p class="hub-empty">No squads match yet.</p>
+        }
+      } @else if (isDiscoverLoading()) {
+        <p class="hub-empty">Finding squads…</p>
+      }
+    </section>
   </div>
-} @else if (showWelcome()) {
-  <div class="card squads-entry">
-    <span class="squads-entry-icon" aria-hidden="true">◈</span>
-    <h2>You're not in any squads yet</h2>
-    <p class="text-muted">
-      A squad is a small private group with its own channels, clips and screenshot library.
-      There's no browse or discover yet — create one, or ask a captain to add you by username.
-    </p>
-    <button type="button" class="btn btn-primary mt-md" (click)="openCreateSheet()">Create a squad</button>
-  </div>
+
+  <aside class="hub-aside">
+    @if (visibleInvite(); as invite) {
+      <section class="hub-panel hub-invites" aria-labelledby="hub-invites-title">
+        <h2 class="section-head-label hub-panel-title" id="hub-invites-title">Squad invites</h2>
+        <div class="hub-person">
+          <span class="hub-avatar hub-avatar-38" aria-hidden="true">
+            @if (invite.squadIconUrl) {
+              <img [src]="invite.squadIconUrl" alt="" />
+            } @else {
+              {{ initialOf(invite.squadName) }}
+            }
+          </span>
+          <div class="hub-person-text">
+            <div class="hub-person-name">{{ invite.squadName }}</div>
+            <div class="hub-person-meta">{{ invite.inviterUsername }} invited you</div>
+          </div>
+        </div>
+        <div class="hub-invite-actions">
+          <button type="button" class="hub-invite-accept" [disabled]="busyId() === invite.id" (click)="acceptInvite(invite)">Accept</button>
+          <button type="button" class="hub-invite-later" (click)="postponeInvite(invite)">Later</button>
+        </div>
+      </section>
+    }
+
+    <section class="hub-panel" aria-labelledby="hub-friends-title">
+      <h2 class="section-head-label hub-panel-title hub-panel-title-14" id="hub-friends-title">Friends online</h2>
+      @if (friends().length > 0) {
+        <ul class="hub-friends">
+          @for (friend of friends(); track friend.userId) {
+            <li class="hub-person">
+              <span class="hub-avatar hub-avatar-32" aria-hidden="true">
+                @if (friend.avatarUrl) {
+                  <img [src]="friend.avatarUrl" alt="" />
+                } @else {
+                  {{ initialOf(friend.username) }}
+                }
+              </span>
+              <div class="hub-person-text">
+                <a class="hub-person-name" [routerLink]="['/profile', friend.userId]">{{ friend.username }}</a>
+                <div class="hub-person-meta" [class.accent]="!!friend.inVoiceSquadName">{{ friendStatus(friend) }}</div>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="hub-person-meta">Nobody you follow is online right now.</p>
+      }
+    </section>
+
+    <section class="hub-panel" aria-labelledby="hub-xp-title">
+      <h2 class="section-head-label hub-panel-title hub-panel-title-10" id="hub-xp-title">Squad XP works like this</h2>
+      <p class="hub-xp">Everything a member posts feeds the squad bar. Hit level 7 and you unlock a custom room banner and squad-only clip channels.</p>
+    </section>
+  </aside>
+</div>
+
+@if (voiceSession(); as live) {
+  <app-hub-voice-bar class="hub-voice" [session]="live" [busy]="busyId() === live.id" (toggle)="toggleRsvp(live)" />
 }
 
 @if (isCreateSheetOpen()) {
-  <app-squad-create-sheet (created)="onCreated($event)" (closed)="closeCreateSheet()" />
+  <app-squad-create-sheet (created)="onCreated($event)" (closed)="isCreateSheetOpen.set(false)" />
+}
+@if (inviteTarget(); as squad) {
+  <app-hub-invite-sheet [squad]="squad" (closed)="inviteTarget.set(null)" />
+}
+@if (peekTarget(); as squad) {
+  <app-hub-peek-sheet
+    [squad]="squad"
+    [requested]="requestedIds().includes(squad.id)"
+    [busy]="busyId() === squad.id"
+    (join)="joinSquad(squad)"
+    (closed)="peekTarget.set(null)" />
+}
+@if (isSessionSheetOpen()) {
+  <app-hub-session-sheet [squads]="mySquads()" (created)="onSessionCreated()" (closed)="isSessionSheetOpen.set(false)" />
 }

@@ -1,2 +1,351 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/form-controls';
+
+// Design: 08-sheets.html L55-103 (sheetReview).
+
+.rs-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// Resume-draft offer, drawn as a row panel like the rest of the sheet.
+.rs-resume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: $color-bg-row;
+  border: 1px solid $color-accent-border;
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-secondary;
+}
+
+.rs-resume-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rs-resume-btn {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid $color-border-strong;
+  background: transparent;
+  color: $color-text-secondary;
+  font: 700 11px/13px $font-family-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+  }
+}
+
+.rs-resume-primary {
+  border-color: transparent;
+  background: $color-accent-tint;
+  color: $color-accent-light;
+}
+
+// Game card: 12/14 padding, radius 14, #141418 + #23232B.
+.rs-game {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+}
+
+.rs-cover {
+  width: 44px;
+  height: 58px;
+  flex: none;
+  border-radius: 10px;
+  background: $color-border-strong;
+  object-fit: cover;
+}
+
+.rs-game-info {
+  min-width: 0;
+}
+
+.rs-game-name {
+  font: 700 15px/20px $font-family-primary;
+  color: $color-text-primary;
+}
+
+.rs-game-empty {
+  color: $color-text-tertiary;
+}
+
+.rs-game-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 11px/15px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rs-hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+// Self-reported hours sit inline in the "62 h tracked" line.
+input.rs-hours-input {
+  width: 42px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 5px;
+  border: 1px solid $color-border;
+  background: $color-bg-primary;
+  font: 700 11px/1 $font-family-mono;
+  color: $color-text-primary;
+  text-align: right;
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &:focus {
+    box-shadow: none;
+    border-color: $color-accent-primary;
+  }
+}
+
+.rs-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: $color-text-tertiary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+    text-decoration: underline;
+  }
+}
+
+.rs-score {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.rs-score-value {
+  font: 800 18px/1 $font-family-mono;
+  color: $color-text-primary;
+  min-width: 34px;
+  text-align: right;
+}
+
+select.rs-select {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: $color-bg-secondary;
+  font: 600 13px/38px $font-family-primary;
+}
+
+// Status chips: 7/12 padding, radius 10, active #E11D2E, idle #1B1B21.
+.rs-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rs-chip {
+  padding: 7px 12px;
+  border: none;
+  border-radius: 10px;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font: 600 12px/13px $font-family-primary;
+  cursor: pointer;
+
+  &:hover:not(.active),
+  &:focus-visible:not(.active) {
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.rs-chip-spoiler {
+  margin-left: auto;
+
+  &.off {
+    color: $color-accent-light;
+  }
+}
+
+// Headline: 42px, radius 12, 800 16px.
+input.rs-headline {
+  height: 42px;
+  padding: 0 13px;
+  border-radius: 12px;
+  background: $color-bg-secondary;
+  font: 800 16px/42px $font-family-primary;
+  color: $color-text-primary;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+// Body: min-height 150, 13/14 padding, radius 14, 500 14px/22px #C9C9D2.
+textarea.rs-text {
+  min-height: 150px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: $color-bg-secondary;
+  font: 500 14px/22px $font-family-primary;
+  color: $color-text-body;
+  resize: vertical;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.rs-clips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rs-clips-note {
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rs-clip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid $color-border;
+  background: $color-bg-row;
+  color: $color-text-secondary;
+  font: 600 12px/14px $font-family-primary;
+  cursor: pointer;
+
+  &.active {
+    border-color: $color-accent-border;
+    background: $color-accent-tint;
+    color: $color-accent-light;
+  }
+}
+
+.rs-clip-play {
+  font-size: 10px;
+  color: $color-accent-primary;
+}
+
+.rs-clip-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rs-clip-time {
+  font: 700 10px/12px $font-family-mono;
+  color: $color-text-tertiary;
+}
+
+.rs-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 11px/1.3 $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rs-xp {
+  font-family: $font-family-mono;
+  color: $color-accent-light;
+}
+
+.rs-info-right {
+  margin-left: auto;
+  text-align: right;
+}
+
+// Footer: Cancel (outline) · Save draft (margin-left:auto, #1B1B21) · Publish (red).
+.rs-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.rs-btn {
+  padding: 11px 16px;
+  border-radius: 13px;
+  font: 700 13px/14px $font-family-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.rs-btn-cancel {
+  border: 1px solid $color-border-strong;
+  background: transparent;
+  color: $color-text-secondary;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: $color-border-dashed;
+    color: $color-text-primary;
+  }
+}
+
+.rs-btn-draft {
+  margin-left: auto;
+  border: 1px solid $color-border;
+  background: $color-bg-tertiary;
+  color: $color-text-primary;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: $color-border-dashed;
+  }
+}
+
+.rs-btn-publish {
+  padding: 11px 20px;
+  border: none;
+  background: $color-accent-primary;
+  color: #fff;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: #c4172a;
+  }
+}

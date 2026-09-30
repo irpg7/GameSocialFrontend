@@ -1,0 +1,167 @@
+<article class="rc">
+  <div class="rc-gutter">
+    <div class="rc-score" [class.rc-score-weak]="!isStrongScore()">{{ scoreLabel() }}</div>
+    <app-star-rating [score]="review().score" [size]="11" />
+    <div class="rc-hours">{{ review().hoursPlayed }} h<br />{{ playStatusLabel() }}</div>
+  </div>
+
+  <div class="rc-main">
+    <div class="rc-meta">
+      <a class="rc-avatar" [routerLink]="['/profile', post().userId]" [attr.aria-label]="post().username">
+        @if (post().authorAvatarUrl; as avatar) {
+          <img [src]="avatar" alt="" />
+        } @else {
+          {{ authorInitial() }}
+        }
+      </a>
+      <a class="rc-author" [routerLink]="['/profile', post().userId]">{{ post().username }}</a>
+      <span class="rc-lv">LV {{ post().authorLevel }}</span>
+      <span class="rc-when">{{ meta() }}</span>
+    </div>
+
+    @if (post().caption) {
+      <h3 class="rc-headline">{{ post().caption }}</h3>
+    }
+    @if (review().body) {
+      <app-rich-text class="rc-body" [text]="review().body" />
+    }
+
+    <div class="rc-actions">
+      <button
+        type="button"
+        class="rc-pill"
+        [class.on]="useful()"
+        [disabled]="isTogglingUseful()"
+        [attr.aria-pressed]="useful()"
+        (click)="toggleUseful()">
+        ▲ <span class="mono">{{ usefulCount() }}</span> useful
+      </button>
+      <button type="button" class="rc-pill" [class.on]="isThreadOpen()" [attr.aria-expanded]="isThreadOpen()" (click)="toggleThread()">
+        💬 <span class="mono">{{ commentCount() }}</span> yorum {{ isThreadOpen() ? '▴' : '▾' }}
+      </button>
+      <button type="button" class="rc-pill" (click)="share()">↗ Share</button>
+    </div>
+
+    @if (isThreadOpen()) {
+      <div class="rc-thread">
+        <div class="rc-thread-head">
+          <button type="button" class="rc-sort" [class.on]="sort() === 'top'" [attr.aria-pressed]="sort() === 'top'" (click)="setSort('top')">En çok oylanan</button>
+          <button type="button" class="rc-sort" [class.on]="sort() === 'new'" [attr.aria-pressed]="sort() === 'new'" (click)="setSort('new')">En yeni</button>
+          <span class="rc-thread-count">{{ commentCount() }} yorumdan {{ shownCount() }} tanesi</span>
+        </div>
+
+        @if (isLoadingThread() && thread().length === 0) {
+          <span class="rc-thread-note">Yorumlar yükleniyor…</span>
+        }
+
+        @for (item of thread(); track item.comment.id) {
+          <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: item.comment, item: item }" />
+          @if (item.repliesOpen) {
+            <div class="rc-replies">
+              @for (reply of item.replies; track reply.id) {
+                <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: reply, item: null }" />
+              }
+            </div>
+          }
+        }
+
+        @if (replyTo(); as target) {
+          <div class="rc-replying">
+            ↩ {{ target.username }} kullanıcısına yanıt veriyorsun
+            <button type="button" class="rc-link" (click)="cancelReply()">Vazgeç</button>
+          </div>
+        }
+        <div class="rc-compose">
+          <input
+            type="text"
+            class="rc-input"
+            [attr.aria-label]="placeholder()"
+            [placeholder]="placeholder()"
+            [ngModel]="draft()"
+            (ngModelChange)="draft.set($event)"
+            (keydown.enter)="send()" />
+          <button type="button" class="rc-send" [class.ready]="hasDraft()" [disabled]="!hasDraft() || isPosting()" (click)="send()">Gönder</button>
+        </div>
+
+        @if (remaining() > 0) {
+          <button type="button" class="rc-more" [disabled]="isLoadingThread()" (click)="loadMore()">Kalan {{ remaining() }} yorumu gör →</button>
+        }
+      </div>
+    } @else if (pinnedReply(); as pinned) {
+      <div class="rc-pinned">
+        <div class="rc-pinned-head">
+          <span class="rc-pinned-tag">◆ YAPIMCI YANITI</span>
+          <span class="rc-pinned-note">{{ commentCount() }} yorum içinde en üstte sabit</span>
+        </div>
+        <div class="rc-pinned-body">
+          <span class="rc-c-avatar" aria-hidden="true">
+            @if (pinned.authorAvatarUrl; as avatar) {
+              <img [src]="avatar" alt="" />
+            }
+          </span>
+          <div class="rc-c-main">
+            <div class="rc-c-meta">
+              <span class="rc-c-author">{{ pinned.username }}</span>
+              <span class="rc-c-ago">{{ formatTimeAgo(pinned.createdAt) }}</span>
+            </div>
+            <div class="rc-pinned-text">{{ pinned.body }}</div>
+            <div class="rc-c-actions rc-pinned-actions">
+              <button type="button" class="rc-c-action" [class.on]="pinned.isVotedByCurrentUser" [attr.aria-pressed]="pinned.isVotedByCurrentUser" (click)="vote(pinned)">▲ {{ pinned.voteCount }}</button>
+              <button type="button" class="rc-c-action" (click)="replyToPinned()">↩ Yanıtla</button>
+              <button type="button" class="rc-c-action" (click)="toggleThread()">Tüm {{ commentCount() }} yorumu gör</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (clips().length > 0) {
+      <div class="rc-clips">
+        @for (clip of clips(); track clip.id; let first = $first) {
+          <a
+            class="rc-clip"
+            [class.rc-clip-lead]="first"
+            routerLink="/clips"
+            [queryParams]="{ clip: clip.id }"
+            [style.background-image]="clip.thumbnailUrl ? 'url(' + clip.thumbnailUrl + ')' : null"
+            [attr.aria-label]="'Klibi oynat · ' + clip.duration">
+            <span class="rc-clip-play" aria-hidden="true">▶</span>
+            @if (first) {
+              <span class="rc-clip-label">İNCELEMEDEN · {{ clip.duration }}</span>
+            } @else {
+              <span class="rc-clip-time">{{ clip.duration }}</span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </div>
+</article>
+
+<ng-template #commentRow let-c let-item="item">
+  <div class="rc-comment">
+    <a class="rc-c-avatar" [routerLink]="['/profile', c.userId]" [attr.aria-label]="c.username">
+      @if (c.authorAvatarUrl) {
+        <img [src]="c.authorAvatarUrl" alt="" />
+      }
+    </a>
+    <div class="rc-c-main">
+      <div class="rc-c-meta">
+        <a class="rc-c-author" [class.own]="isOwn(c)" [routerLink]="['/profile', c.userId]">{{ c.username }}</a>
+        <span class="rc-c-lv">{{ c.authorIsDeveloper ? 'DEV' : 'LV ' + c.authorLevel }}</span>
+        <span class="rc-c-ago">{{ formatTimeAgo(c.createdAt) }}</span>
+        @if (c.authorIsDeveloper) {
+          <span class="rc-c-dev">◆ YAPIMCI</span>
+        }
+      </div>
+      <div class="rc-c-text">{{ c.body }}</div>
+      <div class="rc-c-actions">
+        <button type="button" class="rc-c-action" [class.on]="c.isVotedByCurrentUser" [attr.aria-pressed]="c.isVotedByCurrentUser" (click)="vote(c)">▲ {{ c.voteCount }}</button>
+        <button type="button" class="rc-c-action" (click)="startReply(c)">↩ Yanıtla</button>
+        @if (item && c.replyCount > 0) {
+          <button type="button" class="rc-c-action rc-c-replies" [attr.aria-expanded]="item.repliesOpen" (click)="toggleReplies(item)">{{ c.replyCount }} yanıt</button>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>

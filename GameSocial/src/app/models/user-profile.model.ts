@@ -1,3 +1,5 @@
+import { AchievementModel } from './achievement.model';
+
 /**
  * Corresponds to Domain.Responses.UserProfileResponse (GET /api/users/{userId}/profile).
  */
@@ -17,4 +19,9 @@ export interface UserProfileModel {
   followingCount: number;
   isFollowedByCurrentUser: boolean;
   isCurrentUser: boolean;
+  /** Trophies earned — "19 trophies · top 8% overall". */
+  earnedAchievementsCount: number;
+  trophyTopPercent: number;
+  /** Achievements pinned to the profile showcase, in slot order (max 3). */
+  showcase: AchievementModel[];
 }

@@ -57,6 +57,31 @@
         <span class="stat-value">{{ profile.currentStreakDays }}</span>
         <span class="stat-label">Day streak</span>
       </div>
+      <div class="stat">
+        <span class="stat-value">{{ profile.earnedAchievementsCount }}</span>
+        <span class="stat-label">Trophies · top {{ profile.trophyTopPercent }}%</span>
+      </div>
     </div>
+
+    <!-- Trophies' "Showcase — pinned to your profile" lands here. -->
+    <section class="profile-showcase card" aria-label="Trophy showcase">
+      <div class="profile-showcase-head">
+        <span class="section-head-label">Showcase</span>
+        @if (profile.isCurrentUser) {
+          <a routerLink="/trophies" class="profile-showcase-link">Edit showcase</a>
+        }
+      </div>
+      @if (profile.showcase.length > 0) {
+        <div class="profile-showcase-grid">
+          @for (achievement of profile.showcase; track achievement.id) {
+            <app-trophy-tile [achievement]="achievement" [accent]="achievement.id === showcaseAccentId()" />
+          }
+        </div>
+      } @else {
+        <p class="profile-showcase-empty">
+          {{ profile.isCurrentUser ? 'No trophies pinned yet — pin up to 3 from Trophies.' : 'No trophies pinned yet.' }}
+        </p>
+      }
+    </section>
   </div>
 }

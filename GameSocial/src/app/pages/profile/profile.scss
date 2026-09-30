@@ -132,3 +132,37 @@
   font-size: 0.78rem;
   color: $color-text-secondary;
 }
+
+// ─── Trophy showcase (pinned from the Trophies page) ────────────
+.profile-showcase-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+
+  .section-head-label {
+    color: $color-text-tertiary;
+  }
+}
+
+.profile-showcase-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.profile-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  @media (max-width: 620px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-showcase-empty {
+  font-size: 13px;
+  line-height: 19px;
+  color: $color-text-tertiary;
+}

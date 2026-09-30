@@ -1,7 +1,7 @@
-<div class="queue-card" (mouseenter)="onEnter()" (mouseleave)="onLeave()">
-  <button type="button" class="queue-main" (click)="play.emit()" (focus)="onEnter()" (blur)="onLeave()">
+<div class="queue-card" (click)="play.emit()" (mouseenter)="onEnter()" (mouseleave)="onLeave()">
+  <button type="button" class="queue-main" [attr.aria-label]="'Oynat: ' + title()" (click)="onPlay($event)" (focus)="onEnter()" (blur)="onLeave()">
     <span class="queue-thumb">
-      <video #video class="queue-video" [src]="src()" muted playsinline preload="metadata" (timeupdate)="onPreviewTime()"></video>
+      <video #video class="queue-video" [src]="src()" [attr.poster]="poster()" muted playsinline preload="metadata" (timeupdate)="onPreviewTime()"></video>
 
       @if (!previewing() && !active()) {
         <span class="queue-play" aria-hidden="true">▶</span>
@@ -16,17 +16,32 @@
 
     <span class="queue-body">
       <span class="queue-title">{{ title() }}</span>
-      <span class="queue-author-row">
-        <span class="queue-avatar">{{ initial() }}</span>
-        <span class="queue-author">{{ post().username }}</span>
-      </span>
     </span>
   </button>
 
+  <div class="queue-author-row">
+    <span class="queue-avatar" aria-hidden="true">
+      @if (post().authorAvatarUrl; as avatar) {
+        <img [src]="avatar" alt="" />
+      } @else {
+        {{ initial() }}
+      }
+    </span>
+    <span class="queue-author">{{ post().username }}</span>
+    <button
+      type="button"
+      class="queue-save"
+      [class.saved]="saved()"
+      [attr.aria-pressed]="saved()"
+      [attr.aria-label]="saved() ? 'Kaydedildi' : 'Kaydet'"
+      [disabled]="isTogglingSave()"
+      (click)="toggleSave($event)">{{ saved() ? '◆' : '◇' }}</button>
+  </div>
+
   <div class="queue-stats">
-    <button type="button" class="queue-chip queue-vote" [class.active]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike($event)">
-      ▲ {{ likeCount() }}
+    <button type="button" class="queue-chip queue-vote" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike($event)">
+      ▲ {{ likeLabel() }}
     </button>
-    <button type="button" class="queue-chip" (click)="onOpenComments($event)">💬 {{ post().commentCount }}</button>
+    <button type="button" class="queue-chip" [attr.aria-label]="'Yorumlar: ' + commentCount()" (click)="onOpenComments($event)">💬 {{ commentCount() }}</button>
   </div>
 </div>

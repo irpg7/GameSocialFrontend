@@ -17,4 +17,18 @@ export interface MeModel {
   isDeveloper: boolean;
   isPremium: boolean;
   permissions: string[];
+  avatarUrl?: string;
+  /** Account menu status row: Çevrimiçi / Oyunda görünme / Rahatsız etme. */
+  presenceStatus: PresenceStatusName;
+  studioName?: string;
+  /** Sum of the XP ledger over the last 7 days. */
+  xpThisWeek: number;
+  /** Account menu counts: ▶ Klipslerim / ◇ Kaydedilenler / ★ İncelemelerim / ◫ Taslaklar. */
+  clipCount: number;
+  savedCount: number;
+  reviewCount: number;
+  draftCount: number;
 }
+
+/** Domain.Enums.PresenceStatus. */
+export type PresenceStatusName = 'Online' | 'Invisible' | 'DoNotDisturb';

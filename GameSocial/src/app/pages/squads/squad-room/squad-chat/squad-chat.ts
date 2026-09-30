@@ -1,58 +1,73 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, input, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LowerCasePipe, UpperCasePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { SquadMessageModel } from '../../../../models/squad.model';
+import { SharedPostPreviewModel, SquadMessageModel } from '../../../../models/squad.model';
+import { clock, clockTime } from '../squad-format';
 
 interface MessageDayGroup {
-  /** `Today` / `Yesterday` / a short date, as the design's chat divider. */
+  /** `Today` / `Yesterday` / a short date — the design's chat divider. */
   label: string;
   messages: SquadMessageModel[];
 }
 
+export interface ReactRequest {
+  message: SquadMessageModel;
+  emoji: string;
+}
+
 /**
- * Chat tab of the squad room, from Gamer Feed.dc.html `onSquad` + `onChat`:
- * a `#channel ——— Today` divider, message rows carrying the author's level
- * chip, shared clips rendered as a large inline card with a SQUAD CLIP badge,
- * and a composer row with clip / screenshot / send actions.
- *
- * Two mock elements are left out because nothing backs them: the per-message
- * reaction chips (▲ 4 / 🔥 2 — squad messages have no reactions) and the
- * achievement/system rows ("squad earned +300 XP" — there is no squad event
- * feed). The mock's "Push to main feed →" link becomes "View in feed": a post
- * tagged to a squad is already in the main feed, so there is nothing to push.
+ * Chat tab of the squad room, `onSquad` + `onChat` (05-squad.html L208–254):
+ * `#channel ——— Today` divider, message rows with the author's LV chip and
+ * reaction chips (▲ 4 / 🔥 2), shared posts as the large SQUAD CLIP card
+ * (▲ votes · 💬 comments · "Push to main feed →"), achievement system rows
+ * ("X unlocked Y — squad earned +300 XP"), a typing line, and the composer.
  */
 @Component({
   selector: 'app-squad-chat',
-  imports: [FormsModule, RouterLink, LowerCasePipe, UpperCasePipe],
+  imports: [FormsModule],
   templateUrl: './squad-chat.html',
   styleUrl: './squad-chat.scss',
 })
 export class SquadChat {
   channelName = input<string | undefined>(undefined);
   messages = input.required<SquadMessageModel[]>();
-  /** userId → level, merged from the squad leaderboard (server-computed). */
+  /** userId → level (roster). */
   levels = input<Record<string, number>>({});
   isMember = input(false);
   isLoading = input(false);
   hasMore = input(false);
   isSending = input(false);
-  /** Drives the composer row's avatar. */
-  currentUsername = input<string | undefined>(undefined);
+  currentAvatarUrl = input<string | undefined>(undefined);
+  /** Usernames currently typing in this channel (realtime). */
+  typingUsers = input<string[]>([]);
 
   send = output<string>();
   loadEarlier = output<void>();
-  togglePin = output<SquadMessageModel>();
+  react = output<ReactRequest>();
   attachClip = output<void>();
   attachScreens = output<void>();
+  openShared = output<SharedPostPreviewModel>();
+  typing = output<void>();
 
+  protected readonly quickReactions = ['▲', '🔥', '😂', '👍'];
   protected readonly draft = signal('');
+  protected readonly clock = clock;
 
-  /**
-   * Messages arrive oldest-first, so the groups come out in reading order and
-   * the first group's label is the one the channel header shows (matching the
-   * design, which prints the day once beside the channel name).
-   */
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
+  private lastNewestId: string | null = null;
+
+  constructor() {
+    // Stick to the bottom when a newer message arrives (not when older pages are prepended).
+    afterRenderEffect(() => {
+      const list = this.messages();
+      const newest = list[list.length - 1]?.id ?? null;
+      const element = this.scroller()?.nativeElement;
+      if (element && newest !== this.lastNewestId) {
+        this.lastNewestId = newest;
+        element.scrollTop = element.scrollHeight;
+      }
+    });
+  }
+
   protected readonly groups = computed<MessageDayGroup[]>(() => {
     const groups: MessageDayGroup[] = [];
     for (const message of this.messages()) {
@@ -67,20 +82,31 @@ export class SquadChat {
     return groups;
   });
 
-  protected initial(name: string | undefined): string {
-    return (name ?? '').charAt(0).toUpperCase();
-  }
+  protected readonly typingLine = computed(() => {
+    const users = this.typingUsers();
+    if (users.length === 0) {
+      return null;
+    }
+    return users.length === 1 ? `${users[0]} yazıyor…` : `${users.slice(0, 2).join(', ')} yazıyor…`;
+  });
 
   protected level(userId: string): number | null {
     return this.levels()[userId] ?? null;
   }
 
-  /** `21:04` — the design's message timestamp. */
   protected time(iso: string): string {
-    const date = new Date(iso);
-    return Number.isNaN(date.getTime())
-      ? ''
-      : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return clockTime(iso);
+  }
+
+  protected sharedNoun(postType: string): string {
+    return postType === 'Clip' ? 'clip' : postType === 'Screenshots' ? 'screenshot' : 'post';
+  }
+
+  protected onDraft(value: string): void {
+    this.draft.set(value);
+    if (value.trim()) {
+      this.typing.emit();
+    }
   }
 
   protected submit(): void {
@@ -105,6 +131,6 @@ export class SquadChat {
     if (dayDiff === 1) {
       return 'Yesterday';
     }
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('tr-TR');
   }
 }

@@ -1,0 +1,165 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/form-controls';
+
+.guide-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.guide-items,
+.guide-candidates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.guide-candidates {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.guide-item,
+.guide-candidate {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  border: 1px solid $color-border;
+  border-radius: 12px;
+  background-color: $color-bg-secondary;
+  overflow: hidden;
+  font-family: $font-family-primary;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $color-border-dashed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+}
+
+.guide-candidate.selected {
+  border-color: $color-accent-primary;
+}
+
+.guide-item-thumb {
+  position: relative;
+  display: block;
+  height: 72px;
+  background-color: $color-bg-tertiary;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.guide-item-kind {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background-color: rgba(10, 10, 12, 0.78);
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 700;
+}
+
+.guide-check {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-item-caption {
+  display: block;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guide-pick {
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  legend {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0;
+    margin-bottom: 8px;
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: $color-text-tertiary;
+  }
+}
+
+.guide-hint {
+  margin: 0;
+  font-size: 12px;
+  color: $color-text-tertiary;
+}
+
+.guide-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.guide-footer-spacer {
+  flex: 1;
+}
+
+.link-danger {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}

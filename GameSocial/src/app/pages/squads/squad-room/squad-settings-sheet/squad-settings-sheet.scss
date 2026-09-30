@@ -1,20 +1,121 @@
 @use '../../../../../styles/variables' as *;
-@use '../../../../../styles/form-controls';
 
-// Gamer Feed.dc.html `sqSettings`. The sheet shell comes from app-sheet-modal.
+// 07-squad-settings.html — geometry 1:1.
 
-.settings-tabs {
-  margin-bottom: $spacing-md;
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
 }
 
-.settings-section {
+.settings-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  background: $color-border-strong;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 800;
+  color: $color-text-primary;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.settings-icon-editable {
+  cursor: pointer;
+  position: relative;
+
+  &:hover::after,
+  &:focus-within::after {
+    content: '✎';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 14px;
+  }
+
+  &:focus-within {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+
+  &.busy {
+    opacity: 0.6;
+  }
+}
+
+.settings-tabs {
+  padding: 18px 22px 0;
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.settings-tab {
+  padding: 8px 13px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+  color: $color-text-secondary;
+  @include focus-ring;
+
+  &.active {
+    font-weight: 700;
+    background: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+  }
+}
+
+.settings-panel {
+  padding: 16px 22px 0;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+}
 
-  .form-group {
-    margin-bottom: 0;
-  }
+.settings-general {
+  gap: 13px;
+}
+
+.settings-rules {
+  gap: 8px;
+}
+
+.settings-members {
+  gap: 6px;
+}
+
+.settings-label {
+  display: block;
+  padding: 0;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: $color-text-hint;
+  margin-bottom: 7px;
+}
+
+.settings-label-gap {
+  margin-top: 8px;
 }
 
 .settings-label-row {
@@ -24,62 +125,66 @@
   margin-bottom: 7px;
 }
 
-.settings-hint {
+.settings-label-inline {
+  margin-bottom: 0;
+}
+
+.settings-label-hint {
   font-size: 11px;
   line-height: 14px;
   font-weight: 500;
+  color: $color-text-hint;
 }
 
 .settings-count {
   margin-left: auto;
+  font-family: $font-family-mono;
   font-size: 11px;
   line-height: 14px;
   font-weight: 700;
-  color: $color-text-secondary;
+  color: $color-text-hint;
 }
 
-// ─── Game chips ─────────────────────────────────────────────────────────────
+.settings-input {
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 13px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+  font-size: 14px;
+  font-weight: 600;
+
+  &:disabled {
+    opacity: 0.7;
+  }
+}
+
+.settings-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+// ─── Games ────────────────────────────────────────────────────────────────
 .game-chips {
   display: flex;
-  flex-wrap: wrap;
   gap: 7px;
+  flex-wrap: wrap;
 }
 
-// The banner game is the highlighted chip (the design fills the active game
-// with a tinted accent); the others sit on the plain surface.
 .game-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 7px 10px 7px 12px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-secondary;
-  border: 1px solid $color-bg-tertiary;
-
-  &.primary {
-    background-color: rgba($color-accent-primary, 0.16);
-    border-color: rgba($color-accent-primary, 0.5);
-
-    .game-chip-name {
-      color: $color-accent-light;
-    }
-  }
-}
-
-.game-chip-name {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: $font-family-primary;
+  border-radius: 11px;
+  background: rgba(225, 29, 46, 0.16);
+  border: 1px solid rgba(225, 29, 46, 0.5);
   font-size: 12px;
   line-height: 14px;
   font-weight: 700;
-  color: $color-text-primary;
-  cursor: pointer;
-
-  &:disabled {
-    cursor: default;
-  }
+  color: $color-accent-light;
 }
 
 .game-chip-remove {
@@ -92,37 +197,38 @@
   color: $color-accent-light;
   opacity: 0.7;
   cursor: pointer;
+  @include focus-ring;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     opacity: 1;
   }
 }
 
-.game-chip-add {
+.game-add {
   padding: 7px 12px;
-  border-radius: $border-radius-md;
-  border: 1px dashed $color-bg-tertiary;
-  background: none;
-  font-family: $font-family-primary;
+  border-radius: 11px;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 12px;
   line-height: 14px;
   font-weight: 700;
-  color: $color-text-secondary;
-  cursor: pointer;
-  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+  background: transparent;
+  border: 1px dashed $color-border-dashed;
+  color: $color-text-hint;
+  @include focus-ring;
 
-  &:hover {
-    border-color: $color-accent-primary;
-    color: $color-accent-light;
+  &.open {
+    background: #22222b;
+    color: $color-text-primary;
   }
 }
 
-// ─── Game picker (sqGamePicker) ─────────────────────────────────────────────
 .game-picker {
   margin-top: 9px;
-  border-radius: $border-radius-lg;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid #2c2c36;
   overflow: hidden;
 }
 
@@ -131,21 +237,22 @@
   align-items: center;
   gap: 9px;
   padding: 10px 12px;
-  border-bottom: 1px solid $color-bg-tertiary;
-  color: $color-text-secondary;
+  border-bottom: 1px solid $color-border;
+  color: $color-text-hint;
+  font-size: 13px;
 
-  // Borderless field — the panel itself is the frame (design).
   input {
     flex: 1;
     min-width: 0;
-    background: none;
-    border: none;
+    height: 24px;
     padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     font-size: 13px;
+    font-weight: 500;
 
     &:focus {
-      outline: none;
-      border: none;
       box-shadow: none;
     }
   }
@@ -155,9 +262,11 @@
     border: none;
     padding: 0;
     font-size: 12px;
+    line-height: 14px;
     font-weight: 700;
-    color: $color-text-secondary;
+    color: $color-text-hint;
     cursor: pointer;
+    @include focus-ring;
 
     &:hover {
       color: $color-text-primary;
@@ -168,50 +277,54 @@
 .game-picker-results {
   max-height: 196px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 6px;
 }
 
 .game-result {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  text-align: left;
   padding: 7px 8px;
+  border-radius: 11px;
+  background: transparent;
   border: none;
-  border-radius: $border-radius-md;
-  background: none;
   cursor: pointer;
-  transition: background-color $transition-speed-fast;
+  text-align: left;
+  font-family: inherit;
+  @include focus-ring;
 
-  &:hover:not(:disabled) {
-    background-color: $color-bg-secondary;
+  &:hover {
+    background: $color-bg-tertiary;
   }
 
-  &:disabled {
+  &.added {
     cursor: default;
-    opacity: 0.55;
+
+    .game-result-name,
+    .game-result-mark {
+      color: $color-text-hint;
+    }
   }
 }
 
 .game-result-cover {
-  flex: none;
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background-color: $color-bg-tertiary;
+  background: $color-border-strong;
+  flex: none;
   overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
   }
 }
 
 .game-result-body {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -222,153 +335,225 @@
   line-height: 16px;
   font-weight: 700;
   color: $color-text-primary;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .game-result-meta {
   font-size: 10px;
   line-height: 14px;
   font-weight: 500;
-  color: $color-text-secondary;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: $color-text-hint;
 }
 
 .game-result-mark {
+  margin-left: auto;
   flex: none;
   font-size: 11px;
+  line-height: 14px;
   font-weight: 700;
-  color: $color-text-secondary;
+  color: $color-accent-light;
 }
 
 .game-picker-empty {
+  margin: 0;
   padding: 14px 10px;
   font-size: 12px;
   line-height: 17px;
+  font-weight: 500;
+  color: $color-text-hint;
   text-align: center;
-  margin: 0;
+}
+
+.game-suggest {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: $color-accent-light;
+  cursor: pointer;
+  @include focus-ring;
 }
 
 .game-picker-foot {
+  margin: 0;
   padding: 9px 12px;
-  border-top: 1px solid $color-bg-tertiary;
+  border-top: 1px solid $color-border;
   font-size: 11px;
   line-height: 14px;
-  margin: 0;
-}
-
-// ─── Who can join (shares the create sheet's card treatment) ────────────────
-.policy-group {
-  border: none;
-  padding: 0;
-  margin: 0;
-
-  legend {
-    padding: 0;
-    margin-bottom: 8px;
-  }
-}
-
-.policy-cards {
-  display: flex;
-  gap: $spacing-sm;
-
-  @media (max-width: 560px) {
-    flex-direction: column;
-  }
-}
-
-.policy-card {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 11px 13px;
-  border-radius: $border-radius-lg;
-  border: 1px solid $color-bg-tertiary;
-  background-color: $color-bg-primary;
-  cursor: pointer;
-  transition: border-color $transition-speed-fast, background-color $transition-speed-fast;
-
-  input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  &:hover:not(.disabled) {
-    border-color: $color-text-secondary;
-  }
-
-  &.selected {
-    border-color: $color-accent-primary;
-    background-color: rgba($color-accent-primary, 0.1);
-  }
-
-  &.disabled {
-    cursor: default;
-    opacity: 0.7;
-  }
-
-  &:has(input:focus-visible) {
-    outline: 2px solid $color-accent-primary;
-    outline-offset: 2px;
-  }
-}
-
-.policy-card-label {
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-.policy-card-desc {
-  font-size: 11px;
-  line-height: 16px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-hint;
 }
 
-// ─── Members tab (sqOnMembers) ──────────────────────────────────────────────
-.member-rows {
-  list-style: none;
+// ─── Katılım ──────────────────────────────────────────────────────────────
+.privacy-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.privacy-option {
+  display: flex;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+  cursor: pointer;
+
+  &.selected {
+    border-color: rgba(225, 29, 46, 0.5);
+
+    .privacy-ring {
+      border-color: $color-accent-primary;
+      background: $color-accent-primary;
+    }
+  }
+
+  &.disabled {
+    cursor: default;
+  }
+
+  &:focus-within {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.privacy-ring {
+  width: 16px;
+  height: 16px;
+  border-radius: 9px;
+  border: 2px solid $color-border-dashed;
+  background: transparent;
+  flex: none;
+  margin-top: 1px;
+  display: block;
+}
+
+.privacy-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.privacy-label {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+}
+
+.privacy-desc {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-hint;
+  margin-top: 2px;
+}
+
+// ─── İçerik kuralları ─────────────────────────────────────────────────────
+.rule-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 13px;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: $color-text-primary;
+  @include focus-ring;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.rule-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rule-label {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+}
+
+.rule-desc {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-hint;
+  margin-top: 2px;
+}
+
+.rule-switch {
+  width: 36px;
+  height: 21px;
+  border-radius: 11px;
+  background: $color-border-strong;
+  position: relative;
+  flex: none;
+  display: block;
+
+  &.on {
+    background: $color-accent-primary;
+
+    .rule-knob {
+      left: 17px;
+    }
+  }
+}
+
+.rule-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 9px;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+// ─── Üyeler ve roller ─────────────────────────────────────────────────────
 .member-row {
   display: flex;
   align-items: center;
   gap: 11px;
   padding: 10px 12px;
-  border-radius: $border-radius-lg;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
 }
 
 .member-avatar {
-  flex: none;
   width: 32px;
   height: 32px;
   border-radius: 11px;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
+  background: $color-border-strong;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  overflow: hidden;
   font-size: 13px;
+  font-weight: 700;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .member-identity {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -378,42 +563,34 @@
   font-size: 13px;
   line-height: 17px;
   font-weight: 700;
-  color: $color-text-primary;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .member-meta {
   font-size: 11px;
   line-height: 15px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-hint;
 }
 
-// The design's role pill doubles as the control that cycles the role.
 .member-role {
-  flex: none;
+  margin-left: auto;
   height: 28px;
   padding: 0 11px;
   border-radius: 10px;
-  border: none;
-  background-color: $color-bg-secondary;
+  background: $color-bg-tertiary;
   color: $color-text-secondary;
-  font-family: $font-family-primary;
+  border: none;
+  font-family: inherit;
   font-size: 11px;
+  line-height: 28px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+  flex: none;
+  @include focus-ring;
 
-  &.captain {
-    background-color: rgba($color-accent-primary, 0.16);
+  &.top {
+    background: rgba(225, 29, 46, 0.16);
     color: $color-accent-light;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
   }
 }
 
@@ -421,91 +598,263 @@
   cursor: default;
 }
 
-.member-remove {
+.member-menu-wrap {
+  position: relative;
   flex: none;
+}
+
+.member-more {
   width: 28px;
   height: 28px;
   border-radius: 10px;
+  background: $color-bg-tertiary;
+  color: $color-text-hint;
   border: none;
-  background-color: $color-bg-secondary;
-  color: $color-text-secondary;
-  font-size: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 28px;
   font-weight: 700;
+  text-align: center;
   cursor: pointer;
-  transition: color $transition-speed-fast;
+  display: block;
+  flex: none;
+  @include focus-ring;
 
-  &:hover:not(:disabled) {
+  &:hover {
     color: $color-accent-light;
   }
+}
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+.member-more-placeholder {
+  visibility: hidden;
+}
+
+.member-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 2;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border-radius: 12px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border-strong;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+
+  button {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: $color-text-primary;
+    cursor: pointer;
+    @include focus-ring;
+
+    &:hover {
+      background: $color-bg-tertiary;
+    }
+
+    &.danger {
+      color: $color-accent-light;
+    }
+  }
+}
+
+.request-approve,
+.request-decline {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: none;
+  @include focus-ring;
+}
+
+.request-approve {
+  margin-left: auto;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
+}
+
+.request-decline {
+  background: $color-bg-tertiary;
+  border: none;
+  color: $color-text-secondary;
+}
+
+.invite-dashed {
+  margin-top: 4px;
+  padding: 10px 0;
+  border-radius: 13px;
+  border: 1px dashed $color-border-dashed;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-hint;
+  text-align: center;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
   }
 }
 
 .invite-row {
-  display: flex;
-  gap: $spacing-sm;
   margin-top: 4px;
+  display: flex;
+  gap: 8px;
 
   input {
-    flex: 1;
-    min-width: 0;
+    height: 36px;
+    border-radius: 12px;
+    background: $color-bg-row;
+    font-size: 13px;
   }
 }
 
-// ─── Footer ─────────────────────────────────────────────────────────────────
+.invite-send {
+  flex: none;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.settings-error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-accent-light;
+}
+
+.settings-error-footer {
+  padding: 0 22px;
+  margin-top: 12px;
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────
 .settings-footer {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding-top: 18px;
+  padding: 18px 22px 20px;
   margin-top: 16px;
-  border-top: 1px solid $color-bg-tertiary;
+  border-top: 1px solid #1c1c22;
   flex-wrap: wrap;
 }
 
-.leave-squad,
-.leave-yes,
-.leave-no {
+.leave-link {
   background: none;
   border: none;
   padding: 0;
-  font-family: $font-family-primary;
+  font-family: inherit;
   font-size: 12px;
   line-height: 14px;
   font-weight: 700;
+  color: $color-accent-light;
   cursor: pointer;
+  @include focus-ring;
 }
 
-.leave-squad,
-.leave-yes {
-  color: $color-accent-light;
+.leave-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-text-secondary;
 
-  &:hover {
-    color: $color-accent-primary;
+  select {
+    width: auto;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 9px;
+    background: $color-bg-row;
+    font-size: 12px;
+  }
+
+  button {
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    @include focus-ring;
   }
 }
 
+.leave-yes {
+  background: $color-accent-primary;
+  color: #fff;
+}
+
 .leave-no {
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+}
+
+.foot-cancel,
+.foot-save {
+  padding: 11px 16px;
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.foot-cancel {
+  margin-left: auto;
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
   color: $color-text-secondary;
 
   &:hover {
+    border-color: $color-border-dashed;
     color: $color-text-primary;
   }
 }
 
-.leave-confirm {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: $color-text-secondary;
-}
+.foot-save {
+  padding: 11px 18px;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
 
-// Cancel/Save sit to the right of the leave action (design).
-.settings-cancel {
-  margin-left: auto;
+  &:hover {
+    background: $color-accent-light;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }

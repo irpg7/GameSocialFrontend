@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { finalize } from 'rxjs';
@@ -6,6 +6,8 @@ import { UserProfileService } from '../../services/user-profile/user-profile.ser
 import { FollowService } from '../../services/follow/follow.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { UserProfileModel } from '../../models/user-profile.model';
+import { TrophyTile } from '../../shared/trophy-tile/trophy-tile';
+import { rarestId } from '../../shared/trophy-tile/trophy-format';
 
 /**
  * Public profile page for any user, reached via /profile/:id (own or someone
@@ -17,7 +19,7 @@ import { UserProfileModel } from '../../models/user-profile.model';
  */
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, TrophyTile],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -31,6 +33,8 @@ export class Profile implements OnInit {
   protected readonly isLoading = signal(true);
   protected readonly notFound = signal(false);
   protected readonly isTogglingFollow = signal(false);
+  /** The one showcase tile the design lights red: the rarest pinned trophy. */
+  protected readonly showcaseAccentId = computed(() => rarestId(this.profile()?.showcase ?? []));
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => this.loadProfile(params.get('id') ?? ''));

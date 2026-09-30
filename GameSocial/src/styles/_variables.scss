@@ -3,29 +3,46 @@
 // Changing a value cascades through the entire application.
 
 // ─── Color Palette ───────────────────────────────────────────────────────────
-// Lighter, "elevated" dark-theme grays instead of near-black — same red/black
-// identity, just less crushed-blacks and more depth between surfaces.
-$color-bg-primary:   #131316;
-$color-bg-secondary: #1c1c22;
-$color-bg-tertiary:  #26262e;
+// Exactly Gamer Feed.dc.html's palette — accent red plus greys only (no yellow
+// or indigo; #FFB020 is reserved for clip "hot moment" markers and the "away"
+// presence dot, #3DD68C for the "online" dot, as in the design).
+$color-bg-primary:   #0a0a0c; // page
+$color-bg-secondary: #141418; // cards / panels
+$color-bg-tertiary:  #1B1B21; // chips, pills, secondary buttons
+$color-bg-row:       #16161C; // selected row / identity block / inner tile
+$color-bg-inset:     #0f0f13; // composer, open comment thread panel
+$color-bg-sheet:     #101014; // modal sheets
 
-$color-text-primary:   #f8f8f2;
-$color-text-secondary: #a1a1aa;
+$color-text-primary:   #F5F5F7;
+$color-text-secondary: #A0A0AB;
+$color-text-body:      #C9C9D2; // long-form body copy (reviews, devlogs, comments)
+$color-text-hint:      #8C8C99; // placeholder-ish hints
+$color-text-tertiary:  #6C6C78; // section labels, meta lines, muted counts
 
-$color-accent-primary:   #e50914;
-$color-accent-secondary: #b8070e;
-$color-accent-glow:      rgba(229, 9, 20, 0.4);
+$color-accent-primary:   #E11D2E;
+$color-accent-secondary: #b8141f;
+$color-accent-glow:      rgba(225, 29, 46, 0.4);
+$color-accent-tint:      rgba(225, 29, 46, 0.14); // LV chips, DEVLOG #n badges
+$color-accent-border:    #3a1f26; // accented card borders (devlog, featured, dev reply)
+
+$color-presence-online: #3DD68C;
+$color-presence-away:   #FFB020;
+$color-presence-offline: #4a4a55;
+$color-hot-moment:      #FFB020;
 // The design uses a lighter red than the accent for *text* — accent counters
 // ("3 online"), inline links ("Push to main feed →") and destructive links
 // ("Leave squad"). $color-accent-secondary is the darker hover red, so this is
 // a separate token rather than a shade of it.
 $color-accent-light:     #f4485c;
 
-$color-border: #323139;
+$color-border:        #23232B;
+$color-border-strong: #2A2A32; // outline buttons, popovers
+$color-border-dashed: #3a3a44; // dashed dropzones / "＋ add" rows, empty stars
 
 // ─── Typography ──────────────────────────────────────────────────────────────
-$font-family-primary:   'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-$font-family-secondary: 'Outfit', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+// The design sets everything in system-ui.
+$font-family-primary:   system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$font-family-secondary: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 // The design sets every number — counts, XP, scores, timers, rarity — in a
 // monospace face so digits line up between rows.
 $font-family-mono:      ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

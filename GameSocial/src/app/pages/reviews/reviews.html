@@ -5,80 +5,139 @@
         <h2>Reviews</h2>
         <p class="page-sub">Written by people whose hours you can see.</p>
       </div>
-      <button type="button" class="btn btn-primary" (click)="openReviewSheet()">★ Write a review</button>
+      <button type="button" class="btn btn-primary" (click)="openReviewSheet(gameFilter())">★ Write a review</button>
     </div>
 
-    <div class="filter-row">
-      <button type="button" class="chip" [class.active]="isFilterActive('following')" (click)="toggleFilter('following')">Following</button>
+    <div class="filter-row" role="group" aria-label="Review filters">
+      <button type="button" class="chip" [class.active]="scope() === 'games'" [attr.aria-pressed]="scope() === 'games'" (click)="setScope('games')">Games you play</button>
+      <button type="button" class="chip" [class.active]="scope() === 'following'" [attr.aria-pressed]="scope() === 'following'" (click)="setScope('following')">Following</button>
+      <button type="button" class="chip" [class.active]="newest()" [attr.aria-pressed]="newest()" (click)="toggleNewest()">Newest</button>
       <span class="chip-divider" aria-hidden="true"></span>
-      <button type="button" class="chip" [class.active]="isFilterActive('longPlaytime')" (click)="toggleFilter('longPlaytime')">20 h+ played only</button>
-      <button type="button" class="chip" [class.active]="isFilterActive('noSpoilers')" (click)="toggleFilter('noSpoilers')">No spoilers</button>
+      <button type="button" class="chip" [class.active]="longPlaytimeOnly()" [attr.aria-pressed]="longPlaytimeOnly()" (click)="toggleLongPlaytime()">20 h+ played only</button>
+      <button type="button" class="chip" [class.active]="noSpoilers()" [attr.aria-pressed]="noSpoilers()" (click)="toggleNoSpoilers()">No spoilers</button>
+      @if (gameFilter() !== null && summary(); as s) {
+        <button type="button" class="chip active" (click)="clearGameFilter()" aria-label="Clear game filter">{{ s.gameName }} ✕</button>
+      }
     </div>
+
+    @if (summary(); as s) {
+      <section class="summary" [attr.aria-label]="s.gameName + ' review summary'">
+        @if (s.coverImageUrl) {
+          <img class="summary-cover" [src]="s.coverImageUrl" alt="" />
+        } @else {
+          <span class="summary-cover" aria-hidden="true"></span>
+        }
+        <div class="summary-main">
+          <div class="summary-title">
+            <span class="summary-name">{{ s.gameName }}</span>
+            @if (summaryMeta()) {
+              <span class="summary-meta">{{ summaryMeta() }}</span>
+            }
+          </div>
+          <div class="summary-scores">
+            <div class="summary-avg">
+              <span class="summary-avg-value">{{ s.averageScore.toFixed(1) }}</span>
+              <span class="summary-avg-count">from {{ s.reviewCount.toLocaleString('en-US') }} {{ s.reviewCount === 1 ? 'review' : 'reviews' }}</span>
+            </div>
+            <div class="summary-bars">
+              @for (bucket of s.histogram; track bucket.label) {
+                <div class="summary-bar-row">
+                  <span class="summary-bar-label">{{ bucket.label }}</span>
+                  <div class="summary-bar" role="img" [attr.aria-label]="bucket.label + ': ' + bucket.percent + '%'">
+                    <div class="summary-bar-fill" [style.width.%]="bucket.percent" [style.background]="bucketColors[bucket.label]"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          @if (s.themes.length > 0 || s.latestDevlog) {
+            <div class="summary-chips">
+              @for (theme of s.themes; track theme.tag) {
+                <span class="summary-chip">{{ theme.tag }} in {{ theme.percent }}%</span>
+              }
+              @if (s.latestDevlog; as devlog) {
+                <span class="summary-chip summary-chip-dev" [attr.title]="devlog.title || null">Dev replied · DevLog #{{ devlog.sequence }}</span>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
 
     <div class="section-head">
-      <span class="section-head-label">Most useful this week</span>
+      <span class="section-head-label">{{ sectionLabel() }}</span>
       <span class="section-head-rule"></span>
     </div>
 
     <div class="posts-list">
-      @for (post of filteredPosts(); track post.id) {
-        <app-post-card [post]="post" />
+      @for (post of posts(); track post.id) {
+        @if (post.review) {
+          <app-review-card [post]="post" />
+        }
       }
 
       @if (isLoadingFeed()) {
-        <p class="text-muted feed-status">Loading reviews...</p>
-      } @else if (filteredPosts().length === 0) {
+        <p class="feed-status">Loading reviews…</p>
+      } @else if (posts().length === 0) {
         <div class="empty-feed">
-          <p class="text-muted">No reviews match yet.</p>
+          <p>No reviews match yet.</p>
         </div>
       }
 
       @if (hasMore() && !isLoadingFeed()) {
         <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
-          {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+          {{ isLoadingMore() ? 'Loading…' : 'Load more' }}
         </button>
       }
     </div>
   </div>
 
   <aside class="reviews-rail">
-    <div class="panel-card">
-      <div class="panel-card-header">
-        <h4>Waiting for your review</h4>
-      </div>
+    <div class="panel-card panel-card-lit">
+      <h4 class="panel-label">Waiting for your review</h4>
       @if (waitingGames().length > 0) {
         <ul class="waiting-list">
-          @for (game of waitingGames(); track game.gameId) {
+          @for (game of waitingGames(); track game.gameId; let first = $first) {
             <li class="waiting-row">
-              <span class="waiting-cover" aria-hidden="true">{{ game.gameName.charAt(0).toUpperCase() }}</span>
-              <span class="waiting-name">{{ game.gameName }}</span>
-              <button type="button" class="rail-pill" (click)="openReviewSheet(game.gameId)">Rate</button>
+              @if (game.coverImageUrl) {
+                <img class="waiting-cover" [src]="game.coverImageUrl" alt="" />
+              } @else {
+                <span class="waiting-cover" aria-hidden="true"></span>
+              }
+              <span class="waiting-info">
+                <span class="waiting-name">{{ game.gameName }}</span>
+                <span class="waiting-meta">{{ waitingMeta(game) }}</span>
+              </span>
+              <button type="button" class="rail-pill" [class.rail-pill-outline]="!first" [attr.aria-label]="'Rate ' + game.gameName" (click)="openReviewSheet(game.gameId)">Rate</button>
             </li>
           }
         </ul>
       } @else {
-        <p class="text-muted rail-note">You're all caught up.</p>
+        <p class="rail-empty">You're all caught up.</p>
       }
-      <p class="rail-note">A review is worth <span class="rail-xp">+200 XP</span>, more if people find it useful.</p>
+      <p class="rail-note">A review is worth <span class="rail-xp">+{{ reviewXp() }} XP</span>, more if people find it useful.</p>
     </div>
 
     <div class="panel-card">
-      <div class="panel-card-header">
-        <h4>Trusted reviewers</h4>
-      </div>
+      <h4 class="panel-label panel-label-lg">Trusted reviewers</h4>
       @if (trustedReviewers().length > 0) {
         <ul class="reviewer-list">
           @for (reviewer of trustedReviewers(); track reviewer.userId) {
             <li class="reviewer-row">
-              <span class="reviewer-icon">{{ reviewer.username.charAt(0).toUpperCase() }}</span>
+              <span class="reviewer-icon" aria-hidden="true">
+                @if (reviewer.avatarUrl) {
+                  <img [src]="reviewer.avatarUrl" alt="" />
+                }
+              </span>
               <span class="reviewer-info">
                 <span class="reviewer-name">{{ reviewer.username }}</span>
-                <span class="text-muted reviewer-meta">Lv {{ reviewer.level }} · {{ reviewer.totalUsefulVotesReceived }} useful votes</span>
+                <span class="reviewer-meta">{{ reviewer.reviewCount }} {{ reviewer.reviewCount === 1 ? 'review' : 'reviews' }} · {{ reviewer.usefulPercent }}% useful</span>
               </span>
               <button
                 type="button"
                 class="follow-toggle"
                 [class.following]="reviewer.isFollowedByCurrentUser"
+                [attr.aria-pressed]="reviewer.isFollowedByCurrentUser"
                 (click)="toggleFollowReviewer(reviewer)">
                 {{ reviewer.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
               </button>
@@ -86,15 +145,13 @@
           }
         </ul>
       } @else {
-        <p class="text-muted">No trusted reviewers yet.</p>
+        <p class="rail-empty">No trusted reviewers yet.</p>
       }
     </div>
 
     <div class="panel-card">
-      <div class="panel-card-header">
-        <h4>How scores work</h4>
-      </div>
-      <p class="text-muted info-text">Reviewers rate a game 0-10 based on their own experience — self-reported hours played and a Finished / Still playing / Dropped status. A "spoiler-free" tag means the reviewer avoided spoilers on purpose.</p>
+      <h4 class="panel-label panel-label-sm">How scores work</h4>
+      <p class="info-text">Only reviews from accounts with tracked playtime count toward a game's score, and hours are shown next to every rating.</p>
     </div>
   </aside>
 </div>

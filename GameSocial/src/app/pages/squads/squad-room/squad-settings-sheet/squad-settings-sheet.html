@@ -1,247 +1,305 @@
-<app-sheet-modal [title]="squad().name + ' settings'" [subtitle]="subtitle()" (closed)="closed.emit()">
-
-  <!-- sqSettings tab row. The mock's third tab (Content rules) is absent: no
-       per-squad settings storage exists to persist those toggles. -->
-  <div class="chip-row settings-tabs" role="tablist" aria-label="Squad settings sections">
-    <button
-      type="button"
-      class="chip"
-      role="tab"
-      [class.active]="tab() === 'general'"
-      [attr.aria-selected]="tab() === 'general'"
-      (click)="tab.set('general')">General</button>
-    <button
-      type="button"
-      class="chip"
-      role="tab"
-      [class.active]="tab() === 'members'"
-      [attr.aria-selected]="tab() === 'members'"
-      (click)="tab.set('members')">Members</button>
-  </div>
-
-  @if (tab() === 'general') {
-    <div class="settings-section">
-      <div class="form-group">
-        <label for="settings-name" class="section-head-label">Squad name</label>
-        <input
-          id="settings-name"
-          type="text"
-          maxlength="100"
-          [disabled]="!isCaptain()"
-          [ngModel]="name()"
-          (ngModelChange)="name.set($event)">
-      </div>
-
-      <div class="form-group">
-        <label for="settings-description" class="section-head-label">Description</label>
-        <textarea
-          id="settings-description"
-          rows="3"
-          maxlength="1000"
-          [disabled]="!isCaptain()"
-          [ngModel]="description()"
-          (ngModelChange)="description.set($event)"
-          placeholder="What is this squad for?"></textarea>
-      </div>
-
-      <!-- sqOnGeneral: "Main games", max 5, removable chips + picker -->
-      <div class="form-group">
-        <div class="settings-label-row">
-          <span class="section-head-label">Main games</span>
-          <span class="text-muted settings-hint">at most {{ maxGames }} games</span>
-          <span class="settings-count mono">{{ selectedGames().length }}/{{ maxGames }}</span>
-        </div>
-
-        <div class="game-chips">
-          @for (game of selectedGames(); track game.id) {
-            <span class="game-chip" [class.primary]="primaryGameId() === game.id">
-              <button
-                type="button"
-                class="game-chip-name"
-                [disabled]="!isCaptain()"
-                [attr.aria-label]="'Use ' + game.name + ' as the banner game'"
-                [attr.aria-pressed]="primaryGameId() === game.id"
-                (click)="setPrimaryGame(game.id)">{{ game.name }}</button>
-              @if (isCaptain()) {
-                <button
-                  type="button"
-                  class="game-chip-remove"
-                  [attr.aria-label]="'Remove ' + game.name"
-                  (click)="removeGame(game.id)">✕</button>
-              }
-            </span>
-          }
-
-          @if (isCaptain() && canAddGame()) {
-            <button
-              type="button"
-              class="game-chip-add"
-              [attr.aria-expanded]="isGamePickerOpen()"
-              (click)="toggleGamePicker()">＋ Add game</button>
-          }
-        </div>
-
-        @if (selectedGames().length > 1) {
-          <p class="text-muted settings-hint">
-            The highlighted game is the banner game — click another chip to switch it.
-          </p>
-        }
-
-        <!-- sqGamePicker -->
-        @if (isGamePickerOpen()) {
-          <div class="game-picker">
-            <div class="game-picker-search">
-              <span aria-hidden="true">⌕</span>
-              <label class="visually-hidden" for="settings-game-search">Search your library</label>
-              <input
-                id="settings-game-search"
-                type="text"
-                [ngModel]="gameQuery()"
-                (ngModelChange)="gameQuery.set($event)"
-                [placeholder]="'Search the library — ' + games().length + ' games'">
-              <button type="button" aria-label="Close game picker" (click)="toggleGamePicker()">✕</button>
-            </div>
-
-            <div class="game-picker-results">
-              @for (game of gameResults(); track game.id) {
-                <button
-                  type="button"
-                  class="game-result"
-                  [disabled]="isGameSelected(game.id)"
-                  (click)="addGame(game)">
-                  <span class="game-result-cover">
-                    @if (game.coverImageUrl) {
-                      <img [src]="game.coverImageUrl" alt="" />
-                    }
-                  </span>
-                  <span class="game-result-body">
-                    <span class="game-result-name">{{ game.name }}</span>
-                    <span class="game-result-meta">{{ game.genres.join(' · ') }}</span>
-                  </span>
-                  <span class="game-result-mark">{{ isGameSelected(game.id) ? '✓' : '＋' }}</span>
-                </button>
-              }
-
-              <!-- sqGameEmpty -->
-              @if (gameResults().length === 0) {
-                <p class="game-picker-empty text-muted">No matching game.</p>
-              }
-            </div>
-
-            <p class="game-picker-foot text-muted">Pick the games this squad actually plays.</p>
-          </div>
-        }
-      </div>
-
-      <!-- sqOnGeneral: "Who can join" described radio cards -->
-      <fieldset class="policy-group">
-        <legend class="section-head-label">Who can join</legend>
-        <div class="policy-cards">
-          @for (policy of joinPolicies; track policy.value) {
-            <label class="policy-card" [class.selected]="joinPolicy() === policy.value" [class.disabled]="!isCaptain()">
-              <input
-                type="radio"
-                name="settingsJoinPolicy"
-                [value]="policy.value"
-                [disabled]="!isCaptain()"
-                [checked]="joinPolicy() === policy.value"
-                (change)="joinPolicy.set(policy.value)">
-              <span class="policy-card-label">{{ policy.label }}</span>
-              <span class="policy-card-desc">{{ policy.description }}</span>
-            </label>
-          }
-        </div>
-        <p class="text-muted settings-hint">
-          Only "Invite only" behaves differently today — the captain adds members by username.
-          Ask-to-join and Open are stored but have no request inbox or self-serve join flow yet.
-        </p>
-      </fieldset>
-    </div>
+<app-squad-sheet-frame [title]="squad().name + ' ayarları'" [subtitle]="subtitle()" [width]="600" (closed)="closed.emit()">
+  <!-- 44px squad icon — founders/admins can replace it -->
+  @if (canManage()) {
+    <label sheet-icon class="settings-icon settings-icon-editable" [class.busy]="isUploadingIcon()">
+      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="visually-hidden" (change)="onIconPicked($event)" />
+      <span class="visually-hidden">Squad ikonunu değiştir</span>
+      @if (iconUrl(); as icon) {
+        <img [src]="icon" alt="" />
+      } @else {
+        <span aria-hidden="true">{{ initial(squad().name) }}</span>
+      }
+    </label>
+  } @else {
+    <span sheet-icon class="settings-icon" aria-hidden="true">
+      @if (iconUrl(); as icon) {
+        <img [src]="icon" alt="" />
+      } @else {
+        {{ initial(squad().name) }}
+      }
+    </span>
   }
 
-  @if (tab() === 'members') {
-    <!-- sqOnMembers -->
-    <div class="settings-section">
-      <ul class="member-rows">
-        @for (member of members(); track member.userId) {
-          <li class="member-row">
-            <span class="member-avatar" aria-hidden="true">{{ initial(member.username) }}</span>
+  <div class="settings-tabs" role="tablist" aria-label="Squad ayarları">
+    @for (t of tabs; track t.key) {
+      <button
+        type="button"
+        role="tab"
+        class="settings-tab"
+        [class.active]="tab() === t.key"
+        [attr.aria-selected]="tab() === t.key"
+        (click)="tab.set(t.key)">{{ t.label }}</button>
+    }
+  </div>
+
+  @switch (tab()) {
+    @case ('general') {
+      <div class="settings-panel settings-general" role="tabpanel">
+        <div>
+          <label class="settings-label" for="settings-name">Squad adı</label>
+          <input
+            id="settings-name"
+            class="settings-input"
+            type="text"
+            maxlength="100"
+            [disabled]="!canManage()"
+            [ngModel]="name()"
+            (ngModelChange)="name.set($event)" />
+        </div>
+
+        <div>
+          <div class="settings-label-row">
+            <span class="settings-label settings-label-inline" id="settings-games-label">Ana oyunlar</span>
+            <span class="settings-label-hint">en fazla {{ maxGames }} oyun</span>
+            <span class="settings-count">{{ selectedGames().length }}/{{ maxGames }}</span>
+          </div>
+          <div class="game-chips" role="group" aria-labelledby="settings-games-label">
+            @for (game of selectedGames(); track game.id) {
+              <span class="game-chip">
+                {{ game.name }}
+                @if (canManage()) {
+                  <button type="button" class="game-chip-remove" [attr.aria-label]="game.name + ' oyununu kaldır'" (click)="removeGame(game.id)">✕</button>
+                }
+              </span>
+            }
+            @if (canManage() && canAddGame()) {
+              <button
+                type="button"
+                class="game-add"
+                [class.open]="isGamePickerOpen()"
+                [attr.aria-expanded]="isGamePickerOpen()"
+                (click)="toggleGamePicker()">＋ Oyun ekle</button>
+            }
+          </div>
+
+          @if (isGamePickerOpen()) {
+            <div class="game-picker">
+              <div class="game-picker-search">
+                <span aria-hidden="true">⌕</span>
+                <label class="visually-hidden" for="settings-game-search">Kütüphanede ara</label>
+                <input
+                  id="settings-game-search"
+                  type="text"
+                  [ngModel]="gameQuery()"
+                  (ngModelChange)="gameQuery.set($event)"
+                  [placeholder]="'Kütüphanede ara — ' + gameTotal() + ' oyun'" />
+                <button type="button" aria-label="Oyun seçiciyi kapat" (click)="toggleGamePicker()">✕</button>
+              </div>
+
+              <div class="game-picker-results" [attr.aria-busy]="isLoadingGames()">
+                @for (option of gameOptions(); track option.id) {
+                  <button
+                    type="button"
+                    class="game-result"
+                    [class.added]="isGameSelected(option.id)"
+                    [attr.aria-disabled]="isGameSelected(option.id) || !canAddGame()"
+                    (click)="addGame(option)">
+                    <span class="game-result-cover">
+                      @if (option.coverImageUrl) {
+                        <img [src]="option.coverImageUrl" alt="" />
+                      }
+                    </span>
+                    <span class="game-result-body">
+                      <span class="game-result-name">{{ option.name }}</span>
+                      <span class="game-result-meta">{{ gameMeta(option) }}</span>
+                    </span>
+                    <span class="game-result-mark">{{ isGameSelected(option.id) ? 'eklendi' : '＋' }}</span>
+                  </button>
+                } @empty {
+                  @if (!isLoadingGames()) {
+                    <p class="game-picker-empty">
+                      Eşleşen oyun yok — <button type="button" class="game-suggest" (click)="suggestGame()">yeni oyun öner</button>
+                    </p>
+                  }
+                }
+              </div>
+
+              <p class="game-picker-foot">Kütüphanenden oynadıkların üstte listelenir</p>
+            </div>
+          }
+        </div>
+
+        <fieldset class="settings-fieldset">
+          <legend class="settings-label">Katılım</legend>
+          <div class="privacy-list">
+            @for (option of privacyOptions(); track option.label) {
+              <label class="privacy-option" [class.selected]="joinPolicy() === option.value" [class.disabled]="!canManage()">
+                <input
+                  type="radio"
+                  class="visually-hidden"
+                  name="settingsJoinPolicy"
+                  [value]="option.value"
+                  [disabled]="!canManage()"
+                  [checked]="joinPolicy() === option.value"
+                  (change)="joinPolicy.set(option.value)" />
+                <span class="privacy-ring" aria-hidden="true"></span>
+                <span class="privacy-text">
+                  <span class="privacy-label">{{ option.label }}</span>
+                  <span class="privacy-desc">{{ option.desc }}</span>
+                </span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </div>
+    }
+
+    @case ('content') {
+      <div class="settings-panel settings-rules" role="tabpanel">
+        @for (rule of ruleRows; track rule.key) {
+          <button
+            type="button"
+            role="switch"
+            class="rule-row"
+            [attr.aria-checked]="rules()[rule.key]"
+            [disabled]="!canManage()"
+            (click)="toggleRule(rule.key)">
+            <span class="rule-text">
+              <span class="rule-label">{{ rule.label }}</span>
+              <span class="rule-desc">{{ rule.desc }}</span>
+            </span>
+            <span class="rule-switch" [class.on]="rules()[rule.key]" aria-hidden="true"><span class="rule-knob"></span></span>
+          </button>
+        }
+      </div>
+    }
+
+    @case ('members') {
+      <div class="settings-panel settings-members" role="tabpanel">
+        @if (canManage() && joinRequests().length > 0) {
+          <div class="settings-label">Onay bekleyenler</div>
+          @for (request of joinRequests(); track request.userId) {
+            <div class="member-row">
+              <span class="member-avatar" aria-hidden="true">
+                @if (request.avatarUrl) {
+                  <img [src]="request.avatarUrl" alt="" />
+                } @else {
+                  {{ initial(request.username) }}
+                }
+              </span>
+              <span class="member-identity">
+                <span class="member-name">{{ request.username }}</span>
+                <span class="member-meta">Beklemede</span>
+              </span>
+              <button type="button" class="request-approve" [disabled]="busyUserId() !== null" (click)="decideRequest(request, true)">Onayla</button>
+              <button type="button" class="request-decline" [disabled]="busyUserId() !== null" (click)="decideRequest(request, false)">Reddet</button>
+            </div>
+          }
+          <div class="settings-label settings-label-gap">Üyeler</div>
+        }
+
+        @for (member of activeMembers(); track member.userId) {
+          <div class="member-row">
+            <span class="member-avatar" aria-hidden="true">
+              @if (member.avatarUrl) {
+                <img [src]="member.avatarUrl" alt="" />
+              } @else {
+                {{ initial(member.username) }}
+              }
+            </span>
             <span class="member-identity">
-              <span class="member-name">{{ member.username }}{{ isSelf(member.userId) ? ' (you)' : '' }}</span>
-              <span class="member-meta">{{ member.role }}</span>
+              <span class="member-name">{{ member.username }}{{ isSelf(member.userId) ? ' (sen)' : '' }}</span>
+              <span class="member-meta">{{ memberMeta(member) }}</span>
             </span>
 
-            @if (isCaptain()) {
+            @if (canCycleRole(member)) {
               <button
                 type="button"
                 class="member-role"
-                [class.captain]="member.role === 'Captain'"
+                [class.top]="member.role !== 'Member'"
                 [disabled]="busyUserId() !== null"
-                [attr.aria-label]="'Change role of ' + member.username"
-                (click)="toggleRole(member)">{{ member.role }}</button>
+                [attr.aria-label]="member.username + ' rolü: ' + roleLabels[member.role] + ' — değiştir'"
+                (click)="cycleRole(member)">{{ roleLabels[member.role] }}</button>
+            } @else {
+              <span class="member-role member-role-static" [class.top]="member.role !== 'Member'">{{ roleLabels[member.role] }}</span>
+            }
 
-              @if (!isSelf(member.userId)) {
+            @if (hasMenu(member)) {
+              <span class="member-menu-wrap">
                 <button
                   type="button"
-                  class="member-remove"
-                  [disabled]="busyUserId() !== null"
-                  [attr.aria-label]="'Remove ' + member.username + ' from the squad'"
-                  (click)="removeMember(member)">✕</button>
-              }
+                  class="member-more"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="menuUserId() === member.userId"
+                  [attr.aria-label]="member.username + ' için seçenekler'"
+                  (click)="toggleMenu(member.userId)">···</button>
+                @if (menuUserId() === member.userId) {
+                  <span class="member-menu" role="menu">
+                    @if (isFounder()) {
+                      <button type="button" role="menuitem" (click)="makeFounder(member)">Kurucu yap</button>
+                    }
+                    @if (canRemove(member)) {
+                      <button type="button" role="menuitem" class="danger" (click)="removeMember(member)">Squad’dan çıkar</button>
+                    }
+                  </span>
+                }
+              </span>
             } @else {
-              <span class="member-role member-role-static" [class.captain]="member.role === 'Captain'">{{ member.role }}</span>
+              <span class="member-more member-more-placeholder" aria-hidden="true"></span>
             }
-          </li>
+          </div>
         }
-      </ul>
 
-      @if (isCaptain()) {
-        <div class="invite-row">
-          <label class="visually-hidden" for="settings-invite">Invite a player by username</label>
-          <input
-            id="settings-invite"
-            type="text"
-            [ngModel]="inviteUsername()"
-            (ngModelChange)="inviteUsername.set($event)"
-            placeholder="Invite a player by username"
-            (keydown.enter)="$event.preventDefault(); invite()">
-          <button type="button" class="btn btn-secondary btn-sm" [disabled]="isInviting()" (click)="invite()">
-            {{ isInviting() ? 'Adding…' : 'Invite' }}
-          </button>
-        </div>
-        @if (inviteError()) {
-          <p class="form-error">{{ inviteError() }}</p>
+        @if (canManage()) {
+          @if (isInviteOpen()) {
+            <div class="invite-row">
+              <label class="visually-hidden" for="settings-invite">Kullanıcı adı</label>
+              <input
+                id="settings-invite"
+                type="text"
+                [ngModel]="inviteUsername()"
+                (ngModelChange)="inviteUsername.set($event)"
+                (keydown.enter)="$event.preventDefault(); invite()"
+                placeholder="Kullanıcı adı ile davet et" />
+              <button type="button" class="invite-send" [disabled]="isInviting()" (click)="invite()">
+                {{ isInviting() ? 'Gönderiliyor…' : 'Davet et' }}
+              </button>
+            </div>
+            @if (inviteError(); as error) {
+              <p class="settings-error" role="alert">{{ error }}</p>
+            }
+          } @else {
+            <button type="button" class="invite-dashed" (click)="openInvite()">＋ Oyuncu davet et</button>
+          }
         }
-      }
-    </div>
+      </div>
+    }
   }
 
-  @if (errorMessage()) {
-    <p class="form-error">{{ errorMessage() }}</p>
+  @if (errorMessage(); as error) {
+    <p class="settings-error settings-error-footer" role="alert">{{ error }}</p>
   }
 
-  <!-- sqSettings footer: leave on the left, cancel + save on the right -->
   <div class="settings-footer">
-    @if (isLeaveConfirmOpen()) {
-      <span class="leave-confirm">
-        Leave this squad?
-        <button type="button" class="leave-yes" [disabled]="isLeaving()" (click)="leave()">
-          {{ isLeaving() ? 'Leaving…' : 'Yes, leave' }}
-        </button>
-        <button type="button" class="leave-no" (click)="cancelLeave()">Keep me in</button>
-      </span>
+    @if (leaveStep() === 'confirm') {
+      <div class="leave-confirm">
+        @if (isFounder() && otherActiveMembers().length > 0) {
+          <label for="transfer-target">Yeni kurucu</label>
+          <select id="transfer-target" [ngModel]="transferTargetId()" (ngModelChange)="transferTargetId.set($event)">
+            @for (member of otherActiveMembers(); track member.userId) {
+              <option [ngValue]="member.userId">{{ member.username }}</option>
+            }
+          </select>
+          <button type="button" class="leave-yes" [disabled]="isLeaving()" (click)="confirmLeave()">
+            {{ isLeaving() ? 'Devrediliyor…' : 'Devret ve ayrıl' }}
+          </button>
+        } @else {
+          <span>Emin misin?</span>
+          <button type="button" class="leave-yes" [disabled]="isLeaving()" (click)="confirmLeave()">
+            {{ isLeaving() ? 'Ayrılıyor…' : 'Evet, ayrıl' }}
+          </button>
+        }
+        <button type="button" class="leave-no" (click)="cancelLeave()">Kal</button>
+      </div>
     } @else {
-      <button type="button" class="leave-squad" (click)="confirmLeave()">Leave squad</button>
+      <button type="button" class="leave-link" (click)="startLeave()">{{ leaveLabel() }}</button>
     }
 
-    <button type="button" class="btn btn-secondary settings-cancel" (click)="closed.emit()">
-      {{ isCaptain() ? 'Cancel' : 'Close' }}
-    </button>
-
-    @if (isCaptain()) {
-      <button type="button" class="btn btn-primary" [disabled]="isSaving()" (click)="save()">
-        {{ isSaving() ? 'Saving…' : 'Save changes' }}
+    <button type="button" class="foot-cancel" (click)="closed.emit()">{{ canManage() ? 'Vazgeç' : 'Kapat' }}</button>
+    @if (canManage()) {
+      <button type="button" class="foot-save" [disabled]="isSaving()" (click)="save()">
+        {{ isSaving() ? 'Kaydediliyor…' : 'Değişiklikleri kaydet' }}
       </button>
     }
   </div>
-</app-sheet-modal>
+</app-squad-sheet-frame>

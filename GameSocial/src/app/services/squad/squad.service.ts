@@ -2,6 +2,7 @@ import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PagedResult } from '../../models/paged-result.model';
+import { SquadInviteModel } from '../../models/squad-hub.model';
 import {
   CreateSquadRequest,
   PinnedSquadMessageModel,
@@ -45,9 +46,12 @@ export class SquadService {
     return this.http.get<SquadMemberModel[]>(`${this.apiUrl}/${squadId}/members`);
   }
 
-  /** Captain-only in practice — only InviteOnly squads have a working join path today (add-by-username). */
-  addMember(squadId: string, username: string): Observable<SquadMemberModel> {
-    return this.http.post<SquadMemberModel>(`${this.apiUrl}/${squadId}/members`, { username });
+  /**
+   * Founder/admin only. No longer adds directly — it creates a pending
+   * SquadInvite (same as SquadHubService.invite); the invitee accepts from the hub.
+   */
+  addMember(squadId: string, username: string): Observable<SquadInviteModel> {
+    return this.http.post<SquadInviteModel>(`${this.apiUrl}/${squadId}/members`, { username });
   }
 
   /**

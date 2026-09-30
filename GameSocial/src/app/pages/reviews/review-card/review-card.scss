@@ -1,0 +1,515 @@
+@use '../../../../styles/variables' as *;
+
+// Design: 03-reviews.html L74-257.
+
+:host {
+  display: block;
+}
+
+.rc {
+  display: flex;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+}
+
+// ─── Score gutter ───────────────────────────────────────────────
+.rc-gutter {
+  width: 70px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.rc-score {
+  font: 800 22px/24px $font-family-mono;
+  color: $color-accent-light;
+
+  &.rc-score-weak {
+    color: $color-text-secondary;
+  }
+}
+
+.rc-hours {
+  font: 600 10px/13px $font-family-primary;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.rc-main {
+  min-width: 0;
+  flex: 1;
+}
+
+// ─── Author row ─────────────────────────────────────────────────
+.rc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rc-avatar {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 9px;
+  overflow: hidden;
+  background: $color-border-strong;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 11px/1 $font-family-primary;
+  color: $color-text-secondary;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.rc-author {
+  font: 700 14px/18px $font-family-primary;
+  color: $color-text-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.rc-lv {
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: $color-accent-tint;
+  font: 700 10px/1 $font-family-mono;
+  color: $color-accent-light;
+}
+
+.rc-when {
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-headline {
+  margin: 9px 0 0;
+  font: 800 19px/26px $font-family-primary;
+  letter-spacing: -0.2px;
+  color: $color-text-primary;
+  text-wrap: pretty;
+}
+
+.rc-body {
+  display: block;
+  margin-top: 6px;
+  font: 500 15px/23px $font-family-primary;
+  color: $color-text-body;
+  text-wrap: pretty;
+}
+
+// ─── Action pills ───────────────────────────────────────────────
+.rc-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.rc-pill {
+  padding: 8px 13px;
+  border: none;
+  border-radius: 12px;
+  background: $color-bg-tertiary;
+  color: $color-text-primary;
+  font: 700 13px/14px $font-family-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(.on):not(:disabled),
+  &:focus-visible:not(.on) {
+    background: $color-border;
+  }
+
+  &.on {
+    background: $color-accent-tint;
+    color: $color-accent-light;
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+
+  .mono {
+    font-family: $font-family-mono;
+  }
+}
+
+// ─── Open thread (inset panel) ──────────────────────────────────
+.rc-thread {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: $color-bg-inset;
+  border: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.rc-thread-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rc-sort {
+  padding: 5px 10px;
+  border-radius: 9px;
+  border: 1px solid $color-border;
+  background: $color-bg-secondary;
+  color: $color-text-tertiary;
+  font: 700 11px/14px $font-family-primary;
+  cursor: pointer;
+
+  &:hover:not(.on),
+  &:focus-visible:not(.on) {
+    color: $color-text-primary;
+  }
+
+  &.on {
+    border-color: transparent;
+    background: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+}
+
+.rc-thread-count {
+  margin-left: auto;
+  font: 500 11px/14px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-thread-note {
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-comment {
+  display: flex;
+  gap: 10px;
+}
+
+.rc-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-left: 38px;
+}
+
+.rc-c-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 10px;
+  overflow: hidden;
+  background: $color-border-strong;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.rc-c-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.rc-c-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.rc-c-author {
+  font: 700 12px/16px $font-family-primary;
+  color: $color-text-primary;
+  text-decoration: none;
+
+  &.own {
+    color: $color-accent-light;
+  }
+}
+
+.rc-c-lv {
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: $color-accent-tint;
+  font: 700 9px/1 $font-family-mono;
+  color: $color-accent-light;
+}
+
+.rc-c-ago {
+  font: 500 11px/14px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-c-dev {
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 800 9px/11px $font-family-mono;
+}
+
+.rc-c-text {
+  margin-top: 4px;
+  font: 500 13px/19px $font-family-primary;
+  color: $color-text-body;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.rc-c-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.rc-c-action {
+  padding: 0;
+  border: none;
+  background: none;
+  font: 700 11px/14px $font-family-primary;
+  color: $color-text-tertiary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+  }
+
+  &.on {
+    color: $color-accent-light;
+  }
+}
+
+.rc-c-replies {
+  color: $color-accent-light;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-accent-light;
+    text-decoration: underline;
+  }
+}
+
+.rc-replying {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 11px/14px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: $color-accent-light;
+  cursor: pointer;
+}
+
+.rc-compose {
+  display: flex;
+  gap: 8px;
+}
+
+input.rc-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  font: 500 13px $font-family-primary;
+  color: $color-text-primary;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+
+  &:focus {
+    box-shadow: none;
+    border-color: $color-border-dashed;
+  }
+}
+
+.rc-send {
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px;
+  background: $color-bg-tertiary;
+  color: $color-text-tertiary;
+  font: 700 12px/36px $font-family-primary;
+  cursor: pointer;
+
+  &.ready {
+    background: $color-accent-primary;
+    color: #fff;
+  }
+
+  &:disabled:not(.ready) {
+    cursor: default;
+  }
+}
+
+.rc-more {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font: 700 12px/14px $font-family-primary;
+  color: $color-accent-light;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+// ─── Collapsed: pinned developer reply ──────────────────────────
+.rc-pinned {
+  margin-top: 12px;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid $color-accent-border;
+  overflow: hidden;
+}
+
+.rc-pinned-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  background: rgba(225, 29, 46, 0.1);
+}
+
+.rc-pinned-tag {
+  font: 800 10px/13px $font-family-mono;
+  letter-spacing: 0.7px;
+  color: $color-accent-light;
+}
+
+.rc-pinned-note {
+  font: 500 11px/14px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.rc-pinned-body {
+  display: flex;
+  gap: 11px;
+  padding: 12px 14px;
+}
+
+.rc-pinned-text {
+  margin-top: 3px;
+  font: 500 12px/18px $font-family-primary;
+  color: $color-text-secondary;
+  text-wrap: pretty;
+}
+
+.rc-pinned-actions {
+  margin-top: 9px;
+}
+
+// ─── Embedded clips strip ───────────────────────────────────────
+.rc-clips {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rc-clip {
+  flex: 1;
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+  background: linear-gradient(150deg, #2b1a0f, #111628 62%);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+
+  &.rc-clip-lead {
+    flex: 1.5;
+    background-color: #241224;
+    background-image: linear-gradient(135deg, #241224, #0f1a26 60%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: -2px;
+  }
+}
+
+.rc-clip-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: rgba(225, 29, 46, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 2px;
+  color: #fff;
+  font-size: 13px;
+
+  .rc-clip-lead & {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+}
+
+.rc-clip-label,
+.rc-clip-time {
+  position: absolute;
+  top: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(10, 10, 12, 0.78);
+  font: 700 10px/12px $font-family-mono;
+  color: #fff;
+}
+
+.rc-clip-label {
+  left: 10px;
+}
+
+.rc-clip-time {
+  top: 9px;
+  right: 9px;
+  padding: 3px 6px;
+  border-radius: 7px;
+}

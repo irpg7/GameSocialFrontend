@@ -1,5 +1,7 @@
 @use '../../../../styles/variables' as *;
 
+// Values from Gamer Feed.dc.html's `onRailComments` state.
+
 :host {
   flex: 1;
   min-height: 0;
@@ -8,6 +10,50 @@
   gap: 9px;
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid $color-accent-light;
+  outline-offset: 2px;
+}
+
+// ─── Sort row ────────────────────────────────────────────────────────────
+.rail-sort {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rail-sort-chip {
+  padding: 5px 9px;
+  border-radius: 9px;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-tertiary;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &.active {
+    border-color: transparent;
+    background-color: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+}
+
+.rail-sort-hint {
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+  text-align: right;
+}
+
+// ─── List ────────────────────────────────────────────────────────────────
 .rail-comments-list {
   flex: 1;
   min-height: 0;
@@ -18,7 +64,9 @@
 }
 
 .rail-status {
-  font-size: 0.8rem;
+  margin: 0;
+  font-size: 12px;
+  color: $color-text-tertiary;
 }
 
 .rail-comment {
@@ -27,19 +75,38 @@
   border-radius: 14px;
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
+
+  &.is-own {
+    border-color: rgba(225, 29, 46, 0.45);
+  }
+
+  &.is-pinned {
+    border-color: $color-accent-border;
+  }
+}
+
+.rail-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: -3px;
+  padding-left: 18px;
+  border-left: 2px solid $color-border;
+  margin-left: 10px;
 }
 
 .rail-comment-head {
   display: flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
 }
 
 .rail-comment-avatar {
   width: 22px;
   height: 22px;
   border-radius: 7px;
-  background-color: $color-bg-tertiary;
+  background-color: $color-border-strong;
   color: $color-text-primary;
   display: flex;
   align-items: center;
@@ -47,6 +114,14 @@
   font-size: 0.65rem;
   font-weight: 700;
   flex: none;
+  overflow: hidden;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .rail-comment-author {
@@ -54,60 +129,202 @@
   line-height: 16px;
   font-weight: 700;
   color: $color-text-primary;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-comment-lv {
+  flex: none;
+  font-family: $font-family-mono;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+  background-color: $color-accent-primary;
+  padding: 3px 5px;
+  border-radius: 5px;
+}
+
+.rail-comment-stamp {
+  flex: none;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 6px;
+  background-color: rgba(225, 29, 46, 0.15);
+  color: $color-accent-light;
+  font-family: $font-family-mono;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-primary;
+    color: #fff;
+  }
 }
 
 .rail-comment-ago {
   margin-left: auto;
+  flex: none;
   font-size: 10px;
   line-height: 14px;
-  color: $color-text-secondary;
+  font-weight: 500;
+  color: $color-text-tertiary;
 }
 
 .rail-comment-delete {
-  background: none;
+  flex: none;
   border: none;
-  color: $color-text-secondary;
-  font-size: 1rem;
-  line-height: 1;
+  background: none;
   padding: 0 2px;
+  color: $color-text-tertiary;
+  font-size: 14px;
+  line-height: 1;
   cursor: pointer;
 
   &:hover {
-    color: $color-accent-primary;
+    color: $color-accent-light;
   }
 }
 
-.rail-comment-text {
-  font-size: 12px;
-  line-height: 18px;
-  color: #c9c9d2;
-  margin-top: 7px;
-  text-wrap: pretty;
+.rail-comment-pin {
+  display: block;
+  margin-top: 6px;
+  font-family: $font-family-mono;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: $color-accent-light;
 }
 
-.rail-more {
-  flex: none;
-  padding: 7px 10px;
-  border-radius: 11px;
-  background-color: $color-bg-secondary;
-  border: 1px solid $color-border;
+.rail-comment-text {
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: $color-text-body;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.rail-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.rail-comment-vote {
+  padding: 3px 7px;
+  border: none;
+  border-radius: 8px;
+  background-color: $color-bg-tertiary;
   color: $color-text-secondary;
   font-family: $font-family-primary;
   font-size: 11px;
+  line-height: 14px;
   font-weight: 700;
   cursor: pointer;
 
-  &:hover:not(:disabled) {
+  &.active {
+    background-color: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+}
+
+.rail-comment-reply {
+  padding: 0;
+  border: none;
+  background: none;
+  color: $color-text-tertiary;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
     color: $color-text-primary;
   }
 }
 
+.rail-comment-thread {
+  margin-left: auto;
+}
+
+.rail-more {
+  flex: none;
+  padding: 8px;
+  border-radius: 11px;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+// ─── Composer card ───────────────────────────────────────────────────────
 .rail-composer {
   flex: none;
   padding: 11px 12px;
   border-radius: 14px;
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.rail-composer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rail-composer-stamp {
+  padding: 3px 7px;
+  border-radius: 7px;
+  background-color: rgba(225, 29, 46, 0.15);
+  font-family: $font-family-mono;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.rail-composer-hint {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.rail-composer-cancel {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: $color-text-tertiary;
+  font-size: 11px;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.rail-composer-row {
   display: flex;
   gap: 8px;
 }
@@ -118,15 +335,16 @@
   height: 34px;
   padding: 0 11px;
   border-radius: 11px;
-  background-color: $color-bg-primary;
+  background-color: $color-bg-inset;
   border: 1px solid $color-border;
   color: $color-text-primary;
   font-family: $font-family-primary;
   font-size: 12px;
+  font-weight: 500;
   outline: none;
 
-  &:focus {
-    border-color: $color-accent-primary;
+  &::placeholder {
+    color: $color-text-tertiary;
   }
 }
 
@@ -136,9 +354,10 @@
   border-radius: 11px;
   border: none;
   background-color: $color-bg-tertiary;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
   font-family: $font-family-primary;
   font-size: 12px;
+  line-height: 34px;
   font-weight: 700;
   cursor: pointer;
 

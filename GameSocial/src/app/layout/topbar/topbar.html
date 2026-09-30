@@ -1,36 +1,85 @@
 <header class="topbar-container">
-  <div class="topbar-brand">
-    <a routerLink="/feed" class="brand-logo">
-      <img src="favicon.ico" alt="" class="brand-mark" />
-      <span class="brand-name">Tavern</span>
-    </a>
-  </div>
+  <a routerLink="/feed" class="brand-logo">
+    <img src="assets/tavern-logo.png" alt="" class="brand-mark" width="42" height="42" />
+    <span class="brand-name">Tavern</span>
+  </a>
 
-  <nav class="topbar-nav">
-    <a routerLink="/feed" routerLinkActive="active" class="nav-link">
-      Feed
-    </a>
-    <a routerLink="/clips" routerLinkActive="active" class="nav-link">
-      Clips
-    </a>
-    <a routerLink="/reviews" routerLinkActive="active" class="nav-link">
-      Reviews
-    </a>
-    <a routerLink="/squads" routerLinkActive="active" class="nav-link">
-      Squads
-    </a>
-    <a routerLink="/trophies" routerLinkActive="active" class="nav-link">
-      Trophies
-    </a>
+  <nav class="topbar-nav" aria-label="Main">
+    <a routerLink="/feed" routerLinkActive="active" class="nav-link">Feed</a>
+    <a routerLink="/clips" routerLinkActive="active" class="nav-link">Clips</a>
+    <a routerLink="/reviews" routerLinkActive="active" class="nav-link">Reviews</a>
+    <a routerLink="/squads" routerLinkActive="active" class="nav-link">Squads</a>
+    <a routerLink="/trophies" routerLinkActive="active" class="nav-link">Trophies</a>
   </nav>
 
   <div class="topbar-actions">
+    <div class="search">
+      <label class="search-box">
+        <span class="search-glyph" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Search players, games, clips"
+          aria-label="Search players, games, clips"
+          autocomplete="off"
+          [value]="query()"
+          (input)="onQueryInput($any($event.target).value)"
+          (focus)="isSearchOpen.set(true); isMenuOpen.set(false)"
+          (keydown.enter)="submitSearch()" />
+      </label>
+
+      @if (isSearchOpen() && query().trim()) {
+        <div class="search-pop" role="listbox" aria-label="Search results">
+          @if (results(); as r) {
+            @if (r.players.length > 0) {
+              <div class="pop-label">Players</div>
+              @for (p of r.players; track p.userId) {
+                <a class="pop-row" [routerLink]="['/profile', p.userId]" (click)="pickResult()">
+                  <span class="pop-tile">
+                    @if (p.avatarUrl) { <img [src]="p.avatarUrl" alt="" /> }
+                  </span>
+                  <span class="pop-name">{{ p.username }}</span>
+                  <span class="lv-chip">LV {{ p.level }}</span>
+                  @if (p.isDeveloper) { <span class="dev-chip">DEV</span> }
+                </a>
+              }
+            }
+            @if (r.games.length > 0) {
+              <div class="pop-label">Games</div>
+              @for (g of r.games; track g.id) {
+                <a class="pop-row" routerLink="/feed" [queryParams]="{ game: g.id }" (click)="pickResult()">
+                  <span class="pop-tile">
+                    @if (g.coverImageUrl) { <img [src]="g.coverImageUrl" alt="" /> }
+                  </span>
+                  <span class="pop-name">{{ g.name }}</span>
+                </a>
+              }
+            }
+            @if (r.clips.length > 0) {
+              <div class="pop-label">Clips</div>
+              @for (c of r.clips; track c.id) {
+                <a class="pop-row" routerLink="/clips" [queryParams]="{ clip: c.id }" (click)="pickResult()">
+                  <span class="pop-tile pop-tile-clip" aria-hidden="true">▶</span>
+                  <span class="pop-name">{{ c.caption || c.gameName || 'Clip' }}</span>
+                  <span class="pop-meta">{{ c.username }}</span>
+                </a>
+              }
+            }
+            @if (!hasResults()) {
+              <p class="pop-empty">No matches for “{{ query().trim() }}”.</p>
+            }
+          } @else {
+            <p class="pop-empty">Searching…</p>
+          }
+          <button type="button" class="pop-all" (click)="submitSearch()">See all results →</button>
+        </div>
+      }
+    </div>
+
     @if (meService.me(); as me) {
       <div class="xp-pill" [attr.title]="me.xp + ' XP · ' + me.xpToNextLevel + ' to next level'">
         <span class="xp-level">LV {{ me.level }}</span>
-        <span class="xp-bar">
-          <span class="xp-bar-fill" [style.width.%]="me.xpProgressPercent"></span>
-        </span>
+        <span class="xp-bar"><span class="xp-bar-fill" [style.width.%]="me.xpProgressPercent"></span></span>
         <span class="xp-percent">{{ me.xpProgressPercent.toFixed(0) }}%</span>
       </div>
     }
@@ -39,26 +88,64 @@
       <button
         type="button"
         class="user-avatar"
-        aria-haspopup="true"
+        [class.open]="isMenuOpen()"
+        aria-haspopup="menu"
         [attr.aria-expanded]="isMenuOpen()"
         [attr.aria-label]="'Account menu for ' + (authService.currentUser()?.username ?? '')"
         (click)="toggleMenu(); $event.stopPropagation()">
-        {{ (authService.currentUser()?.username ?? '?').charAt(0).toUpperCase() }}
+        @if (meService.me()?.avatarUrl; as avatar) {
+          <img [src]="avatar" alt="" />
+        }
       </button>
 
       @if (isMenuOpen()) {
-        <div class="user-dropdown card">
-          <span class="user-dropdown-name">{{ authService.currentUser()?.username }}</span>
+        <div class="me-pop" role="menu">
+          @if (meService.me(); as me) {
+            <div class="me-id">
+              <span class="me-avatar">
+                @if (me.avatarUrl) { <img [src]="me.avatarUrl" alt="" /> }
+              </span>
+              <div class="me-id-body">
+                <div class="me-id-row">
+                  <span class="me-name">{{ me.username }}</span>
+                  <span class="me-lv">LV {{ me.level }}</span>
+                </div>
+                <div class="me-xp">{{ me.xpToNextLevel }} XP to {{ me.level + 1 }}</div>
+                <div class="me-bar"><div class="me-bar-fill" [style.width.%]="me.xpProgressPercent"></div></div>
+              </div>
+            </div>
 
-          @if (authService.currentUser(); as user) {
-            <a [routerLink]="['/profile', user.id]" class="user-dropdown-link" (click)="isMenuOpen.set(false)">My profile</a>
+            <div class="me-quick">
+              <a class="me-quick-btn" role="menuitem" [routerLink]="['/profile', me.id]" (click)="isMenuOpen.set(false)">Profilim</a>
+              <a class="me-quick-btn" role="menuitem" routerLink="/trophies" (click)="isMenuOpen.set(false)">Kupalar</a>
+              <a class="me-quick-btn" role="menuitem" routerLink="/squads" (click)="isMenuOpen.set(false)">Squad'lar</a>
+            </div>
           }
 
-          @if (authService.permissions().length > 0) {
-            <a routerLink="/backoffice" class="user-dropdown-link" (click)="isMenuOpen.set(false)">Backoffice</a>
-          }
+          <div class="me-items">
+            @for (item of menuItems(); track item.label) {
+              <a class="me-item" role="menuitem" [routerLink]="item.link" (click)="isMenuOpen.set(false)">
+                <span class="me-item-icon" aria-hidden="true">{{ item.icon }}</span>{{ item.label }}
+                <span class="me-item-hint">{{ item.hint }}</span>
+              </a>
+            }
+            @if (authService.permissions().length > 0) {
+              <a class="me-item" role="menuitem" routerLink="/backoffice" (click)="isMenuOpen.set(false)">
+                <span class="me-item-icon" aria-hidden="true">◈</span>Backoffice
+                <span class="me-item-hint"></span>
+              </a>
+            }
+          </div>
 
-          <button type="button" class="user-dropdown-link user-dropdown-logout" (click)="logout()">Logout</button>
+          <div class="me-divider"></div>
+
+          <button type="button" class="me-item me-status" role="menuitem" (click)="cycleStatus()">
+            <span class="me-dot" [attr.data-dot]="status().dot" aria-hidden="true"></span>{{ status().label }}
+            <span class="me-status-hint">değiştir</span>
+          </button>
+          <button type="button" class="me-item me-logout" role="menuitem" (click)="logout()">
+            <span class="me-item-icon" aria-hidden="true">⏻</span>Çıkış yap
+          </button>
         </div>
       }
     </div>

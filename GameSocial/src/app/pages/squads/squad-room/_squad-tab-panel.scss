@@ -1,0 +1,87 @@
+@use '../../../../styles/variables' as *;
+
+// Clips / Screens / Pinned sekmelerinin ortak iskeleti (05-squad.html L111, L158, L182):
+// sütun gap 12px, üstte filtre satırı — çipler 6px 11px / radius 10, sağda kırmızı eylem.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.tab-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.filter-row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 11px;
+  border-radius: 10px;
+  border: none;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(.active) {
+    color: $color-text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 1px;
+  }
+
+  &.active {
+    background-color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.filter-action {
+  margin-left: auto;
+  padding: 7px 13px;
+  border-radius: 11px;
+  border: none;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-light;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.tab-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: $color-text-tertiary;
+}

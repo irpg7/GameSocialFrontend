@@ -1,0 +1,181 @@
+@use '../../../../styles/variables' as *;
+
+.squad {
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
+  padding: 18px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+  }
+}
+
+.squad-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.squad-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.squad-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.squad-name {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.squad-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: $color-accent-tint;
+  font-family: $font-family-mono;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.squad-meta {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $color-text-hint;
+}
+
+.squad-desc {
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  text-wrap: pretty;
+}
+
+.squad-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.squad-level {
+  flex: 1;
+  max-width: 280px;
+  min-width: 180px;
+}
+
+.squad-level-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-hint;
+}
+
+.squad-level-xp {
+  font-family: $font-family-mono;
+  color: $color-accent-light;
+}
+
+.squad-level-track {
+  height: 6px;
+  background: $color-border;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.squad-level-fill {
+  display: block;
+  height: 100%;
+  background: $color-accent-primary;
+}
+
+.squad-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.squad-chip {
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: $color-bg-tertiary;
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.squad-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+}
+
+.squad-btn {
+  display: block;
+  padding: 10px 16px;
+  border-radius: 13px;
+  border: 1px solid $color-border-strong;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-primary;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+    border-color: $color-border-dashed;
+  }
+
+  &.primary {
+    background: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+
+    &:hover {
+      background: $color-accent-secondary;
+      color: #fff;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}

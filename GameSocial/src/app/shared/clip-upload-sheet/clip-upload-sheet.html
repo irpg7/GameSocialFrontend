@@ -1,0 +1,120 @@
+<app-sheet-modal title="Upload a clip" subtitle="Drop it in, name it, and it lands in the Clips feed" (closed)="closed.emit()">
+  <div class="cu-body">
+    <div
+      class="cu-drop"
+      role="button"
+      tabindex="0"
+      [class.dragging]="isDragging()"
+      [class.has-file]="file() !== null"
+      aria-label="Drop your clip, or browse files"
+      (click)="browse()"
+      (keydown.enter)="browse()"
+      (keydown.space)="$event.preventDefault(); browse()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)">
+      @if (file(); as chosen) {
+        @if (previewUrl(); as url) {
+          <video class="cu-preview" [src]="url" muted playsinline preload="metadata" (loadedmetadata)="onPreviewMetadata($event)"></video>
+        }
+        <div class="cu-file">
+          <span class="cu-file-name">{{ chosen.name }}</span>
+          <span class="cu-file-meta">
+            @if (durationLabel(); as d) {
+              <span class="cu-mono">{{ d }}</span> ·
+            }
+            @if (willTrim()) {
+              ilk 60 sn kullanılacak — we trim and compress it
+            } @else {
+              we trim and compress it
+            }
+          </span>
+        </div>
+        <button type="button" class="cu-file-clear" aria-label="Dosyayı kaldır" (click)="clearFile($event)">✕</button>
+      } @else {
+        <span class="cu-drop-icon" aria-hidden="true">▲</span>
+        <span class="cu-drop-title">Drop your clip, or browse files</span>
+        <span class="cu-drop-hint">MP4 / MOV · up to 60 s · we trim and compress it</span>
+      }
+      <input #fileInput type="file" class="cu-hidden" accept="video/mp4,video/quicktime,video/webm" tabindex="-1" aria-hidden="true" (change)="onFileChosen($event)" />
+    </div>
+
+    <input
+      type="text"
+      class="cu-title"
+      placeholder="Title — what happens in it?"
+      aria-label="Title"
+      [maxlength]="maxTitle"
+      [ngModel]="title()"
+      (ngModelChange)="title.set($event)" />
+
+    <div class="cu-row">
+      <select class="cu-select cu-select-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+        @if (games().length === 0) {
+          <option [ngValue]="null">— Select a game —</option>
+        }
+        @for (game of games(); track game.id) {
+          <option [ngValue]="game.id">{{ game.name }}</option>
+        }
+      </select>
+      <select class="cu-select cu-select-squad" [class.empty]="squadId() === null" aria-label="Tag a squad" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
+        <option [ngValue]="null">＋ Tag a squad</option>
+        @for (s of squads(); track s.id) {
+          <option [ngValue]="s.id">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="cu-tags">
+      @for (tag of tags(); track tag) {
+        <span class="cu-tag">
+          {{ tag }}
+          <button type="button" class="cu-tag-remove" [attr.aria-label]="tag + ' etiketini kaldır'" (click)="removeTag(tag)">✕</button>
+        </span>
+      }
+      @if (isAddingTag()) {
+        <input
+          #tagInput
+          type="text"
+          class="cu-tag-input"
+          placeholder="#tag"
+          aria-label="New tag"
+          [maxlength]="maxTagLength"
+          [ngModel]="tagDraft()"
+          (ngModelChange)="tagDraft.set($event)"
+          (keydown)="onTagKey($event)"
+          (blur)="commitTag()" />
+      } @else if (canAddTag()) {
+        <button type="button" class="cu-tag-add" (click)="startTag()">＋ tag</button>
+      }
+    </div>
+
+    @if (squad(); as s) {
+      <div class="cu-also">
+        <span class="cu-also-text">Also post to <b>{{ s.name }}</b> #clips</span>
+        <button
+          type="button"
+          class="cu-switch"
+          role="switch"
+          [class.on]="alsoPostToSquad()"
+          [attr.aria-checked]="alsoPostToSquad()"
+          [attr.aria-label]="'Also post to ' + s.name"
+          (click)="toggleAlsoPost()">
+          <span class="cu-switch-knob"></span>
+        </button>
+      </div>
+    }
+
+    <p class="cu-xp">Posting a clip is worth <span class="cu-xp-value">+{{ xp() }} XP</span></p>
+
+    @if (error(); as message) {
+      <p class="cu-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="cu-foot">
+      <button type="button" class="cu-btn cu-btn-cancel" (click)="closed.emit()">Cancel</button>
+      <button type="button" class="cu-btn cu-btn-draft" [disabled]="isSubmitting()" (click)="submit(true)">Save draft</button>
+      <button type="button" class="cu-btn cu-btn-post" [disabled]="isSubmitting()" (click)="submit(false)">{{ isSubmitting() ? 'Uploading…' : 'Post clip' }}</button>
+    </div>
+  </div>
+</app-sheet-modal>

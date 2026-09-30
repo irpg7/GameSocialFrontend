@@ -1,65 +1,61 @@
 <div class="tab-panel">
-  @if (isLoading()) {
-    <p class="text-muted tab-status">Loading pinned messages…</p>
-  } @else if (pins().length === 0) {
-    <p class="text-muted tab-status">Nothing pinned yet. Pin a message from any channel and it shows up here.</p>
-    <button type="button" class="pin-dashed" (click)="goToChat.emit()">＋ Pin a message from chat</button>
+  @if (isLoading() && guides().length === 0) {
+    <p class="tab-status">Guide'lar yükleniyor…</p>
   } @else {
-    @if (featured(); as pin) {
-      <!-- Design: featured "pinned guide" card -->
-      <article class="pin-featured">
-        <div class="pin-cover">
-          @if (pin.sharedPost?.thumbnailUrl) {
-            <img [src]="pin.sharedPost!.thumbnailUrl!" alt="" />
-          } @else {
-            <span class="pin-cover-mark" aria-hidden="true">◫</span>
+    @if (featured(); as guide) {
+      <!-- 05-squad.html L183: featured PINNED guide -->
+      <button type="button" class="guide-featured" (click)="openGuide.emit(guide)">
+        <span class="guide-cover">
+          @if (guide.coverUrl) {
+            <img [src]="guide.coverUrl" alt="" />
           }
-        </div>
-
-        <div class="pin-featured-body">
-          <div class="pin-featured-head">
-            <span class="pin-badge mono">PINNED</span>
-            <span class="pin-byline">{{ pin.username }} · updated {{ when(pin.createdAt) }}</span>
-          </div>
-
-          <h3 class="pin-title">{{ title(pin) }}</h3>
-
-          <div class="pin-chips">
-            <span class="pin-chip">#{{ pin.channelName }}</span>
-            @if (pin.sharedPost?.postType) {
-              <span class="pin-chip">{{ pin.sharedPost!.postType }}</span>
+        </span>
+        <span class="guide-featured-body">
+          <span class="guide-featured-head">
+            <span class="guide-badge mono">PINNED</span>
+            <span class="guide-byline">{{ guide.createdByUsername }} · updated {{ updated(guide.updatedAt) }}</span>
+          </span>
+          <span class="guide-title">{{ guide.title }}</span>
+          @if (guide.description) {
+            <span class="guide-desc">{{ guide.description }}</span>
+          }
+          <span class="guide-chips">
+            @if (guide.clipCount > 0) {
+              <span class="guide-chip">{{ guide.clipCount }} clip{{ guide.clipCount === 1 ? '' : 's' }}</span>
             }
-            @if (pin.sharedPost?.gameName) {
-              <span class="pin-chip">{{ pin.sharedPost!.gameName }}</span>
+            @if (guide.screenCount > 0) {
+              <span class="guide-chip">{{ guide.screenCount }} screen{{ guide.screenCount === 1 ? '' : 's' }}</span>
             }
-          </div>
-
-          <button type="button" class="pin-open" (click)="openPin.emit(pin)">Open in #{{ pin.channelName }}</button>
-        </div>
-      </article>
+            @if (guide.gameName) {
+              <span class="guide-chip">{{ guide.gameName }}</span>
+            }
+          </span>
+        </span>
+      </button>
     }
 
-    @if (rest().length > 0) {
-      <ul class="pin-rows">
-        @for (pin of rest(); track pin.id) {
-          <li>
-            <button type="button" class="pin-row" (click)="openPin.emit(pin)">
-              <span class="pin-row-thumb">
-                @if (pin.sharedPost?.thumbnailUrl) {
-                  <img [src]="pin.sharedPost!.thumbnailUrl!" alt="" />
-                }
-              </span>
-              <span class="pin-row-body">
-                <span class="pin-row-title">{{ title(pin) }}</span>
-                <span class="pin-row-meta">{{ pin.username }} · #{{ pin.channelName }}</span>
-              </span>
-              <span class="pin-row-open">Open</span>
-            </button>
-          </li>
-        }
-      </ul>
-    }
-
-    <button type="button" class="pin-dashed" (click)="goToChat.emit()">＋ Pin a message from chat</button>
+    <ul class="guide-rows">
+      @for (guide of rest(); track guide.id) {
+        <li>
+          <button type="button" class="guide-row" (click)="openGuide.emit(guide)">
+            <span class="guide-row-thumb">
+              @if (guide.coverUrl) {
+                <img [src]="guide.coverUrl" alt="" />
+              }
+            </span>
+            <span class="guide-row-body">
+              <span class="guide-row-title">{{ guide.title }}</span>
+              <span class="guide-row-meta">{{ guide.createdByUsername }} · {{ assets(guide) }}</span>
+            </span>
+            <span class="guide-row-open">Open</span>
+          </button>
+        </li>
+      }
+      @if (canCreate()) {
+        <li>
+          <button type="button" class="guide-dashed" (click)="createGuide.emit()">＋ Pin a guide from #{{ channelName() }}</button>
+        </li>
+      }
+    </ul>
   }
 </div>

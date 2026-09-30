@@ -1,20 +1,51 @@
 @use '../../../../../styles/variables' as *;
 
-// Gamer Feed.dc.html `onSquad` + `onChat`.
+// 05-squad.html L208–254 `onChat`: sütun gap 14px, mesajlar kendi içinde kayar.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .chat {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow: hidden;
 }
 
-.chat-head {
-  flex: none;
-}
-
+// ─── `#GENEL ——— Today` ─────────────────────────────────────────────────────
+.chat-head,
 .chat-day {
-  margin: $spacing-sm 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-head-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.chat-head-rule {
+  flex: 1;
+  height: 1px;
+  background-color: $color-border;
+}
+
+.chat-head-note {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-tertiary;
 }
 
 .chat-scroll {
@@ -23,58 +54,71 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.chat-status {
-  font-size: 13px;
-  margin: 0;
-}
-
-.chat-not-member {
-  flex: none;
-  border-top: 1px solid $color-bg-tertiary;
-  padding-top: $spacing-md;
+  gap: 14px;
+  padding-right: 4px;
 }
 
 .chat-load-earlier {
   align-self: center;
-  background: none;
-  border: 1px solid $color-bg-tertiary;
-  border-radius: $border-radius-md;
   padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
   font-family: $font-family-primary;
   font-size: 12px;
   font-weight: 600;
-  color: $color-text-secondary;
   cursor: pointer;
-  transition: border-color $transition-speed-fast, color $transition-speed-fast;
 
   &:hover:not(:disabled) {
-    border-color: $color-text-secondary;
-    color: $color-text-primary;
+    border-color: $color-border-dashed;
   }
 }
 
-// ─── Mesaj satırı ───────────────────────────────────────────────────────────
+.chat-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: $color-text-tertiary;
+}
+
+.chat-typing {
+  flex: none;
+  margin: -8px 0 -6px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+}
+
+// ─── Mesaj satırı (L215) ────────────────────────────────────────────────────
 .message {
+  position: relative;
   flex: none;
   display: flex;
   gap: 12px;
+
+  &:hover .message-tools,
+  &:focus-within .message-tools {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .message-avatar {
   flex: none;
   width: 36px;
   height: 36px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
+  border-radius: 12px;
+  background-color: $color-border-strong;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .message-main {
@@ -85,7 +129,6 @@
 .message-meta {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -96,7 +139,6 @@
   color: $color-text-primary;
 }
 
-// Tasarımdaki LV chip'i — leaderboard'un sunucuda hesapladığı gerçek seviye.
 .message-level {
   font-size: 10px;
   line-height: 1;
@@ -108,75 +150,118 @@
   font-size: 11px;
   line-height: 15px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
 }
 
 .message-body {
+  margin: 3px 0 0;
   font-size: 14px;
   line-height: 21px;
   font-weight: 500;
   color: $color-text-primary;
-  margin: 3px 0 0;
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
 
-.message-pin {
-  flex: none;
-  align-self: flex-start;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 2px;
-  opacity: 0.35;
-  transition: opacity $transition-speed-fast;
+// ▲ 4 / 🔥 2 (L220)
+.reactions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
 
-  &:hover {
-    opacity: 0.8;
+.reaction {
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: none;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-border-strong;
   }
 
-  &.pinned {
-    opacity: 1;
+  &.mine {
+    background-color: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+
+  &:disabled {
+    cursor: default;
   }
 }
 
-// ─── Paylaşılan post kartı ──────────────────────────────────────────────────
-// Tasarımda bu 200px yüksekliğinde, kendi başına duran bir kart — küçük bir
-// thumbnail şeridi değil.
+// Hover'da beliren hızlı tepki araç çubuğu (tasarımın statik satırını değiştirmez).
+.message-tools {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $transition-speed-fast;
+}
+
+.message-tool {
+  width: 26px;
+  height: 24px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: $color-text-secondary;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+}
+
+// ─── SQUAD CLIP kartı (L228–234) ────────────────────────────────────────────
 .shared-card {
   margin-top: 8px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid $color-bg-tertiary;
-  background-color: $color-bg-primary;
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
 }
 
 .shared-stage {
   position: relative;
+  display: block;
+  width: 100%;
   height: 200px;
-  background-color: $color-bg-secondary;
+  padding: 0;
+  border: none;
+  background-color: $color-bg-tertiary;
+  cursor: pointer;
 
   img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
   }
-}
 
-.shared-badge {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  padding: 4px 8px;
-  border-radius: $border-radius-sm;
-  background-color: rgba(10, 10, 12, 0.75);
-  color: $color-text-primary;
-  font-size: 10px;
-  line-height: 12px;
-  font-weight: 700;
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: -2px;
+  }
 }
 
 .shared-play {
@@ -186,99 +271,178 @@
   transform: translate(-50%, -50%);
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background-color: rgba($color-accent-primary, 0.92);
-  color: #fff;
+  border-radius: 24px;
+  background-color: rgba(225, 29, 46, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #fff;
   font-size: 16px;
   padding-left: 3px;
 }
 
+.shared-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: rgba(10, 10, 12, 0.75);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.shared-duration {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  background-color: rgba(10, 10, 12, 0.78);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
 .shared-foot {
+  padding: 10px 13px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 13px;
   font-size: 12px;
   line-height: 14px;
   font-weight: 700;
   color: $color-text-secondary;
 }
 
-.shared-caption {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: $color-text-primary;
+.shared-votes {
+  color: $color-accent-light;
 }
 
-.shared-game {
-  flex: none;
-  font-weight: 600;
-}
-
-// Tasarımdaki "Push to main feed →" — squad'a etiketli post zaten feed'de
-// olduğu için taşıma değil, feed'e götüren bir link.
-.shared-link {
+.shared-push {
   margin-left: auto;
-  flex: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 14px;
   font-weight: 600;
   color: $color-accent-light;
-  text-decoration: none;
+  cursor: pointer;
 
-  &:hover {
-    color: $color-accent-primary;
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
   }
 }
 
-// ─── Composer ───────────────────────────────────────────────────────────────
+// ─── Başarı satırı (L238–242) ───────────────────────────────────────────────
+.event-row {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 14px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: 16px;
+}
+
+.event-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background-color: rgba(225, 29, 46, 0.16);
+  color: $color-accent-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.event-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.event-user {
+  color: $color-text-primary;
+}
+
+.event-title {
+  color: $color-accent-light;
+}
+
+.event-xp {
+  font-weight: 700;
+}
+
+.event-time {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+}
+
+// ─── Composer (L244–252) ────────────────────────────────────────────────────
 .composer {
   flex: none;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
   border-radius: 16px;
+
+  &:focus-within {
+    border-color: $color-border-dashed;
+  }
 }
 
 .composer-avatar {
   flex: none;
   width: 30px;
   height: 30px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 12px;
+  border-radius: 10px;
+  background-color: $color-border-strong;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
-// Tasarımda composer alanı çerçevesiz, kartın kendisi çerçeve görevi görüyor.
 .composer-input {
   flex: 1;
   min-width: 0;
-  background: none;
   border: none;
-  padding: 0;
-  font-size: 13px;
+  outline: none;
+  background: transparent;
   color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
 
-  &:focus {
-    outline: none;
-    border: none;
-    box-shadow: none;
+  &::placeholder {
+    color: $color-text-tertiary;
   }
 }
 
 .composer-actions {
-  flex: none;
   display: flex;
   gap: 5px;
 }
@@ -288,20 +452,23 @@
   height: 28px;
   border-radius: 9px;
   border: none;
-  background-color: $color-bg-secondary;
+  background-color: $color-bg-tertiary;
   color: $color-text-secondary;
   font-size: 13px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: background-color $transition-speed-fast, color $transition-speed-fast;
 
   &:hover:not(:disabled) {
     color: $color-text-primary;
+    background-color: $color-border-strong;
   }
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 1px;
   }
 }
 
@@ -310,15 +477,12 @@
   color: #fff;
 
   &:hover:not(:disabled) {
-    background-color: $color-accent-secondary;
+    background-color: $color-accent-light;
     color: #fff;
   }
-}
 
-// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
-// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
-:host {
-  display: flex;
-  flex: 1;
-  min-height: 0;
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
 }

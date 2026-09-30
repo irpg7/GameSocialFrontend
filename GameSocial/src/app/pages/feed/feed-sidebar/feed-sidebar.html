@@ -1,85 +1,95 @@
 <div class="feed-sidebar">
-  <section class="side-section side-follow">
-    <div class="follow-tabs">
-      <button type="button" class="follow-tab" [class.active]="activeTab() === 'games'" (click)="selectTab('games')">
-        Games <span class="follow-tab-count">{{ followedGameIds().size }}</span>
+  <section class="side-follow" aria-label="What you follow">
+    <div class="follow-tabs" role="tablist">
+      <button type="button" role="tab" class="follow-tab" [class.active]="activeTab() === 'games'" [attr.aria-selected]="activeTab() === 'games'" (click)="selectTab('games')">
+        Games <span class="follow-tab-count">{{ followedGames().length }}</span>
       </button>
-      <button type="button" class="follow-tab" [class.active]="activeTab() === 'people'" (click)="selectTab('people')">
+      <button type="button" role="tab" class="follow-tab" [class.active]="activeTab() === 'people'" [attr.aria-selected]="activeTab() === 'people'" (click)="selectTab('people')">
         People <span class="follow-tab-count">{{ followedUsers().length }}</span>
       </button>
     </div>
 
-    <input
-      type="search"
-      class="follow-filter"
-      placeholder="Filter what you follow"
-      [(ngModel)]="filterQuery"
-      [attr.aria-label]="'Filter followed ' + activeTab()" />
+    <label class="follow-filter">
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        placeholder="Filter what you follow"
+        [value]="filterQuery()"
+        (input)="onFilterInput($any($event.target).value)"
+        [attr.aria-label]="'Filter followed ' + activeTab()" />
+    </label>
 
     @if (activeTab() === 'games') {
       @if (filteredGames().length > 0) {
         <ul class="follow-list">
           @for (game of filteredGames(); track game.id) {
-            <li class="follow-row" (click)="toggleGameFollow(game)">
-              <span class="follow-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
-              <span class="follow-name" [title]="game.name">{{ game.name }}</span>
-              <button
-                type="button"
-                class="follow-toggle"
-                [class.following]="isGameFollowed(game.id)"
-                [disabled]="togglingGameId() === game.id">
-                {{ isGameFollowed(game.id) ? 'Following' : 'Follow' }}
+            <li>
+              <button type="button" class="follow-row" [class.active]="selectedGameId() === game.id" [attr.aria-pressed]="selectedGameId() === game.id" (click)="selectGame(game)">
+                <span class="follow-icon">
+                  @if (game.coverImageUrl) { <img [src]="game.coverImageUrl" alt="" /> }
+                </span>
+                <span class="follow-name">{{ game.name }}</span>
+                @if (game.newPostCount > 0) {
+                  <span class="new-dot" [attr.aria-label]="game.newPostCount + ' new posts'"></span>
+                }
               </button>
             </li>
           }
         </ul>
       } @else {
-        <p class="text-muted follow-empty">No games match.</p>
+        <p class="follow-empty">
+          {{ followedGames().length ? 'No games match.' : 'You aren\'t following any games yet.' }}
+          <a routerLink="/games">Browse games</a>
+        </p>
       }
     } @else {
       @if (filteredPeople().length > 0) {
         <ul class="follow-list">
           @for (person of filteredPeople(); track person.userId) {
-            <li class="follow-row">
-              <a [routerLink]="['/profile', person.userId]" class="follow-icon">{{ person.username.charAt(0).toUpperCase() }}</a>
-              <a [routerLink]="['/profile', person.userId]" class="follow-name" [title]="person.username">{{ person.username }}</a>
-              @if (person.isDeveloper) {
-                <span class="dev-tag">Dev</span>
-              }
-              <button type="button" class="follow-toggle following" (click)="unfollowUser(person)">Following</button>
+            <li>
+              <button type="button" class="follow-row" [class.active]="selectedUserId() === person.userId" [attr.aria-pressed]="selectedUserId() === person.userId" (click)="selectPerson(person)">
+                <span class="follow-icon">
+                  @if (person.avatarUrl) { <img [src]="person.avatarUrl" alt="" /> }
+                </span>
+                <span class="follow-name">{{ person.username }}</span>
+                @if (person.isDeveloper) {
+                  <span class="dev-tag">DEV</span>
+                } @else if (person.newPostCount) {
+                  <span class="new-count" [attr.aria-label]="person.newPostCount + ' new posts'">{{ person.newPostCount }}</span>
+                }
+              </button>
             </li>
           }
         </ul>
       } @else {
-        <p class="text-muted follow-empty">You aren't following anyone yet.</p>
+        <p class="follow-empty">{{ followedUsers().length ? 'No one matches.' : 'You aren\'t following anyone yet.' }}</p>
       }
     }
   </section>
 
-  <section class="side-section">
-    <div class="side-label">Squads</div>
-
-    @if (mySquads().length > 0) {
-      <ul class="squads-list">
-        @for (squad of mySquads(); track squad.id) {
-          <li>
-            <a [routerLink]="['/squads', squad.id]" class="squad-row">
-              <span class="squad-icon">{{ squad.name.charAt(0).toUpperCase() }}</span>
-              <span class="squad-name">{{ squad.name }}</span>
-            </a>
-          </li>
-        }
-      </ul>
-    } @else {
-      <p class="text-muted follow-empty">No squads yet.</p>
-    }
-
-    <!-- "Find a squad" kaldırıldı: keşif/browse özelliği yok ve iki CTA da aynı
-         yere gidiyordu. /squads artık son ziyaret edilen squad odasına
-         yönlendiriyor, hiç squad yoksa oluşturma ekranını açıyor. -->
-    <div class="squads-actions">
-      <a routerLink="/squads" class="squad-action squad-action-primary">＋ Create a squad</a>
-    </div>
+  <section aria-labelledby="side-squads-label">
+    <div class="side-label" id="side-squads-label">Squads</div>
+    <ul class="squads-list">
+      @for (squad of mySquads(); track squad.id) {
+        <li>
+          <a [routerLink]="['/squads', squad.id]" class="squad-row">
+            <span class="squad-icon">
+              @if (squad.iconUrl) { <img [src]="squad.iconUrl" alt="" /> }
+            </span>
+            <span class="squad-name">{{ squad.name }}</span>
+            @if (hasUnread(squad)) {
+              <span class="squad-dot" aria-label="Unread activity"></span>
+            }
+          </a>
+        </li>
+      }
+      <li>
+        <button type="button" class="squad-row squad-action-primary" (click)="isCreateSheetOpen.set(true)">＋ Create a squad</button>
+      </li>
+      <li>
+        <a routerLink="/squads" class="squad-row squad-action-find">⌕ Find a squad</a>
+      </li>
+    </ul>
   </section>
 
   @if (meService.me(); as me) {
@@ -89,3 +99,7 @@
     </div>
   }
 </div>
+
+@if (isCreateSheetOpen()) {
+  <app-squad-create-sheet (created)="onSquadCreated($event)" (closed)="isCreateSheetOpen.set(false)" />
+}

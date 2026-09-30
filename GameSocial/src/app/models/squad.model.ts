@@ -1,14 +1,17 @@
 /** Corresponds to Domain.Enums.JoinPolicy as serialized by the backend. */
-export type JoinPolicyName = 'InviteOnly' | 'AskToJoin' | 'Open';
+export type JoinPolicyName = 'InviteOnly' | 'AskToJoin' | 'Open' | 'Hidden';
 
 /** Corresponds to Domain.Enums.SquadRole as serialized by the backend. */
-export type SquadRoleName = 'Captain' | 'Member';
+/** Captain = Kurucu (single, fixed), Admin = Yönetici, Member = Üye. */
+export type SquadRoleName = 'Captain' | 'Member' | 'Admin';
 
 /** Corresponds to Domain.Responses.SquadChannelResponse. */
 export interface SquadChannelModel {
   id: string;
   name: string;
   sortOrder: number;
+  /** Messages by others since you last read this channel. */
+  unreadCount: number;
 }
 
 /**
@@ -53,6 +56,24 @@ export interface SquadModel {
   /** null/undefined if the current user is not a member of this squad. */
   currentUserRole?: SquadRoleName;
   channels: SquadChannelModel[];
+  /** Squad level, derived server-side from xp ("SQUAD LEVEL 6 · 4,820 / 6,000"). */
+  xp: number;
+  level: number;
+  xpForNextLevel: number;
+  iconUrl?: string;
+  bannerUrl?: string;
+  maxMembers: number;
+  openSlots: number;
+  /** Active members with a heartbeat in the last 2 minutes. */
+  onlineCount: number;
+  /** sqSettings "İçerik kuralları". */
+  allowMemberUploads: boolean;
+  requireSpoilerTag: boolean;
+  requireMemberApproval: boolean;
+  weeklyDigest: boolean;
+  /** Sidebar badges: "12 mesaj", "3 yeni klip". */
+  unreadMessageCount: number;
+  newClipCount: number;
 }
 
 /** Mirrors Application.Features.Squads.Shared.SquadGameSetResolver.MaxGames. */
@@ -64,7 +85,21 @@ export interface SquadMemberModel {
   username: string;
   role: SquadRoleName;
   joinedAt: string;
+  avatarUrl?: string;
+  /** Pending = waiting for approval (content rule "Yeni üyeyi onaydan geçir"). */
+  status?: SquadMemberStatusName;
+  /** Server-resolved (Domain.Common.PresenceRules); the roster dot colour. */
+  presence?: PresenceName;
+  /** "Ashfall · Boss 7 · 2. deneme" — only set while online/away. */
+  currentActivity?: string;
+  /** "2 gün önce çıktı" — null for invisible users. */
+  lastSeenAt?: string;
+  xp?: number;
+  level?: number;
 }
+
+export type SquadMemberStatusName = 'Active' | 'Pending';
+export type PresenceName = 'online' | 'away' | 'dnd' | 'offline';
 
 /** Corresponds to Domain.Responses.SharedPostPreviewResponse. */
 export interface SharedPostPreviewModel {
@@ -72,7 +107,20 @@ export interface SharedPostPreviewModel {
   postType: string;
   caption?: string;
   gameName?: string;
+  /** Video poster or photo — never the video file itself. */
   thumbnailUrl?: string;
+  durationSeconds?: number;
+  likeCount: number;
+  commentCount: number;
+}
+
+export type SquadMessageKindName = 'Text' | 'SharedPost' | 'Event';
+
+/** Corresponds to Domain.Responses.SquadReactionSummaryResponse — "▲ 4" / "🔥 2". */
+export interface SquadReactionSummaryModel {
+  emoji: string;
+  count: number;
+  reactedByCurrentUser: boolean;
 }
 
 /** Corresponds to Domain.Responses.SquadMessageResponse. */
@@ -81,10 +129,50 @@ export interface SquadMessageModel {
   channelId: string;
   userId: string;
   username: string;
+  userAvatarUrl?: string;
+  /** Event = system row ("yaren_hp unlocked No Deaths, Act 1 — squad earned +300 XP"); body is the achievement name. */
+  kind: SquadMessageKindName;
   body?: string;
+  eventXp?: number;
   sharedPost?: SharedPostPreviewModel;
   isPinned: boolean;
+  reactions: SquadReactionSummaryModel[];
   createdAt: string;
+}
+
+/** Corresponds to Domain.Responses.SquadGuideResponse — "◫ Pinned guides". */
+export interface SquadGuideModel {
+  id: string;
+  title: string;
+  description?: string;
+  coverUrl?: string;
+  gameId?: number;
+  gameName?: string;
+  createdByUserId: string;
+  createdByUsername: string;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  clipCount: number;
+  /** Photo count, not post count. */
+  screenCount: number;
+  items: SquadGuideItemModel[];
+}
+
+export interface SquadGuideItemModel {
+  postId: string;
+  postType: string;
+  caption?: string;
+  thumbnailUrl?: string;
+  photoCount: number;
+}
+
+/** Corresponds to Domain.Requests.SquadGuideRequest. */
+export interface SquadGuideRequest {
+  title: string;
+  description?: string;
+  gameId?: number;
+  postIds: string[];
 }
 
 /**
@@ -100,8 +188,13 @@ export interface SquadLeaderboardEntryModel {
   userId: string;
   username: string;
   role: SquadRoleName;
+  /** XP in the requested window (`?window=week` → last 7 days' ledger sum, otherwise all-time). */
   xp: number;
+  /** Always all-time. */
+  totalXp: number;
   level: number;
+  avatarUrl?: string;
+  earnedAchievementsCount: number;
 }
 
 /** Corresponds to Domain.Requests.SquadRequest + CreateSquadCommand. */
@@ -112,7 +205,16 @@ export interface CreateSquadRequest {
   /** Must be one of `gameIds` when both are sent. */
   primaryGameId?: number;
   gameIds?: number[];
+  /** Legacy: appended after the default #genel + #clips when `channelNames` is absent. */
   additionalChannelNames?: string[];
+  /** Starter channels in order ("Başlangıç kanalları"); empty/absent = #genel + #clips. */
+  channelNames?: string[];
+  /** "Invite 2 friends now…" — pending SquadInvites created with the squad. */
+  inviteUsernames?: string[];
+  allowMemberUploads?: boolean;
+  requireSpoilerTag?: boolean;
+  requireMemberApproval?: boolean;
+  weeklyDigest?: boolean;
 }
 
 /**
@@ -126,4 +228,33 @@ export interface UpdateSquadRequest {
   joinPolicy: JoinPolicyName;
   primaryGameId?: number;
   gameIds?: number[];
+  /** sqSettings "İçerik kuralları" — omitted = unchanged. */
+  allowMemberUploads?: boolean;
+  requireSpoilerTag?: boolean;
+  requireMemberApproval?: boolean;
+  weeklyDigest?: boolean;
+}
+
+/** Corresponds to Domain.Responses.SquadLatestActivityResponse — sidebar card activity line. */
+export interface SquadLatestActivityModel {
+  squadId: string;
+  userId: string;
+  username: string;
+  kind: SquadMessageKindName;
+  body?: string;
+  postType?: string;
+  caption?: string;
+  /** Same author's posts of this type in the last hour ("3 klip paylaştı"). */
+  sharedCount: number;
+  createdAt: string;
+}
+
+/** Corresponds to Domain.Responses.SquadLibraryResponse — the room's tab counts. */
+export interface SquadLibraryModel {
+  clipCount: number;
+  /** Photos across the squad's screenshot posts (not post count). */
+  screenCount: number;
+  guideCount: number;
+  /** gameId → photo count, for the mosaic's "+N" under a game filter. */
+  screenCountByGame: Record<string, number>;
 }

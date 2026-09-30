@@ -1,10 +1,11 @@
 @use '../../../../../styles/variables' as *;
-@use '../../../../../styles/form-controls';
-@use '../../../../../styles/panels';
+@use '../squad-tab-panel';
 
-// Gamer Feed.dc.html `onClips` (squad içi): 3 kolon grid, 12px boşluk.
+// 05-squad.html L119: 3 sütun, 12px gap; kart radius 16, #141418 zemin, #23232B çerçeve.
 .clip-grid {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
@@ -13,25 +14,111 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 620px) {
+  @media (max-width: 560px) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-// clip-queue-card Clips sayfasındaki dikey rail için 122px thumb yüksekliğine
-// sabitlenmiş; tasarımın squad grid'inde bu kutu 112px ve kart tam genişlikte.
-:host ::ng-deep .clip-queue-card {
+.clip-card {
+  display: block;
   width: 100%;
+  padding: 0;
+  text-align: left;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  font-family: $font-family-primary;
+  color: $color-text-primary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast;
 
-  .queue-thumb {
-    height: 112px;
+  &:hover {
+    border-color: $color-border-dashed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
   }
 }
 
-// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
-// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
-:host {
+.clip-thumb {
+  position: relative;
+  display: block;
+  height: 112px;
+  background-color: $color-bg-tertiary;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.clip-play {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: rgba(225, 29, 46, 0.92);
   display: flex;
-  flex: 1;
-  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  padding-left: 2px;
+}
+
+.clip-duration {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  background-color: rgba(10, 10, 12, 0.78);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+}
+
+.clip-body {
+  display: block;
+  padding: 10px 12px;
+}
+
+.clip-title {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.clip-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.clip-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 9px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-text-secondary;
+
+  .voted {
+    color: $color-accent-light;
+  }
 }

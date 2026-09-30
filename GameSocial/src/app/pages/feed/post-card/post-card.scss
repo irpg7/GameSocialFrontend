@@ -1,122 +1,204 @@
 @use '../../../../styles/variables' as *;
 
-// The clip card is the design's full-bleed article: no padding, everything
-// lives on the stage overlay, and the thread hangs off the bottom edge.
-.post-card-clip {
-  background-color: $color-bg-secondary;
-  border: 1px solid $color-border;
-  border-radius: 26px;
-  overflow: hidden;
+// Every post card of Gamer Feed.dc.html's onFeed column (D183–374).
+
+:host {
+  display: block;
 }
 
-.post-card.post-card-clip .post-comments {
-  margin-top: 0;
-  padding: 16px 20px 18px;
+.mono {
+  font-family: $font-family-mono;
 }
 
-.clip-thread-head {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-
-  .clip-thread-title {
-    font-size: 11px;
-    line-height: 14px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: $color-text-secondary;
-  }
-
-  .clip-thread-link {
-    margin-left: auto;
-    font-size: 12px;
-    line-height: 14px;
-    font-weight: 700;
-    color: $color-accent-primary;
-  }
+.label {
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
 }
 
-// ─── Photo card ───────────────────────────────────────────────────
-// Gamer Feed.dc.html's eight-photo post card: a full-bleed article with one
-// compact meta row above the grid and the glyph action bar below it. Geometry
-// and type scale are the design's; colours go through the theme tokens.
-.post-card-photo {
-  background-color: $color-bg-secondary;
+// ─── Card shells ─────────────────────────────────────────────
+.pc {
+  background: $color-bg-secondary;
   border: 1px solid $color-border;
   border-radius: 20px;
   overflow: hidden;
 }
 
-.post-card.post-card-photo .post-comments {
-  margin-top: 0;
-  padding: 16px 18px 18px;
+.pc-hero {
+  border-radius: 26px;
 }
 
-.photo-head {
+.pc-devlog {
+  border-color: $color-accent-border;
+}
+
+.pc-padded {
+  padding: 18px;
+}
+
+// ─── Shared head row (screens / clip / poll) ─────────────────
+.pc-head {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 11px;
   padding: 16px 18px 12px;
+  min-width: 0;
 }
 
-.photo-avatar {
+.pc-head-flush {
+  padding: 0 0 12px;
+}
+
+.av {
+  flex: none;
+  background: $color-border-strong;
+  overflow: hidden;
+  display: block;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.av-34 {
   width: 34px;
   height: 34px;
-  flex: none;
   border-radius: 11px;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
 }
 
-.photo-author {
-  font-size: 14px;
-  line-height: 18px;
-  font-weight: 700;
-  color: $color-text-primary;
+.av-40 {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
 }
 
-.photo-meta {
+.name {
+  font: 700 14px/18px $font-family-primary;
+  color: $color-text-primary;
+  white-space: nowrap;
+}
+
+.lv {
+  flex: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: $color-accent-tint;
+  color: $color-accent-light;
+  font: 700 10px/1 $font-family-mono;
+}
+
+.meta {
   min-width: 0;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.squad-tag {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: $color-bg-tertiary;
   color: $color-text-secondary;
+  font: 700 10px/13px $font-family-primary;
 }
 
-.photo-squad {
-  padding: 3px 8px;
-  border: 1px solid rgba($color-accent-primary, 0.3);
-  border-radius: 8px;
-  background-color: rgba($color-accent-primary, 0.15);
-  color: $color-accent-primary;
-  font-size: 11px;
-  line-height: 14px;
-  font-weight: 700;
-}
-
-.photo-caption {
+.pc-caption,
+.pc-clip-title {
+  margin: 0;
   padding: 0 18px 12px;
-  font-size: 15px;
-  line-height: 23px;
-  font-weight: 500;
+  font: 500 14px/21px $font-family-primary;
+  color: $color-text-body;
+}
+
+.pc-clip-title {
+  font: 800 17px/23px $font-family-primary;
+  letter-spacing: -0.2px;
   color: $color-text-primary;
 }
 
-.photo-actions {
+.pc-clip-stage {
+  padding: 0 18px;
+}
+
+// ─── ··· menu ────────────────────────────────────────────────
+.more {
+  position: relative;
+  margin-left: auto;
+  flex: none;
+}
+
+.more-btn {
+  border: none;
+  background: none;
+  color: $color-text-tertiary;
+  font: 700 14px/1 $font-family-primary;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+    background: $color-bg-tertiary;
+  }
+}
+
+.more-pop {
+  position: absolute;
+  right: 0;
+  top: 28px;
+  z-index: 20;
+  width: 180px;
+  padding: 6px;
+  background: $color-bg-secondary;
+  border: 1px solid #2c2c36;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.more-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: $color-text-body;
+  font: 600 12px/16px $font-family-primary;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+}
+
+// ─── Glyph action bar (screens / clip) ───────────────────────
+.bar {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 11px 18px 13px;
 }
 
-.photo-action {
+.bar-devlog {
+  padding: 16px 18px;
+}
+
+.bar-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -125,609 +207,705 @@
   border-radius: 11px;
   background: none;
   color: $color-text-secondary;
-  font-family: $font-family-primary;
-  font-size: 13px;
-  line-height: 14px;
-  // The design weights the vote pill heavier than the rest of the bar.
-  font-weight: 600;
+  font: 600 13px/14px $font-family-primary;
   cursor: pointer;
-  transition: background-color $transition-speed-fast, color $transition-speed-fast;
 
-  &.photo-vote,
-  &.active {
-    font-weight: 700;
-  }
-
-  &:hover:not(:disabled) {
-    background-color: $color-bg-primary;
+  &:hover:not(:disabled),
+  &.on {
+    background: $color-bg-tertiary;
     color: $color-text-primary;
   }
 
   &.active {
-    background-color: rgba($color-accent-primary, 0.14);
-    color: $color-accent-primary;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    background: $color-accent-tint;
+    color: $color-accent-light;
+    font-weight: 700;
   }
 }
 
-.photo-action-count {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+.bar-views {
+  margin-left: auto;
+  font: 700 11px/14px $font-family-mono;
+  color: $color-text-hint;
 }
 
-// ─── Review card ──────────────────────────────────────────────────
-// The design's review article: a narrow score gutter on the left, the write-up
-// and its action pills on the right, inside one 20px-radius padded panel.
-.review-layout {
+.bar-end {
+  margin-left: auto;
   display: flex;
-  gap: 18px;
+  gap: 8px;
 }
 
-.review-score-col {
-  width: 70px;
-  flex: none;
+.outline-btn {
+  margin-left: auto;
+  padding: 8px 13px;
+  border: 1px solid $color-border-strong;
+  border-radius: 12px;
+  background: none;
+  color: $color-text-primary;
+  font: 700 12px/14px $font-family-primary;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: $color-border-dashed;
+  }
+
+  &.saved {
+    color: $color-accent-light;
+  }
+}
+
+.bar-views + .outline-btn,
+.bar-end .outline-btn {
+  margin-left: 0;
+}
+
+.outline-btn-sm {
+  margin-left: 0;
+  padding: 7px 12px;
+  border-radius: 10px;
+}
+
+.outline-btn-lg {
+  padding: 9px 14px;
+}
+
+.red-btn {
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 700 12px/14px $font-family-primary;
+  white-space: nowrap;
+
+  &:hover {
+    background: $color-accent-secondary;
+    color: #fff;
+  }
+}
+
+// ─── Clip of the day thread (D219–244) ───────────────────────
+.hero-thread {
+  padding: 16px 20px 18px;
   display: flex;
   flex-direction: column;
+  gap: 11px;
+  border-top: 1px solid $color-border;
+}
+
+.hero-thread-head {
+  display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
-.review-score {
-  font-family: $font-family-mono;
-  font-size: 22px;
-  line-height: 24px;
-  font-weight: 800;
-  color: $color-accent-primary;
+.hero-thread-all {
+  margin-left: auto;
+  border: none;
+  background: none;
+  padding: 0;
+  color: $color-accent-light;
+  font: 700 12px/14px $font-family-primary;
+  cursor: pointer;
+
+  &:hover {
+    color: #ff6b7a;
+  }
 }
 
-.review-hours {
-  font-size: 10px;
-  line-height: 13px;
-  font-weight: 600;
-  color: $color-text-secondary;
-  text-align: center;
+// ─── Comment row ─────────────────────────────────────────────
+.cm {
+  display: flex;
+  gap: 10px;
 }
 
-.review-body-col {
+.cm-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.cm-body {
   min-width: 0;
   flex: 1;
 }
 
-.review-meta-row {
+.cm-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 7px;
 }
 
-.review-avatar {
-  width: 26px;
-  height: 26px;
-  flex: none;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-tertiary;
+.cm-author {
+  font: 700 12px/16px $font-family-primary;
   color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
 }
 
-.review-author {
+.cm-lv {
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 700 9px/1 $font-family-mono;
+}
+
+.cm-dev {
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: $color-accent-tint;
+  color: $color-accent-light;
+  font: 800 9px/1 $font-family-mono;
+}
+
+.cm-stamp {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(225, 29, 46, 0.15);
+  color: $color-accent-light;
+  font: 700 10px/14px $font-family-mono;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-accent-primary;
+    color: #fff;
+  }
+}
+
+.cm-ago {
+  margin-left: auto;
+  font: 500 10px/14px $font-family-primary;
+  color: $color-text-tertiary;
+  white-space: nowrap;
+}
+
+.cm-delete {
+  border: none;
+  background: none;
+  padding: 0 2px;
+  color: $color-text-tertiary;
   font-size: 14px;
-  line-height: 18px;
-  font-weight: 700;
-  color: $color-text-primary;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-accent-light;
+  }
 }
 
-.review-meta {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: $color-text-secondary;
+.cm-text {
+  font: 500 13px/19px $font-family-primary;
+  color: $color-text-body;
+  margin-top: 5px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
-.review-tag {
-  padding: 4px 8px;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-primary;
-  color: $color-text-secondary;
-  font-size: 11px;
-  line-height: 13px;
-  font-weight: 600;
-}
-
-.review-headline {
-  font-family: $font-family-primary;
-  font-size: 19px;
-  line-height: 26px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  color: $color-text-primary;
-  margin: 9px 0 0;
-}
-
-.review-text {
-  font-size: 15px;
-  line-height: 23px;
-  font-weight: 500;
-  color: $color-text-primary;
+.cm-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-top: 6px;
 }
 
-.review-actions {
+.cm-vote {
+  padding: 3px 7px;
+  border: none;
+  border-radius: 8px;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font: 700 11px/14px $font-family-primary;
+  cursor: pointer;
+
+  &.active {
+    background: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+}
+
+.cm-reply {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $color-text-tertiary;
+  font: 700 11px/14px $font-family-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+  }
+}
+
+.cm-reply-count {
+  font-family: $font-family-mono;
+}
+
+.cm-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  input {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+    background: $color-bg-secondary;
+  }
+}
+
+.cm-pinned .cm-text {
+  color: $color-text-primary;
+}
+
+// ─── Full thread ─────────────────────────────────────────────
+.thread {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid $color-border;
+  background: $color-bg-inset;
+}
+
+.pc-padded .thread {
+  margin: 16px -18px -18px;
+}
+
+.pc-review .thread {
+  margin-top: 0;
+}
+
+.thread-status {
+  margin: 0;
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.thread-more {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  color: $color-accent-light;
+  font: 700 12px/14px $font-family-primary;
+  cursor: pointer;
+}
+
+.thread-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+
+  textarea {
+    min-height: 38px;
+    resize: vertical;
+    font-size: 13px;
+    background: $color-bg-secondary;
+  }
+}
+
+// ─── DevLog (D247–297) ───────────────────────────────────────
+.dv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+
+.dv-who {
+  min-width: 0;
+}
+
+.dv-who-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dv-name {
+  font: 700 15px/20px $font-family-primary;
+  color: $color-text-primary;
+}
+
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 800 10px/12px $font-family-mono;
+}
+
+.dv-meta {
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.dv-head-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .more {
+    margin-left: 0;
+  }
+}
+
+.dv-copy {
+  padding: 14px 18px 0;
+}
+
+.dv-chips {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+}
+
+.dv-chip {
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font: 700 10px/13px $font-family-mono;
+}
+
+.dv-chip-accent {
+  background: $color-accent-tint;
+  color: $color-accent-light;
+  font-weight: 800;
+}
+
+.dv-title {
+  margin: 11px 0 0;
+  font: 800 20px/27px $font-family-primary;
+  letter-spacing: -0.2px;
+  color: $color-text-primary;
+  text-wrap: pretty;
+}
+
+.dv-body {
+  margin-top: 7px;
+  font: 500 15px/23px $font-family-primary;
+  color: $color-text-body;
+  text-wrap: pretty;
+}
+
+.dv-media {
+  display: flex;
+  gap: 3px;
+  margin-top: 14px;
+  height: 206px;
+}
+
+.dv-lead {
+  flex: 2;
+  position: relative;
+  background: $color-bg-tertiary;
+  overflow: hidden;
+
+  video,
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  video {
+    cursor: pointer;
+  }
+}
+
+.dv-play {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 26px;
+  background: rgba(225, 29, 46, 0.92);
+  color: #fff;
+  font-size: 18px;
+  padding-left: 3px;
+  cursor: pointer;
+}
+
+.dv-tag {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(10, 10, 12, 0.75);
+  color: #fff;
+  font: 700 10px/12px $font-family-mono;
+  pointer-events: none;
+}
+
+.dv-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dv-side-tile {
+  flex: 1;
+  position: relative;
+  background: $color-bg-tertiary;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.dv-patch {
+  padding: 16px 18px 0;
+}
+
+.dv-lines {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dv-line {
+  display: flex;
+  gap: 10px;
+  font: 500 14px/21px $font-family-primary;
+  color: $color-text-body;
+}
+
+.dv-line-icon {
+  color: $color-accent-light;
+  font-weight: 700;
+  flex: none;
+
+  &.pending {
+    color: $color-text-tertiary;
+  }
+}
+
+// ─── Review (D304–325) ───────────────────────────────────────
+.pc-review {
+  padding: 18px;
+
+  .thread {
+    margin: 16px -18px -18px;
+  }
+}
+
+.rv-layout {
+  display: flex;
+  gap: 18px;
+}
+
+.rv-gutter {
+  width: 86px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-cover {
+  width: 66px;
+  height: 88px;
+  border-radius: 12px;
+  background: $color-border-strong;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.rv-score {
+  font: 800 20px/22px $font-family-mono;
+  color: $color-accent-light;
+}
+
+.rv-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.rv-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rv-headline {
+  margin: 8px 0 0;
+  font: 800 19px/26px $font-family-primary;
+  letter-spacing: -0.2px;
+  color: $color-text-primary;
+  text-wrap: pretty;
+}
+
+.rv-text {
+  margin-top: 6px;
+  font: 500 15px/23px $font-family-primary;
+  color: $color-text-body;
+  text-wrap: pretty;
+}
+
+.rv-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 14px;
 }
 
-.review-action {
+.pill-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 8px 13px;
   border: none;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-primary;
+  border-radius: 12px;
+  background: $color-bg-tertiary;
   color: $color-text-primary;
-  font-family: $font-family-primary;
-  font-size: 13px;
-  line-height: 14px;
-  font-weight: 700;
+  font: 700 13px/14px $font-family-primary;
   cursor: pointer;
-  transition: background-color $transition-speed-fast, color $transition-speed-fast;
 
-  &:hover:not(:disabled) {
-    background-color: $color-bg-tertiary;
+  &:hover:not(:disabled),
+  &.on {
+    background: #22222b;
   }
 
   &.active {
-    background-color: rgba($color-accent-primary, 0.14);
-    color: $color-accent-primary;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .mono {
-    font-family: $font-family-mono;
+    background: $color-accent-tint;
+    color: $color-accent-light;
   }
 }
 
-.post-card {
-  transition: border-color $transition-speed-fast;
+.rv-rate {
+  margin-left: auto;
+  padding: 8px 13px;
+  font-size: 13px;
+}
 
-  &:hover {
-    border-color: $color-bg-tertiary;
+// ─── Poll ────────────────────────────────────────────────────
+.poll-question {
+  margin: 0;
+  font: 800 19px/26px $font-family-primary;
+  letter-spacing: -0.2px;
+  color: $color-text-primary;
+}
+
+.poll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.poll-opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid $color-border;
+  border-radius: 12px;
+  background: $color-bg-primary;
+  color: $color-text-primary;
+  font: 600 13px/16px $font-family-primary;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: $color-border-dashed;
   }
 
-  .post-header {
-    display: flex;
-    align-items: flex-start;
-    gap: $spacing-md;
-    margin-bottom: $spacing-md;
-
-    .avatar {
-      width: 42px;
-      height: 42px;
-      border-radius: $border-radius-md;
-      background-color: $color-bg-tertiary;
-      color: $color-text-primary;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .post-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-
-      .author {
-        font-weight: 600;
-        color: $color-text-primary;
-      }
-
-      .post-tags {
-        display: flex;
-        gap: $spacing-xs;
-
-        .tag {
-          font-size: 0.72rem;
-          padding: 1px 8px;
-          border-radius: $border-radius-full;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .tag-type {
-          background-color: rgba($color-accent-primary, 0.15);
-          color: $color-accent-primary;
-          border: 1px solid rgba($color-accent-primary, 0.3);
-        }
-
-        .tag-game {
-          background-color: $color-bg-tertiary;
-          color: $color-text-secondary;
-          border: 1px solid $color-border;
-        }
-
-        .tag-squad {
-          background-color: rgba($color-accent-primary, 0.15);
-          color: $color-accent-primary;
-          border: 1px solid rgba($color-accent-primary, 0.3);
-          text-transform: none;
-          letter-spacing: normal;
-        }
-      }
-
-      .date {
-        font-size: 0.8rem;
-        color: $color-text-secondary;
-      }
-    }
+  &:disabled {
+    cursor: default;
   }
 
-  .post-devlog-title h3,
-  .post-poll-question h3,
-  .post-review-headline h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: $spacing-sm;
+  &.selected {
+    border-color: $color-accent-primary;
   }
+}
 
-  .post-content p,
-  .post-devlog-body p,
-  .post-review-body p {
-    color: $color-text-primary;
-    line-height: 1.65;
-    margin-bottom: $spacing-sm;
+.poll-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: $color-bg-tertiary;
+  transition: width $transition-speed-normal;
+
+  .selected & {
+    background: $color-accent-tint;
   }
+}
 
-  .post-media {
-    border-radius: $border-radius-md;
-    overflow: hidden;
-    margin-bottom: $spacing-md;
+.poll-text,
+.poll-pct {
+  position: relative;
+}
 
-    img,
-    video {
-      width: 100%;
-      display: block;
-    }
+.poll-pct {
+  margin-left: auto;
+  font-weight: 700;
+  color: $color-text-secondary;
+
+  .selected & {
+    color: $color-accent-light;
   }
+}
 
-  .post-video-wrapper {
-    position: relative;
-  }
+.poll-foot {
+  margin: 2px 0 0;
+  font: 600 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
 
-  // ─── Devlog build tags + patch lines ────────────────────────────
-  .devlog-build-tags {
-    display: flex;
-    gap: $spacing-xs;
-    margin-bottom: $spacing-md;
+.pc-media {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0 -18px;
 
-    .tag-build {
-      background-color: rgba($color-accent-primary, 0.15);
-      color: $color-accent-primary;
-      border: 1px solid rgba($color-accent-primary, 0.3);
-    }
-
-    .tag-branch {
-      background-color: $color-bg-tertiary;
-      color: $color-text-secondary;
-      border: 1px solid $color-border;
-      text-transform: none;
-      letter-spacing: normal;
-    }
-  }
-
-  .patch-lines {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-    margin-bottom: $spacing-md;
-    padding: $spacing-sm $spacing-md;
-    background-color: $color-bg-primary;
-    border-radius: $border-radius-md;
-  }
-
-  .patch-line {
-    display: flex;
-    align-items: baseline;
-    gap: $spacing-sm;
-    font-size: 0.88rem;
-    color: $color-text-primary;
-  }
-
-  .patch-icon {
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-    font-weight: 700;
-
-    &.patch-shipped {
-      color: #4ade80;
-    }
-
-    &.patch-fixed {
-      color: #60a5fa;
-    }
-
-    &.patch-investigating {
-      color: #facc15;
-    }
-  }
-
-  // ─── Review details ──────────────────────────────────────────────
-  .post-review {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: $spacing-sm;
-    margin-bottom: $spacing-md;
-
-    .review-score {
-      font-weight: 700;
-      color: $color-text-primary;
-      font-size: 0.9rem;
-    }
-  }
-
-  .badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: $border-radius-full;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-
-    &.status-finished {
-      background-color: rgba(74, 222, 128, 0.15);
-      color: #4ade80;
-      border: 1px solid rgba(74, 222, 128, 0.3);
-    }
-
-    &.status-playing {
-      background-color: rgba(96, 165, 250, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(96, 165, 250, 0.3);
-    }
-
-    &.status-dropped {
-      background-color: $color-bg-tertiary;
-      color: $color-text-secondary;
-      border: 1px solid $color-border;
-    }
-
-    &.status-spoiler-free {
-      background-color: rgba(234, 179, 8, 0.15);
-      color: #facc15;
-      border: 1px solid rgba(234, 179, 8, 0.3);
-    }
-
-    &.badge-processing {
-      position: absolute;
-      top: $spacing-sm;
-      left: $spacing-sm;
-      z-index: 1;
-      background-color: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-  }
-
-  // ─── Poll ───────────────────────────────────────────────────────
-  .post-poll {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-sm;
-    margin-bottom: $spacing-md;
-  }
-
-  .poll-option {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
+  img,
+  video {
     width: 100%;
-    padding: $spacing-sm $spacing-md;
-    border-radius: $border-radius-md;
-    border: 1px solid $color-border;
-    background-color: $color-bg-primary;
-    color: $color-text-primary;
-    font-family: $font-family-primary;
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-align: left;
-    transition: border-color $transition-speed-fast;
-    overflow: hidden;
-
-    &:hover:not(:disabled) {
-      border-color: $color-accent-primary;
-    }
-
-    &.selected {
-      border-color: $color-accent-primary;
-    }
-
-    &:disabled {
-      cursor: default;
-    }
-  }
-
-  .poll-option-text {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .poll-option-bar {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-  }
-
-  .poll-option-bar-fill {
+    max-height: 420px;
+    object-fit: cover;
     display: block;
-    height: 100%;
-    background-color: rgba($color-accent-primary, 0.14);
-    transition: width $transition-speed-normal;
-  }
-
-  .poll-option-count {
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-    font-size: 0.8rem;
-    color: $color-text-secondary;
-  }
-
-  .poll-footer {
-    font-size: 0.8rem;
-  }
-
-  .post-interactions {
-    display: flex;
-    gap: $spacing-lg;
-    border-top: 1px solid $color-border;
-    padding-top: $spacing-sm;
-
-    .interaction-btn {
-      background: none;
-      border: none;
-      color: $color-text-secondary;
-      display: flex;
-      align-items: center;
-      gap: $spacing-xs;
-      cursor: pointer;
-      font-family: $font-family-primary;
-      font-size: 0.9rem;
-      padding: $spacing-xs $spacing-sm;
-      border-radius: $border-radius-md;
-      transition: all $transition-speed-fast;
-
-      &:hover:not(:disabled) {
-        color: $color-accent-primary;
-        background-color: rgba($color-accent-primary, 0.08);
-      }
-
-      &.active {
-        color: $color-accent-primary;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-  }
-
-  .post-comments {
-    margin-top: $spacing-md;
-    padding-top: $spacing-md;
-    border-top: 1px solid $color-border;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-md;
-  }
-
-  .comments-status {
-    font-size: 0.9rem;
-  }
-
-  .comment {
-    display: flex;
-    align-items: flex-start;
-    gap: $spacing-sm;
-
-    .comment-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: $border-radius-sm;
-      background-color: $color-bg-tertiary;
-      color: $color-text-primary;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
-
-    .comment-body {
-      flex-grow: 1;
-      background-color: $color-bg-primary;
-      border-radius: $border-radius-md;
-      padding: $spacing-sm $spacing-md;
-
-      p {
-        color: $color-text-primary;
-        font-size: 0.9rem;
-        line-height: 1.5;
-      }
-    }
-
-    .comment-meta {
-      display: flex;
-      align-items: baseline;
-      gap: $spacing-sm;
-      margin-bottom: 2px;
-
-      .comment-author {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: $color-text-primary;
-      }
-
-      .comment-date {
-        font-size: 0.72rem;
-        color: $color-text-secondary;
-      }
-    }
-
-    .comment-delete {
-      background: none;
-      border: none;
-      color: $color-text-secondary;
-      font-size: 1.1rem;
-      line-height: 1;
-      cursor: pointer;
-      flex-shrink: 0;
-      padding: 0 $spacing-xs;
-
-      &:hover {
-        color: $color-accent-primary;
-      }
-    }
-  }
-
-  .comment-form {
-    display: flex;
-    gap: $spacing-sm;
-    align-items: flex-start;
-
-    textarea {
-      flex-grow: 1;
-      resize: none;
-    }
-  }
-
-  .btn-sm {
-    padding: $spacing-xs $spacing-md;
-    font-size: 0.85rem;
-    flex-shrink: 0;
+    background: $color-bg-tertiary;
   }
 }

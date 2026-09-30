@@ -1,20 +1,13 @@
 import { Component, computed, input, output } from '@angular/core';
-import { PinnedSquadMessageModel } from '../../../../models/squad.model';
-import { formatTimeAgo } from '../../../../shared/clip-format';
+import { SquadGuideModel } from '../../../../models/squad.model';
+import { agoEn } from '../squad-format';
 
 /**
- * Pinned tab of the squad room, from Gamer Feed.dc.html `onSquad` +
- * `onPinned`: the newest pin as a featured card (cover, PINNED badge,
- * author + updated line, body, meta chips), the rest as compact rows with an
- * "Open" affordance, then a dashed hint.
- *
- * The mock frames these as multi-asset "guides" with their own clip/screen
- * counts; what actually exists is a pinned chat message, so each pin is
- * rendered from real message data (its channel, its author, its shared post's
- * type and game). The geometry is the mock's.
- *
- * Backed by `GET /squads/{id}/pins`, which returns pins across every channel
- * in one request — this used to page through every channel client-side.
+ * "◫ Pinned guides" tab, `onSquad` + `onPinned` (05-squad.html L181–206):
+ * the featured guide as the PINNED card (120×80 cover, "author · updated 2 h
+ * ago", title, description, "2 clips / 4 screens / game" chips), the other
+ * guides as compact rows ("author · 1 clip, 3 screens" · Open), then the
+ * dashed "＋ Pin a guide from #genel". Backed by GET /squads/{id}/guides.
  */
 @Component({
   selector: 'app-squad-pins',
@@ -22,29 +15,33 @@ import { formatTimeAgo } from '../../../../shared/clip-format';
   styleUrl: './squad-pins.scss',
 })
 export class SquadPins {
-  pins = input.required<PinnedSquadMessageModel[]>();
+  guides = input.required<SquadGuideModel[]>();
   isLoading = input(false);
+  canCreate = input(false);
+  /** The squad's first channel — "Pin a guide from #genel". */
+  channelName = input('genel');
 
-  /** Jumps to the Chat tab focused on the pin's own channel. */
-  openPin = output<PinnedSquadMessageModel>();
-  goToChat = output<void>();
+  openGuide = output<SquadGuideModel>();
+  createGuide = output<void>();
 
-  protected readonly featured = computed(() => this.pins()[0] ?? null);
-  protected readonly rest = computed(() => this.pins().slice(1));
+  protected readonly featured = computed(
+    () => this.guides().find((guide) => guide.isFeatured) ?? this.guides()[0] ?? null,
+  );
+  protected readonly rest = computed(() => this.guides().filter((guide) => guide !== this.featured()));
 
-  protected when(iso: string): string {
-    return formatTimeAgo(iso);
+  protected updated(iso: string): string {
+    return agoEn(iso);
   }
 
-  protected title(pin: PinnedSquadMessageModel): string {
-    const body = pin.body?.trim();
-    if (body) {
-      return body;
+  /** "6 screens" / "1 clip, 3 screens" */
+  protected assets(guide: SquadGuideModel): string {
+    const parts: string[] = [];
+    if (guide.clipCount > 0) {
+      parts.push(`${guide.clipCount} clip${guide.clipCount === 1 ? '' : 's'}`);
     }
-    const caption = pin.sharedPost?.caption?.trim();
-    if (caption) {
-      return caption;
+    if (guide.screenCount > 0) {
+      parts.push(`${guide.screenCount} screen${guide.screenCount === 1 ? '' : 's'}`);
     }
-    return 'Shared ' + (pin.sharedPost?.postType ?? 'post');
+    return parts.join(', ');
   }
 }

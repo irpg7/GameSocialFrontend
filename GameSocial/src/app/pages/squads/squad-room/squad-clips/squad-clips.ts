@@ -1,53 +1,50 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { PostModel } from '../../../../models/post.model';
-import { ClipQueueCard } from '../../../clips/clip-queue-card/clip-queue-card';
+import { SquadGameModel } from '../../../../models/squad.model';
+import { clipAge, clock } from '../squad-format';
 
-interface GameFilter {
-  id: number | null;
-  label: string;
-}
+export type SquadClipSort = 'new' | 'top';
 
 /**
- * Clips tab of the squad room, from Gamer Feed.dc.html `onSquad` + `onClips`:
- * a filter chip row with a trailing upload action, then a three-column grid of
- * compact clip cards.
- *
- * The cards are the existing `app-clip-queue-card` (same design language: a
- * centred red play badge, a duration chip, title, author, vote/comment chips),
- * only re-laid-out for a grid instead of the Clips page rail.
- *
- * The mock's "Top this week" sort chip is omitted: the posts endpoint is fixed
- * to newest-first and has no sort parameter. The game chips are real, derived
- * from the clips actually posted to this squad.
+ * Clips tab of the squad room, `onSquad` + `onClips` (05-squad.html L110–155):
+ * "Newest" / "Top this week" sort chips, one chip per squad game (from the
+ * squad's own game list, so they never disappear while filtering), a trailing
+ * "＋ Upload clip", then a 3-column grid of the design's light clip cards
+ * (112px thumb, centred play badge, duration chip, title, "author · time",
+ * ▲ votes / 💬 comments).
  */
 @Component({
   selector: 'app-squad-clips',
-  imports: [ClipQueueCard],
   templateUrl: './squad-clips.html',
   styleUrl: './squad-clips.scss',
 })
 export class SquadClips {
   posts = input.required<PostModel[]>();
-  totalCount = input(0);
+  games = input<SquadGameModel[]>([]);
   isLoading = input(false);
   canPost = input(false);
-  /** null = "All"; otherwise a game id. */
   activeGameId = input<number | null>(null);
+  sort = input<SquadClipSort>('new');
 
   gamePicked = output<number | null>();
+  sortPicked = output<SquadClipSort>();
   upload = output<void>();
   openClip = output<PostModel>();
 
-  protected readonly filters = computed<GameFilter[]>(() => {
-    const seen = new Map<number, string>();
-    for (const post of this.posts()) {
-      if (post.gameId != null && post.gameName) {
-        seen.set(post.gameId, post.gameName);
-      }
-    }
-    return [
-      { id: null, label: `All ${this.totalCount()}` },
-      ...[...seen.entries()].map(([id, label]) => ({ id, label })),
-    ];
-  });
+  protected title(post: PostModel): string {
+    return post.caption?.trim() || post.gameName || 'Klip';
+  }
+
+  protected poster(post: PostModel): string | null {
+    const video = post.media.find((media) => media.mediaType === 'Video');
+    return video?.thumbnailUrl || post.media.find((media) => media.mediaType === 'Photo')?.url || null;
+  }
+
+  protected duration(post: PostModel): string {
+    return clock(post.media.find((media) => media.mediaType === 'Video')?.durationSeconds);
+  }
+
+  protected age(iso: string): string {
+    return clipAge(iso);
+  }
 }

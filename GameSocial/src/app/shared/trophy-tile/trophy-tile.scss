@@ -1,0 +1,104 @@
+@use '../../../styles/variables' as *;
+
+// Gamer Feed.dc.html — showcase tile: 16px radius/padding, centred column,
+// 9px gaps. Neutral tiles sit on #16161C / #2A2A32; the lit one gets the warm
+// #1c1014 gradient and #3a1f26 border with a red glyph and badge.
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.trophy-tile {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  padding: 16px;
+  background-color: $color-bg-row;
+  border: 1px solid $color-border-strong;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  text-align: center;
+
+  &.accent {
+    background: linear-gradient(180deg, #1c1014, $color-bg-row);
+    border-color: $color-accent-border;
+
+    .trophy-tile-icon {
+      background-color: rgba($color-accent-primary, 0.18);
+      border-color: $color-accent-primary;
+      color: $color-accent-light;
+    }
+
+    .trophy-tile-rarity {
+      background-color: rgba($color-accent-primary, 0.16);
+      color: $color-accent-light;
+    }
+  }
+
+  &.editable {
+    cursor: pointer;
+    transition: border-color $transition-speed-fast;
+
+    &:hover {
+      border-color: $color-accent-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.trophy-tile-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background-color: $color-bg-tertiary;
+  border: 1px solid $color-border-strong;
+  color: $color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.trophy-tile-name {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.trophy-tile-desc {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.trophy-tile-rarity {
+  padding: 4px 8px;
+  border-radius: 7px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-family: $font-family-mono;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.trophy-tile-action {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: $color-accent-light;
+}

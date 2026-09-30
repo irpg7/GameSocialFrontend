@@ -1,5 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { finalize } from 'rxjs';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
+import { Observable, catchError, finalize, of, switchMap } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
 import { GameService } from '../../services/game/game.service';
 import { SquadService } from '../../services/squad/squad.service';
@@ -8,6 +10,7 @@ import { MeService } from '../../services/me/me.service';
 import { PostModel } from '../../models/post.model';
 import { GameModel } from '../../models/game.model';
 import { SquadModel } from '../../models/squad.model';
+import { PagedResult } from '../../models/paged-result.model';
 import { PostComposer } from './post-composer/post-composer';
 import { PostCard } from './post-card/post-card';
 import { FeedSidebar } from './feed-sidebar/feed-sidebar';
@@ -15,22 +18,32 @@ import { FeedRightRail } from './feed-right-rail/feed-right-rail';
 
 const PAGE_SIZE = 10;
 
-export type FeedTab = 'following' | 'discover';
+/** What the sidebar selected (via `?game=` / `?user=`); null = the default home feed. */
+type FeedFilter = { kind: 'game'; gameId: number } | { kind: 'user'; userId: string } | null;
 
+/**
+ * Gamer Feed.dc.html `onFeed`: composer, the "CLIP OF THE DAY" hero, the
+ * latest devlogs from games you follow, then a "From your games" rule and the
+ * rest of your feed. Selecting a followed game/person in the sidebar narrows
+ * the feed to it (the hero/devlog block is hidden while filtered).
+ */
 @Component({
   selector: 'app-feed',
   imports: [PostComposer, PostCard, FeedSidebar, FeedRightRail],
   templateUrl: './feed.html',
   styleUrl: './feed.scss',
 })
-export class Feed implements OnInit {
+export class Feed {
   private postService = inject(PostService);
   private gameService = inject(GameService);
   private squadService = inject(SquadService);
   private notificationService = inject(NotificationService);
   private meService = inject(MeService);
+  private route = inject(ActivatedRoute);
 
-  protected readonly activeTab = signal<FeedTab>('following');
+  protected readonly filter = signal<FeedFilter>(null);
+  protected readonly featured = signal<PostModel | null>(null);
+  protected readonly devlogs = signal<PostModel[]>([]);
   protected readonly posts = signal<PostModel[]>([]);
   protected readonly games = signal<GameModel[]>([]);
   /** Fetched once here (not per-card) and passed down so PostCard can resolve a squad-tagged post's name client-side. */
@@ -39,9 +52,48 @@ export class Feed implements OnInit {
   protected readonly hasMore = signal(false);
   protected readonly isLoadingFeed = signal(true);
   protected readonly isLoadingMore = signal(false);
+  /** The default feed fell back to everyone's posts because you follow nothing yet. */
+  protected readonly isDiscoverFallback = signal(false);
 
-  ngOnInit(): void {
-    this.loadPosts(1);
+  /** Posts already shown above the rule never repeat below it. */
+  private readonly pinnedIds = computed(() => {
+    const ids = new Set(this.devlogs().map((p) => p.id));
+    const hero = this.featured();
+    if (hero) {
+      ids.add(hero.id);
+    }
+    return ids;
+  });
+
+  protected readonly visiblePosts = computed(() => {
+    const pinned = this.filter() ? new Set<string>() : this.pinnedIds();
+    return this.posts().filter((p) => !pinned.has(p.id));
+  });
+
+  /** The rule's label: "From your games" by default, the selection's name when filtered. */
+  protected readonly ruleLabel = computed(() => {
+    const filter = this.filter();
+    if (!filter) {
+      return this.isDiscoverFallback() ? 'Discover' : 'From your games';
+    }
+    if (filter.kind === 'game') {
+      return this.games().find((g) => g.id === filter.gameId)?.name ?? 'Game';
+    }
+    return this.posts().find((p) => p.userId === filter.userId)?.username ?? 'Player';
+  });
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(destroyRef)).subscribe((params) => {
+      const game = Number(params.get('game'));
+      const user = params.get('user');
+      this.filter.set(game ? { kind: 'game', gameId: game } : user ? { kind: 'user', userId: user } : null);
+      this.posts.set([]);
+      this.loadPosts(1);
+    });
+
+    this.loadFeatured();
 
     this.gameService.getGames().subscribe({
       next: (games) => this.games.set(games),
@@ -55,38 +107,74 @@ export class Feed implements OnInit {
   }
 
   onPosted(post: PostModel): void {
-    this.posts.update((existing) => [post, ...existing]);
+    if (!post.isDraft) {
+      this.posts.update((existing) => [post, ...existing]);
+    }
     // Creating a post can award XP and bump the streak — refresh live state.
     this.meService.refresh().subscribe({ error: () => void 0 });
-  }
-
-  selectTab(tab: FeedTab): void {
-    if (tab === this.activeTab()) {
-      return;
-    }
-    this.activeTab.set(tab);
-    this.posts.set([]);
-    this.loadPosts(1);
   }
 
   loadMore(): void {
     this.loadPosts(this.page() + 1, true);
   }
 
+  /**
+   * "CLIP OF THE DAY" = today's hottest clip, falling back to the hottest clip
+   * overall on a quiet day; plus the two newest devlogs from games you follow.
+   */
+  private loadFeatured(): void {
+    this.postService
+      .getPosts(1, 1, { postType: 'Clip', sort: 'hot', window: 'day' })
+      .pipe(
+        switchMap((today) => (today.items.length ? of(today) : this.postService.getPosts(1, 1, { postType: 'Clip', sort: 'hot' }))),
+        catchError(() => of(null)),
+      )
+      .subscribe((result) => this.featured.set(result?.items[0] ?? null));
+
+    this.postService
+      .getPosts(1, 2, { postType: 'Devlog', followedGamesOnly: true, window: 'week' })
+      .pipe(catchError(() => of(null)))
+      .subscribe((result) => this.devlogs.set(result?.items ?? []));
+  }
+
   private loadPosts(page: number, append = false): void {
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
     loadingSignal.set(true);
-    const request =
-      this.activeTab() === 'following'
-        ? this.postService.getFollowingPosts(page, PAGE_SIZE)
-        : this.postService.getPosts(page, PAGE_SIZE);
-    request.pipe(finalize(() => loadingSignal.set(false))).subscribe({
-      next: (result) => {
-        this.posts.update((existing) => (append ? [...existing, ...result.items] : result.items));
-        this.page.set(result.page);
-        this.hasMore.set(result.hasMore);
-      },
-      error: () => this.notificationService.error('Failed to load feed.'),
-    });
+    this.request(page)
+      .pipe(finalize(() => loadingSignal.set(false)))
+      .subscribe({
+        next: (result) => {
+          this.posts.update((existing) => (append ? [...existing, ...result.items] : result.items));
+          this.page.set(result.page);
+          this.hasMore.set(result.hasMore);
+        },
+        error: () => this.notificationService.error('Failed to load feed.'),
+      });
+  }
+
+  private request(page: number): Observable<PagedResult<PostModel>> {
+    const filter = this.filter();
+    if (filter?.kind === 'game') {
+      return this.postService.getPosts(page, PAGE_SIZE, { gameId: filter.gameId });
+    }
+    if (filter?.kind === 'user') {
+      return this.postService.getPosts(page, PAGE_SIZE, { userId: filter.userId });
+    }
+    if (page === 1) {
+      this.isDiscoverFallback.set(false);
+    }
+    if (this.isDiscoverFallback()) {
+      return this.postService.getPosts(page, PAGE_SIZE);
+    }
+    // Following nothing yet → show everyone's posts rather than an empty feed.
+    return this.postService.getFollowingPosts(page, PAGE_SIZE).pipe(
+      switchMap((result) => {
+        if (page === 1 && result.items.length === 0) {
+          this.isDiscoverFallback.set(true);
+          return this.postService.getPosts(1, PAGE_SIZE);
+        }
+        return of(result);
+      }),
+    );
   }
 }

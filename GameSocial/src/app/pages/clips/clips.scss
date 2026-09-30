@@ -39,6 +39,9 @@
 .clips-upload {
   margin-left: auto;
   flex: none;
+  border: none;
+  cursor: pointer;
+  font-family: $font-family-primary;
   padding: 11px 16px;
   border-radius: 14px;
   background-color: $color-accent-primary;
@@ -48,7 +51,7 @@
   font-weight: 700;
 
   &:hover {
-    background-color: $color-accent-secondary;
+    background-color: #c4172a;
     color: #fff;
   }
 }
@@ -121,6 +124,7 @@
 }
 
 .clips-status {
+  color: $color-text-tertiary;
   margin: auto;
   padding: $spacing-lg;
   text-align: center;
@@ -237,6 +241,7 @@
 }
 
 .rail-empty {
+  color: $color-text-tertiary;
   font-size: 0.85rem;
   padding: $spacing-md 0;
 }
@@ -282,4 +287,9 @@
   .rail-queue {
     overflow: visible;
   }
+}
+
+button:focus-visible {
+  outline: 2px solid $color-accent-light;
+  outline-offset: 2px;
 }

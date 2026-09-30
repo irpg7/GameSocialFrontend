@@ -1,13 +1,13 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/form-controls';
 
-// Column widths, gutters and rail metrics are the design's onReviews state.
+// Design: 03-reviews.html (onReviews) — 760px column + 288px rail, 26px gap.
 .reviews-page {
-  max-width: 1100px;
+  max-width: 1074px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 760px) 288px;
-  gap: $spacing-xl;
+  gap: 26px;
   align-items: start;
   justify-content: center;
 
@@ -19,39 +19,170 @@
 .reviews-main {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 16px;
   min-width: 0;
 }
 
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// ─── Game summary card (L42-67) ─────────────────────────────────
+.summary {
+  display: flex;
+  gap: 20px;
+  padding: 18px;
+  border-radius: 20px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+}
+
+.summary-cover {
+  width: 96px;
+  height: 128px;
+  flex: none;
+  border-radius: 14px;
+  background: $color-border-strong;
+  object-fit: cover;
+}
+
+.summary-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.summary-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.summary-name {
+  font: 800 22px/28px $font-family-primary;
+  letter-spacing: -0.3px;
+  color: $color-text-primary;
+}
+
+.summary-meta {
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.summary-scores {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.summary-avg {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.summary-avg-value {
+  font: 800 30px/32px $font-family-mono;
+  color: $color-accent-light;
+}
+
+.summary-avg-count {
+  font: 600 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.summary-bars {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-bar-label {
+  width: 34px;
+  flex: none;
+  font: 700 10px $font-family-mono;
+  color: $color-text-tertiary;
+}
+
+.summary-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: $color-border;
+  overflow: hidden;
+}
+
+.summary-bar-fill {
+  height: 100%;
+}
+
+.summary-chips {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.summary-chip {
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: $color-bg-tertiary;
+  font: 600 11px $font-family-primary;
+  color: $color-text-secondary;
+}
+
+.summary-chip-dev {
+  background: $color-accent-tint;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+// ─── Review list ────────────────────────────────────────────────
 .posts-list {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 16px;
 }
 
 .feed-status {
   text-align: center;
   padding: $spacing-lg;
+  font: 500 13px/18px $font-family-primary;
+  color: $color-text-tertiary;
 }
 
 .empty-feed {
   text-align: center;
   padding: $spacing-2xl;
-  font-size: 1rem;
+  font: 500 14px/20px $font-family-primary;
+  color: $color-text-secondary;
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-radius: $border-radius-lg;
+  border-radius: $border-radius-xl;
 }
 
 .load-more {
   align-self: center;
 }
 
-// ─── Right rail ───────────────────────────────────────────────
+// ─── Right rail ─────────────────────────────────────────────────
 .reviews-rail {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 16px;
   position: sticky;
   top: 0;
 }
@@ -59,69 +190,64 @@
 .panel-card {
   background-color: $color-bg-secondary;
   border: 1px solid $color-border;
-  border-radius: $border-radius-xl;
-  padding: $spacing-md;
-
-  // The design lights the top rail panel the same way as the feed's XP card.
-  &:first-child {
-    background: linear-gradient(180deg, rgba($color-accent-primary, 0.1), $color-bg-secondary);
-    border-color: $color-bg-tertiary;
-  }
+  border-radius: 20px;
+  padding: 18px;
 }
 
-.panel-card-header {
-  margin-bottom: $spacing-md;
+// "Waiting for your review": linear-gradient(180deg,#1a1015,#141418), #2A2A32 border.
+.panel-card-lit {
+  background: linear-gradient(180deg, #1a1015, $color-bg-secondary);
+  border-color: $color-border-strong;
+}
 
-  h4 {
-    margin: 0;
-    font-size: 11px;
-    line-height: 14px;
-    font-weight: 700;
-    color: $color-text-secondary;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-  }
+.panel-label {
+  margin: 0 0 12px;
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.panel-label-lg {
+  margin-bottom: 14px;
+}
+
+.panel-label-sm {
+  margin-bottom: 10px;
+}
+
+.rail-empty {
+  font: 500 12px/18px $font-family-primary;
+  color: $color-text-tertiary;
 }
 
 .rail-note {
-  font-size: 12px;
-  line-height: 18px;
-  color: $color-text-secondary;
   margin-top: 12px;
+  font: 500 12px/18px $font-family-primary;
+  color: $color-text-secondary;
 }
 
 .rail-xp {
   font-family: $font-family-mono;
   font-weight: 700;
-  color: $color-accent-primary;
-}
-
-// The design's small rail action — a 10px-radius pill, not a full button.
-.rail-pill {
-  flex: none;
-  padding: 7px 11px;
-  border: none;
-  border-radius: $border-radius-md;
-  background-color: $color-accent-primary;
-  color: #fff;
-  font-family: $font-family-primary;
-  font-size: 11px;
-  line-height: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color $transition-speed-fast;
-
-  &:hover {
-    background-color: $color-accent-secondary;
-  }
+  color: $color-accent-light;
 }
 
 .waiting-list,
 .reviewer-list {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+}
+
+.waiting-list {
+  gap: 12px;
+}
+
+.reviewer-list {
+  gap: 13px;
 }
 
 .waiting-row {
@@ -130,64 +256,93 @@
   gap: 11px;
 }
 
-// Stands in for the design's 34x46 box-art thumbnail.
 .waiting-cover {
   width: 34px;
   height: 46px;
   flex: none;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-tertiary;
-  color: $color-text-secondary;
+  border-radius: 9px;
+  background: $color-border-strong;
+  object-fit: cover;
+}
+
+.waiting-info {
+  min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
+  flex-direction: column;
 }
 
 .waiting-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 700;
+  font: 700 13px/17px $font-family-primary;
   color: $color-text-primary;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.waiting-meta {
+  font: 500 11px/15px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+// First "Rate" is solid red, the rest outlined (#2A2A32).
+.rail-pill {
+  margin-left: auto;
+  flex: none;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font: 700 11px/13px $font-family-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast;
+
+  &:hover,
+  &:focus-visible {
+    background-color: #c4172a;
+  }
+
+  &.rail-pill-outline {
+    background: transparent;
+    border-color: $color-border-strong;
+    color: $color-text-primary;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $color-border-dashed;
+    }
+  }
+}
+
 .reviewer-row {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: 10px;
 }
 
 .reviewer-icon {
   width: 32px;
   height: 32px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
-  flex-shrink: 0;
+  flex: none;
+  border-radius: 11px;
+  overflow: hidden;
+  background: $color-border-strong;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .reviewer-info {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-width: 0;
 }
 
 .reviewer-name {
-  font-size: 0.88rem;
-  line-height: 17px;
-  font-weight: 700;
+  font: 700 13px/17px $font-family-primary;
   color: $color-text-primary;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -195,33 +350,32 @@
 }
 
 .reviewer-meta {
-  font-size: 11px;
-  line-height: 15px;
+  font: 500 11px/15px $font-family-primary;
+  color: $color-text-tertiary;
 }
 
 .follow-toggle {
+  margin-left: auto;
   flex-shrink: 0;
   border: none;
   background: none;
   padding: 0;
-  color: $color-accent-primary;
-  font-family: $font-family-primary;
-  font-weight: 700;
-  font-size: 11px;
-  line-height: 14px;
+  color: $color-accent-light;
+  font: 700 11px $font-family-primary;
   cursor: pointer;
-  transition: color $transition-speed-fast;
 
-  &:hover {
-    color: $color-accent-secondary;
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
   }
 
   &.following {
-    color: $color-text-secondary;
+    color: $color-text-tertiary;
   }
 }
 
 .info-text {
-  font-size: 12px;
-  line-height: 19px;
+  font: 500 12px/19px $font-family-primary;
+  color: $color-text-secondary;
+  text-wrap: pretty;
 }

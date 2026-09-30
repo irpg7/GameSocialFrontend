@@ -1,92 +1,79 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { SquadService } from '../../../services/squad/squad.service';
 import { MeService } from '../../../services/me/me.service';
+import { XpAwardsService } from '../../../services/config/xp-awards.service';
+import { FeedActivityService } from '../../../services/feed/feed-activity.service';
 import { SquadModel } from '../../../models/squad.model';
+import { SquadActivityModel } from '../../../models/squad-activity.model';
 
-const MAX_ACTIVITY_SQUADS = 3;
-const MAX_ACTIVITY_ITEMS = 6;
-
-interface ActivityItem {
-  squadId: string;
-  squadName: string;
-  username: string;
-  body?: string;
-  sharedPostType?: string;
-  createdAt: string;
-}
+const NUMBER_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
 /**
- * Feed-page-only right rail: XP progress card + a real "squad activity"
- * feed built from the most recent messages in each of your squads' first
- * channel (no dedicated activity-feed endpoint exists server-side, so this
- * is genuine chat activity rather than a synthesized achievement/leaderboard
- * timeline — see the Phase 1 report for the full rationale).
+ * Feed-page-only right rail (288px): the level/XP card and "Squad activity" —
+ * real member events (achievement unlocks, first posts on a game, clips) from
+ * `GET /api/feed/squad-activity`, filterable per squad with the chip row.
  */
 @Component({
   selector: 'app-feed-right-rail',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink],
   templateUrl: './feed-right-rail.html',
   styleUrl: './feed-right-rail.scss',
 })
-export class FeedRightRail implements OnInit {
+export class FeedRightRail {
   private squadService = inject(SquadService);
+  private activityService = inject(FeedActivityService);
+  private xpAwards = inject(XpAwardsService);
   protected readonly meService = inject(MeService);
 
-  protected readonly activityItems = signal<ActivityItem[]>([]);
-  protected readonly isLoadingActivity = signal(true);
+  protected readonly squads = signal<SquadModel[]>([]);
+  protected readonly selectedSquadId = signal<string | null>(null);
+  protected readonly items = signal<SquadActivityModel[]>([]);
+  protected readonly isLoading = signal(true);
 
-  ngOnInit(): void {
-    this.squadService
-      .getMine()
-      .pipe(
-        map((squads) => squads.slice(0, MAX_ACTIVITY_SQUADS)),
-        switchMap((squads) => this.loadActivityForSquads(squads)),
-      )
-      .subscribe({
-        next: (items) => {
-          this.activityItems.set(items);
-          this.isLoadingActivity.set(false);
-        },
-        error: () => this.isLoadingActivity.set(false),
-      });
+  /** "Posting a clip is worth 120 XP. Two more and you rank up." — from the server's real awards. */
+  protected readonly xpHint = computed(() => {
+    const me = this.meService.me();
+    const clip = this.xpAwards.amount('clip');
+    if (!me || !clip) {
+      return '';
+    }
+    const needed = Math.max(1, Math.ceil(me.xpToNextLevel / clip));
+    const count = needed < NUMBER_WORDS.length ? NUMBER_WORDS[needed] : String(needed);
+    return `Posting a clip is worth ${clip} XP. ${count} more and you rank up.`;
+  });
+
+  /** Where "Open room →" goes: the filtered squad, else your first one. */
+  protected readonly roomLink = computed(() => {
+    const id = this.selectedSquadId() ?? this.squads()[0]?.id;
+    return id ? ['/squads', id] : ['/squads'];
+  });
+
+  constructor() {
+    this.squadService.getMine().subscribe({
+      next: (squads) => this.squads.set(squads),
+      error: () => void 0,
+    });
+    this.load();
   }
 
-  private loadActivityForSquads(squads: SquadModel[]) {
-    if (squads.length === 0) {
-      return of<ActivityItem[]>([]);
+  selectSquad(squadId: string | null): void {
+    if (this.selectedSquadId() === squadId) {
+      return;
     }
+    this.selectedSquadId.set(squadId);
+    this.load();
+  }
 
-    const requests = squads.map((squad) => {
-      const channel = [...squad.channels].sort((a, b) => a.sortOrder - b.sortOrder)[0];
-      if (!channel) {
-        return of<ActivityItem[]>([]);
-      }
-      return this.squadService.listMessages(squad.id, channel.id, 1, 3).pipe(
-        map((page) =>
-          page.items.map(
-            (message): ActivityItem => ({
-              squadId: squad.id,
-              squadName: squad.name,
-              username: message.username,
-              body: message.body,
-              sharedPostType: message.sharedPost?.postType,
-              createdAt: message.createdAt,
-            }),
-          ),
-        ),
-      );
-    });
-
-    return forkJoin(requests).pipe(
-      map((groups) =>
-        groups
-          .flat()
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, MAX_ACTIVITY_ITEMS),
-      ),
-    );
+  private load(): void {
+    this.isLoading.set(true);
+    this.activityService
+      .getSquadActivity(this.selectedSquadId() ?? undefined)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (items) => this.items.set(items),
+        error: () => this.items.set([]),
+      });
   }
 }

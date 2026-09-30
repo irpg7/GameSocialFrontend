@@ -1,106 +1,283 @@
-<div class="stage" #stage>
+<div class="stage" [class.is-paused]="!playing()">
   <video
     #video
     class="stage-video"
     [src]="src()"
+    [attr.poster]="poster()"
     [muted]="muted()"
     playsinline
     preload="metadata"
     (loadedmetadata)="onLoadedMetadata()"
     (timeupdate)="onTimeUpdate()"
     (progress)="onProgress()"
-    (play)="playing.set(true)"
-    (pause)="playing.set(false)"
+    (play)="onPlayState(true)"
+    (pause)="onPlayState(false)"
     (ended)="onEnded()"></video>
 
-  <span class="stage-scrim" aria-hidden="true"></span>
-
-  <!-- The design's click layer stops short of the overlay so the controls stay reachable. -->
-  <button type="button" class="stage-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
-
-  <div class="stage-badges">
-    <span class="stage-badge stage-badge-rank">{{ rankLabel() }}</span>
-    @if (post().gameName) {
-      <span class="stage-badge stage-badge-game">{{ post().gameName }}</span>
-    }
-    @if (squadName(); as squad) {
-      <span class="stage-badge stage-badge-game">{{ squad }}</span>
-    }
-  </div>
-
-  <div class="stage-actions">
-    @if (isProcessing()) {
-      <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
-    }
-    <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>   
-      <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
-      <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>    
-  </div>
-
-  @if (!playing()) {
-    <button type="button" class="stage-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
-  }
-
-  <div class="stage-info">
-    <div class="stage-title">{{ title() }}</div>
-
-    <div class="stage-meta">
-      <a [routerLink]="['/profile', post().userId]" class="stage-avatar">{{ initial() }}</a>
-      <a [routerLink]="['/profile', post().userId]" class="stage-author">{{ post().username }}</a>
-      <span class="stage-ago">{{ timeAgo() }}</span>
-      <button type="button" class="stage-vote" [class.active]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ {{ likeCount() }}</button>
-      <button type="button" class="stage-comment" [class.active]="commentsActive()" (click)="toggleComments.emit()">💬 {{ commentTotal() }} yorum</button>
-    </div>
-
+  <ng-template #scrubBar let-withPreview="withPreview" let-withMarkers="withMarkers">
     <div
       class="stage-scrub"
+      role="slider"
+      tabindex="0"
+      aria-label="Oynatma konumu"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="duration()"
+      [attr.aria-valuenow]="currentTime()"
+      [attr.aria-valuetext]="currentLabel() + ' / ' + durationLabel()"
       (pointerdown)="onScrubDown($event)"
       (pointermove)="onScrubMove($event)"
       (pointerup)="onScrubUp($event)"
       (pointercancel)="onScrubUp($event)"
-      (pointerleave)="onScrubLeave()">
-      @if (variant() === 'hero' && hoverRatio() !== null) {
+      (pointerleave)="onScrubLeave()"
+      (keydown)="onScrubKey($event)">
+      @if (withPreview) {
+        <span class="stage-preview" [class.visible]="hoverRatio() !== null" [style.left.%]="hoverPercent()" aria-hidden="true">
+          <video #preview class="stage-preview-frame" [src]="src()" [attr.poster]="poster()" muted playsinline preload="metadata" tabindex="-1"></video>
+          <span class="stage-preview-time">{{ hoverLabel() }}</span>
+        </span>
+      } @else if (hoverRatio() !== null) {
         <span class="stage-hover" [style.left.%]="hoverPercent()">{{ hoverLabel() }}</span>
       }
       <div class="stage-track">
-        @if (variant() === 'hero') {
-          <span class="stage-buffered" [style.width.%]="bufferedPercent()"></span>
-        }
+        <span class="stage-buffered" [style.width.%]="bufferedPercent()"></span>
         <span class="stage-played" [style.width.%]="playedPercent()"></span>
+        @if (withMarkers) {
+          @for (mark of markers(); track mark.atSeconds) {
+            <button
+              type="button"
+              class="stage-mark"
+              [style.left.%]="mark.left"
+              [attr.aria-label]="'Hot moment ' + mark.clock + ' — ' + mark.label"
+              (pointerdown)="$event.stopPropagation()"
+              (click)="seekMoment($event, mark.atSeconds)"></button>
+          }
+        }
         <span class="stage-knob" [style.left.%]="playedPercent()"></span>
       </div>
     </div>
+  </ng-template>
 
-    <div class="stage-times">
-      <span class="stage-now">{{ currentLabel() }}</span>
-      <span>/ {{ durationLabel() }}</span>
-    </div>
-  </div>
+  @switch (chrome()) {
+    <!-- ─── 06-fullscreen-player.html ─────────────────────────────────── -->
+    @case ('overlay') {
+      <button type="button" class="ov-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
+      <div class="ov-head">
+        <span class="ov-tag">{{ gameTag() }}</span>
+        <span class="ov-title">{{ title() }}</span>
+        <span class="ov-author">{{ post().username }}</span>
+      </div>
+      <button type="button" class="ov-exit" (click)="toggleFullscreen()">✕ Tam ekrandan çık</button>
+      @if (!playing()) {
+        <button type="button" class="ov-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
+      }
+      <div class="ov-bottom">
+        <ng-container *ngTemplateOutlet="scrubBar; context: { withPreview: false, withMarkers: true }" />
+        <div class="ov-controls">
+          <button type="button" class="ov-btn" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
+          <button type="button" class="ov-btn ov-btn-mute" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+          <span class="ov-time">{{ currentLabel() }} <span>/ {{ durationLabel() }}</span></span>
+          <button type="button" class="ov-pill ov-speed" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+          <button type="button" class="ov-pill ov-vote" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ {{ likeLabel() }}</button>
+          <button type="button" class="ov-btn ov-btn-close" aria-label="Tam ekrandan çık" (click)="toggleFullscreen()">⛶</button>
+        </div>
+      </div>
+    }
 
-  @if (isFullscreen()) {
-    <!-- Clip Player.dc.html's control row — fullscreen is where the native controls are gone. -->
-    <div class="stage-controls">
-      <button type="button" class="sc-btn sc-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
+    <!-- ─── Clip Player spec: in-feed inline muted autoplay ───────────── -->
+    @case ('inline') {
+      <button type="button" class="in-hit" [attr.aria-label]="'Klibi aç: ' + title()" (click)="openClipPage()"></button>
+      <span class="in-tag">{{ gameTag() }}</span>
+      <button type="button" class="in-mute" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" [attr.aria-pressed]="!muted()" (click)="toggleMute()">{{ volGlyph() }}</button>
+      <div class="in-bottom">
+        <button type="button" class="in-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
+        <span class="in-progress" aria-hidden="true"><span class="in-progress-fill" [style.width.%]="playedPercent()"></span></span>
+        <span class="in-time">{{ currentLabel() }}</span>
+      </div>
+    }
 
-      <div class="sc-volume">
-        <button type="button" class="sc-btn" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
-        <div
-          class="sc-volbar"
-          (pointerdown)="onVolumeDown($event)"
-          (pointermove)="onVolumeMove($event)"
-          (pointerup)="onVolumeUp($event)"
-          (pointercancel)="onVolumeUp($event)">
-          <div class="sc-voltrack">
-            <span class="sc-volfill" [style.width.%]="volumePercent()"></span>
-            <span class="sc-volknob" [style.left.%]="volumePercent()"></span>
-          </div>
+    <!-- ─── Clip Player spec: vertical clip (mobile) ──────────────────── -->
+    @case ('vertical') {
+      <button type="button" class="vt-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
+      <span class="vt-badge"><span class="vt-dot" aria-hidden="true"></span>{{ rankLabel() }}</span>
+      @if (!playing()) {
+        <button type="button" class="vt-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
+      }
+      <div class="vt-actions">
+        <button type="button" class="vt-action" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">
+          <span class="vt-glyph">▲</span><span class="vt-count">{{ likeLabel() }}</span>
+        </button>
+        <button type="button" class="vt-action" [class.active]="commentsActive()" aria-label="Yorumlar" (click)="toggleComments.emit()">
+          <span class="vt-glyph">◉</span><span class="vt-count">{{ commentLabel() }}</span>
+        </button>
+        <button type="button" class="vt-action" aria-label="Paylaş" (click)="share()">
+          <span class="vt-glyph">↗</span><span class="vt-count">Paylaş</span>
+        </button>
+      </div>
+      <div class="vt-info">
+        <div class="vt-title">{{ title() }}</div>
+        <a [routerLink]="['/profile', post().userId]" class="vt-author">&#64;{{ post().username }}</a>
+      </div>
+      <span class="vt-progress" aria-hidden="true"><span class="vt-progress-fill" [style.width.%]="playedPercent()"></span></span>
+    }
+
+    <!-- ─── Clip Player spec: full player ─────────────────────────────── -->
+    @case ('full') {
+      <button type="button" class="stage-hit fp-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
+      <div class="fp-top">
+        <span class="stage-badge">{{ gameTag() }}</span>
+        @if (quality(); as q) {
+          <span class="fp-quality">{{ q }}</span>
+        }
+        @if (isProcessing()) {
+          <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
+        }
+        <div class="fp-more-wrap">
+          <button type="button" class="fp-more" aria-label="Diğer" aria-haspopup="menu" [attr.aria-expanded]="moreMenuOpen()" (click)="toggleMoreMenu($event)">···</button>
+          @if (moreMenuOpen()) {
+            <div class="fp-menu fp-menu-more" role="menu">
+              <button type="button" role="menuitem" class="fp-menu-item" (click)="share()">↗ Bağlantıyı paylaş</button>
+              <a role="menuitem" class="fp-menu-item" [href]="src()" target="_blank" rel="noopener" download>⤓ Videoyu indir</a>
+            </div>
+          }
         </div>
       </div>
 
-      <div class="sc-time">{{ currentLabel() }} <span>/ {{ durationLabel() }}</span></div>
-      <div class="sc-spacer"></div>
-      <button type="button" class="sc-btn sc-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
-      <button type="button" class="sc-btn" aria-label="Tam ekrandan çık" (click)="toggleFullscreen()">⛶</button>
-    </div>
+      @if (!playing()) {
+        <button type="button" class="stage-play fp-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
+      }
+
+      <div class="fp-bottom">
+        <ng-container *ngTemplateOutlet="scrubBar; context: { withPreview: true, withMarkers: true }" />
+        <div class="fp-controls">
+          <button type="button" class="sc-btn sc-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
+          <button type="button" class="sc-btn" aria-label="Önceki klip" [disabled]="!hasPrev()" (click)="prev.emit()">⏮</button>
+          <button type="button" class="sc-btn" aria-label="Sonraki klip" [disabled]="!hasNext()" (click)="next.emit()">⏭</button>
+          <div class="sc-volume">
+            <button type="button" class="sc-btn" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+            <div
+              class="sc-volbar"
+              role="slider"
+              tabindex="0"
+              aria-label="Ses düzeyi"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="volumePercent()"
+              (pointerdown)="onVolumeDown($event)"
+              (pointermove)="onVolumeMove($event)"
+              (pointerup)="onVolumeUp($event)"
+              (pointercancel)="onVolumeUp($event)"
+              (keydown)="onVolumeKey($event)">
+              <div class="sc-voltrack">
+                <span class="sc-volfill" [style.width.%]="volumePercent()"></span>
+                <span class="sc-volknob" [style.left.%]="volumePercent()"></span>
+              </div>
+            </div>
+          </div>
+          <div class="sc-time">{{ currentLabel() }} <span>/ {{ durationLabel() }}</span></div>
+          <div class="sc-spacer"></div>
+          <button type="button" class="sc-btn sc-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+          <button
+            type="button"
+            class="sc-btn sc-text sc-cc"
+            [class.active]="captionsOn()"
+            [attr.aria-pressed]="captionsOn()"
+            [disabled]="!hasCaptions()"
+            [attr.aria-label]="hasCaptions() ? 'Altyazılar' : 'Altyazı yok'"
+            (click)="toggleCaptions()">CC</button>
+          <div class="fp-quality-wrap">
+            <button
+              type="button"
+              class="sc-btn"
+              aria-label="Kalite"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="qualityMenuOpen()"
+              [disabled]="renditions().length === 0"
+              (click)="toggleQualityMenu($event)">⚙</button>
+            @if (qualityMenuOpen()) {
+              <div class="fp-menu fp-menu-quality" role="menu">
+                <span class="fp-menu-label">Quality</span>
+                @for (r of renditions(); track r.label) {
+                  <button type="button" role="menuitemradio" class="fp-menu-item" [attr.aria-checked]="r.label === quality()" (click)="pickQuality(r.label)">
+                    <span>{{ r.label }}</span>
+                    @if (r.label === quality()) {
+                      <span class="fp-check" aria-hidden="true">✓</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+          <button type="button" class="sc-btn" [class.active]="theater()" [attr.aria-pressed]="theater()" aria-label="Sinema modu" (click)="theaterToggle.emit()">▭</button>
+          <button type="button" class="sc-btn" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
+        </div>
+      </div>
+    }
+
+    <!-- ─── Gamer Feed.dc.html: feed card + Clips page hero ───────────── -->
+    @default {
+      <span class="stage-scrim" aria-hidden="true"></span>
+
+      <!-- The design's click layer stops short of the overlay so the controls stay reachable. -->
+      <button type="button" class="stage-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
+
+      <div class="stage-badges">
+        <span class="stage-badge stage-badge-rank">{{ rankLabel() }}</span>
+        @if (post().gameName) {
+          <span class="stage-badge stage-badge-game">{{ gameTag() }}</span>
+        }
+        @if (squadName(); as squad) {
+          <span class="stage-badge stage-badge-game">{{ squad }}</span>
+        }
+      </div>
+
+      <div class="stage-actions">
+        @if (isProcessing()) {
+          <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
+        }
+        <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+        <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+        @if (variant() === 'hero') {
+          <a class="stage-action" [routerLink]="['/clips', post().id]" [queryParams]="resumeParams()" aria-label="Klip oynatıcıda aç">⛶</a>
+        } @else {
+          <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
+        }
+      </div>
+
+      @if (!playing()) {
+        <button type="button" class="stage-play" aria-label="Oynat" (click)="togglePlay()">▶</button>
+      }
+
+      <div class="stage-info">
+        <div class="stage-title">{{ title() }}</div>
+
+        <div class="stage-meta">
+          <a [routerLink]="['/profile', post().userId]" class="stage-avatar" [attr.aria-label]="post().username">
+            @if (post().authorAvatarUrl; as avatar) {
+              <img [src]="avatar" alt="" />
+            } @else {
+              {{ initial() }}
+            }
+          </a>
+          <a [routerLink]="['/profile', post().userId]" class="stage-author">{{ post().username }}</a>
+          <span class="stage-level">{{ levelLabel() }}</span>
+          @if (variant() === 'feed') {
+            <span class="stage-ago">{{ timeAgo() }}</span>
+          }
+          <button type="button" class="stage-vote" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ {{ likeLabel() }}</button>
+          <button type="button" class="stage-comment" [class.active]="commentsActive()" [attr.aria-pressed]="commentsActive()" (click)="toggleComments.emit()">
+            💬 {{ commentLabel() }}@if (variant() === 'feed') { yorum}
+          </button>
+        </div>
+
+        <ng-container *ngTemplateOutlet="scrubBar; context: { withPreview: false, withMarkers: variant() === 'hero' }" />
+
+        <div class="stage-times">
+          <span class="stage-now">{{ currentLabel() }}</span>
+          <span>/ {{ durationLabel() }}</span>
+          <span class="stage-views">{{ viewsLabel() }}</span>
+        </div>
+      </div>
+    }
   }
+
 </div>

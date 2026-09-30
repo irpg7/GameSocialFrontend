@@ -1,29 +1,46 @@
 <div class="tab-panel">
-  <div class="filter-row">
-    @for (filter of filters(); track filter.id) {
+  <!-- 05-squad.html L112: Newest / Top this week / game chips · ＋ Upload clip -->
+  <div class="filter-row" role="toolbar" aria-label="Klip filtreleri">
+    <button type="button" class="filter-chip" [class.active]="sort() === 'new'" [attr.aria-pressed]="sort() === 'new'" (click)="sortPicked.emit('new')">Newest</button>
+    <button type="button" class="filter-chip" [class.active]="sort() === 'top'" [attr.aria-pressed]="sort() === 'top'" (click)="sortPicked.emit('top')">Top this week</button>
+    @for (game of games(); track game.id) {
       <button
         type="button"
-        class="chip"
-        [class.active]="activeGameId() === filter.id"
-        [attr.aria-pressed]="activeGameId() === filter.id"
-        (click)="gamePicked.emit(filter.id)">
-        {{ filter.label }}
-      </button>
+        class="filter-chip"
+        [class.active]="activeGameId() === game.id"
+        [attr.aria-pressed]="activeGameId() === game.id"
+        (click)="gamePicked.emit(activeGameId() === game.id ? null : game.id)">{{ game.name }}</button>
     }
     @if (canPost()) {
-      <button type="button" class="btn btn-primary btn-sm filter-row-action" (click)="upload.emit()">＋ Upload clip</button>
+      <button type="button" class="filter-action" (click)="upload.emit()">＋ Upload clip</button>
     }
   </div>
 
-  @if (isLoading()) {
-    <p class="text-muted tab-status">Loading clips…</p>
+  @if (isLoading() && posts().length === 0) {
+    <p class="tab-status">Klipler yükleniyor…</p>
   } @else if (posts().length === 0) {
-    <p class="text-muted tab-status">No clips posted to this squad yet.</p>
+    <p class="tab-status">Bu squad'a henüz klip paylaşılmadı.</p>
   } @else {
     <ul class="clip-grid">
       @for (post of posts(); track post.id) {
         <li>
-          <app-clip-queue-card [post]="post" (play)="openClip.emit(post)" />
+          <button type="button" class="clip-card" [attr.aria-label]="'Oynat: ' + title(post)" (click)="openClip.emit(post)">
+            <span class="clip-thumb">
+              @if (poster(post); as src) {
+                <img [src]="src" alt="" />
+              }
+              <span class="clip-play" aria-hidden="true">▶</span>
+              <span class="clip-duration mono">{{ duration(post) }}</span>
+            </span>
+            <span class="clip-body">
+              <span class="clip-title">{{ title(post) }}</span>
+              <span class="clip-meta">{{ post.username }} · {{ age(post.createdAt) }}</span>
+              <span class="clip-stats">
+                <span [class.voted]="post.isLikedByCurrentUser">▲ {{ post.likeCount }}</span>
+                <span>💬 {{ post.commentCount }}</span>
+              </span>
+            </span>
+          </button>
         </li>
       }
     </ul>

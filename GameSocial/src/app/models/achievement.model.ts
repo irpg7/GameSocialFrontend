@@ -5,8 +5,13 @@ export type AchievementRuleTypeName =
   | 'PostCountByType'
   | 'UsefulVotesReceived'
   | 'StreakDays'
+  /** Highest level among the squads the user captains. */
   | 'SquadCaptainOf'
-  | 'SquadMemberCountAtPostTime';
+  | 'SquadMemberCountAtPostTime'
+  /** Binary — one of the user's clips was the most-liked clip of its day. */
+  | 'ClipTopOfDay'
+  /** In-game stat reported by the game's studio (POST achievements/{id}/progress). */
+  | 'GameStat';
 
 /**
  * Corresponds to Domain.Responses.AchievementResponse (GET /api/achievements).
@@ -18,6 +23,7 @@ export interface AchievementModel {
   id: string;
   key: string;
   name: string;
+  /** May contain a `{progress}` placeholder, filled with progressCurrent when shown. */
   description: string;
   /** Short geometric glyph, e.g. "◎ ◈ ◍ ★". */
   icon: string;
@@ -33,4 +39,13 @@ export interface AchievementModel {
   showcaseSlot?: number;
   /** Live-computed: (users who earned it / total users) * 100, rounded to 1 decimal. */
   rarityPercent: number;
+}
+
+/** Corresponds to Domain.Responses.AchievementSummaryResponse (GET /api/achievements/summary). */
+export interface AchievementSummaryModel {
+  earnedCount: number;
+  inProgressCount: number;
+  totalCount: number;
+  /** "top N% overall", 1-100. */
+  topPercent: number;
 }

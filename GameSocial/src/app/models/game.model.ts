@@ -35,4 +35,9 @@ export interface GameModel {
   coverImageUrl: string;
   /** A game can belong to more than one genre (e.g. Action + RPG). */
   genres: GameGenreName[];
+  /** "Kuytu Studio · souls-like, co-op" on the Reviews game summary. */
+  studio?: string;
+  /** The game's developer account — their comments pin as "◆ YAPIMCI YANITI". */
+  developerUserId?: string;
+  developerUsername?: string;
 }

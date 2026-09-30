@@ -1,54 +1,77 @@
-<aside class="squad-sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-heading">
-      <span class="section-head-label">Your squads</span>
-      <span class="sidebar-count mono">{{ squads().length }}</span>
-    </div>
-
-    <ul class="squad-cards">
-      @for (squad of squads(); track squad.id) {
-        <li>
-          <a
-            class="squad-card"
-            [class.active]="squad.id === activeSquadId()"
-            [routerLink]="['/squads', squad.id]"
-            [attr.aria-current]="squad.id === activeSquadId() ? 'page' : null">
-            <span class="squad-card-top">
-              <span class="squad-card-mark" aria-hidden="true">{{ initial(squad.name) }}</span>
-              <span class="squad-card-identity">
-                <span class="squad-card-name">{{ squad.name }}</span>
-                <span class="squad-card-meta">{{ memberLabel(squad) }}</span>
-              </span>
-            </span>
-            @if (squad.primaryGameName) {
-              <span class="squad-card-game">{{ squad.primaryGameName }}</span>
-            }
-          </a>
-        </li>
-      }
-    </ul>
-
-    <button type="button" class="sidebar-dashed" (click)="createSquad.emit()">＋ New squad</button>
+<aside class="squad-sidebar" aria-label="Squad'larım ve kanallar">
+  <div class="sidebar-heading">
+    <span class="sidebar-label">Squad'larım</span>
+    <span class="sidebar-count mono">{{ squads().length }}</span>
   </div>
 
+  <ul class="squad-cards">
+    @for (squad of squads(); track squad.id) {
+      @let active = squad.id === activeSquadId();
+      <li>
+        <a
+          class="squad-card"
+          [class.active]="active"
+          [routerLink]="['/squads', squad.id]"
+          [attr.aria-current]="active ? 'page' : null">
+          <span class="squad-card-top">
+            <span class="squad-card-mark" aria-hidden="true">
+              @if (squad.iconUrl) {
+                <img [src]="squad.iconUrl" alt="" />
+              }
+            </span>
+            <span class="squad-card-identity">
+              <span class="squad-card-name">{{ squad.name }}</span>
+              <span class="squad-card-online">
+                <span class="online-dot" aria-hidden="true"></span>
+                <span>{{ squad.onlineCount }} online</span>
+              </span>
+            </span>
+            <span class="squad-card-lv mono">LV {{ squad.level }}</span>
+          </span>
+
+          @if (activityLine(squad.id); as line) {
+            <span class="squad-card-activity">{{ line }}</span>
+          }
+
+          @if (!active && (squad.newClipCount > 0 || squad.unreadMessageCount > 0)) {
+            <span class="squad-card-badges">
+              @if (squad.newClipCount > 0) {
+                <span class="badge badge-clips mono">{{ squad.newClipCount }} yeni klip</span>
+              }
+              @if (squad.unreadMessageCount > 0) {
+                <span class="badge badge-msgs mono">{{ squad.unreadMessageCount }} mesaj</span>
+              }
+            </span>
+          }
+        </a>
+      </li>
+    }
+  </ul>
+
+  <button type="button" class="sidebar-dashed" (click)="createSquad.emit()">＋ Yeni squad</button>
+
   <div class="sidebar-section">
-    <div class="sidebar-heading">
-      <span class="section-head-label" id="squad-channels-label">Channels</span>
+    <div class="sidebar-heading channels-heading">
+      <span class="sidebar-label" id="squad-channels-label">Kanallar</span>
       @if (canAddChannel()) {
-        <button type="button" class="sidebar-add" aria-label="Add a channel" (click)="addChannel.emit()">＋</button>
+        <button type="button" class="sidebar-add" aria-label="Kanal ekle" (click)="addChannel.emit()">＋</button>
       }
     </div>
 
     <ul class="channel-list" aria-labelledby="squad-channels-label">
       @for (channel of channels(); track channel.id) {
+        @let current = channel.id === activeChannelId();
         <li>
           <button
             type="button"
             class="channel-row"
-            [class.active]="channel.id === activeChannelId()"
-            [attr.aria-current]="channel.id === activeChannelId() ? 'true' : null"
+            [class.active]="current"
+            [attr.aria-current]="current ? 'true' : null"
             (click)="channelPicked.emit(channel.id)">
-            <span class="channel-hash" aria-hidden="true">#</span>{{ channel.name }}
+            <span class="channel-hash" aria-hidden="true">#</span><span class="channel-name">{{ channel.name }}</span>
+            @if (!current && channel.unreadCount > 0) {
+              <span class="channel-unread mono" [attr.aria-label]="channel.unreadCount + ' okunmamış'">{{ channel.unreadCount }}</span>
+            }
           </button>
         </li>
       }

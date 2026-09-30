@@ -1,26 +1,33 @@
 <header class="squad-banner">
-  @if (coverUrl(); as cover) {
-    <img class="squad-banner-image" [src]="cover" alt="" aria-hidden="true" />
+  @if (bannerUrl(); as banner) {
+    <img class="squad-banner-image" [src]="banner" alt="" aria-hidden="true" />
   }
   <span class="squad-banner-fade" aria-hidden="true"></span>
 
   <div class="squad-banner-content">
     <div class="squad-banner-lead">
       <a routerLink="/feed" class="squad-banner-back" aria-label="Back to feed">←</a>
-      <span class="squad-banner-mark" aria-hidden="true">{{ initial() }}</span>
+      <span class="squad-banner-mark" aria-hidden="true">
+        @if (squad().iconUrl) {
+          <img [src]="squad().iconUrl" alt="" />
+        }
+      </span>
     </div>
 
     <div class="squad-banner-identity">
-      <h1 class="squad-banner-name">{{ squad().name }}</h1>
+      <div class="squad-banner-title">
+        <h1 class="squad-banner-name">{{ squad().name }}</h1>
+        <span class="squad-banner-lv mono">LV {{ squad().level }}</span>
+      </div>
       <p class="squad-banner-meta">{{ meta() }}</p>
     </div>
 
     <div class="squad-banner-actions">
       @if (canPost()) {
-        <button type="button" class="btn btn-primary btn-banner" (click)="postToSquad.emit()">＋ Post to squad</button>
+        <button type="button" class="banner-btn banner-btn-primary" (click)="postToSquad.emit()">＋ Post to squad</button>
       }
-      <a routerLink="/feed" class="btn btn-banner btn-glass">Back to feed</a>
-      <button type="button" class="btn btn-banner btn-glass btn-icon" aria-label="Squad settings" (click)="openSettings.emit()">⚙</button>
+      <a routerLink="/feed" class="banner-btn banner-btn-glass">Back to feed</a>
+      <button type="button" class="banner-btn banner-btn-glass banner-btn-icon" aria-label="Squad ayarları" (click)="openSettings.emit()">⚙</button>
     </div>
   </div>
 </header>

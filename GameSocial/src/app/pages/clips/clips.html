@@ -4,13 +4,13 @@
       <h2>Clips</h2>
       <p class="clips-sub">Only clips — nothing else in this feed.</p>
     </div>
-    <a routerLink="/feed" class="clips-upload">＋ Upload a clip</a>
+    <button type="button" class="clips-upload" (click)="openUpload()">＋ Upload a clip</button>
   </div>
 
   <div class="clips-filters">
-    <button type="button" class="clips-chip" [class.active]="filter() === 'hot'" (click)="setFilter('hot')">Hot</button>
-    <button type="button" class="clips-chip" [class.active]="filter() === 'following'" (click)="setFilter('following')">Following</button>
-    <button type="button" class="clips-chip" [class.active]="filter() === 'new'" (click)="setFilter('new')">New</button>
+    @for (f of filters; track f.key) {
+      <button type="button" class="clips-chip" [class.active]="filter() === f.key" [attr.aria-pressed]="filter() === f.key" (click)="setFilter(f.key)">{{ f.label }}</button>
+    }
     <span class="clips-count">{{ countLabel() }}</span>
   </div>
 
@@ -22,14 +22,18 @@
           variant="hero"
           [rankLabel]="heroRank()"
           [autoplay]="true"
+          [startAt]="startAt()"
+          [hotMoments]="hotMoments()"
           [commentCount]="heroCommentCount()"
           [commentsActive]="rail() === 'comments'"
           (toggleComments)="setRail(rail() === 'comments' ? 'next' : 'comments')"
+          (timeChanged)="heroTime.set($event)"
+          (playingChange)="heroPlaying.set($event)"
           (ended)="onHeroEnded()" />
       } @else if (isLoadingFeed()) {
-        <p class="text-muted clips-status">Loading clips...</p>
+        <p class="clips-status">Klipler yükleniyor…</p>
       } @else {
-        <p class="text-muted clips-status">No clips yet.</p>
+        <p class="clips-status">Henüz klip yok.</p>
       }
     </div>
 
@@ -40,37 +44,45 @@
     -->
     <aside class="clips-rail">
       <div class="rail-inner">
-      <div class="rail-tabs">
-        <button type="button" class="rail-tab" [class.active]="rail() === 'next'" (click)="setRail('next')">Up next</button>
-        <button type="button" class="rail-tab" [class.active]="rail() === 'comments'" (click)="setRail('comments')">
-          Yorumlar <span class="rail-tab-count">{{ heroCommentCount() }}</span>
-        </button>
-        <button type="button" class="rail-autoplay" [class.on]="autoplay()" [attr.aria-pressed]="autoplay()" (click)="toggleAutoplay()">
-          <span class="rail-autoplay-label">AUTOPLAY</span>
-          <span class="rail-switch" aria-hidden="true"><span class="rail-knob"></span></span>
-        </button>
-      </div>
-
-      @if (rail() === 'next') {
-        <div class="rail-queue">
-          @for (post of upNext(); track post.id) {
-            <app-clip-queue-card [post]="post" (play)="selectClip(post)" (openComments)="openComments(post)" />
-          }
-
-          @if (upNext().length === 0 && !isLoadingFeed()) {
-            <p class="text-muted rail-empty">Sırada başka klip yok.</p>
-          }
-
-          @if (hasMore()) {
-            <button type="button" class="rail-load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
-              {{ isLoadingMore() ? 'Yükleniyor…' : 'Daha fazla klip' }}
-            </button>
-          }
+        <div class="rail-tabs">
+          <button type="button" class="rail-tab" [class.active]="rail() === 'next'" [attr.aria-pressed]="rail() === 'next'" (click)="setRail('next')">Up next</button>
+          <button type="button" class="rail-tab" [class.active]="rail() === 'comments'" [attr.aria-pressed]="rail() === 'comments'" (click)="setRail('comments')">
+            Yorumlar <span class="rail-tab-count">{{ heroCommentCount() }}</span>
+          </button>
+          <button type="button" class="rail-autoplay" role="switch" [class.on]="autoplay()" [attr.aria-checked]="autoplay()" (click)="toggleAutoplay()">
+            <span class="rail-autoplay-label">AUTOPLAY</span>
+            <span class="rail-switch" aria-hidden="true"><span class="rail-knob"></span></span>
+          </button>
         </div>
-      } @else if (hero(); as heroPost) {
-        <app-clip-rail-comments [postId]="heroPost.id" (countChanged)="onCommentCountChanged(heroPost.id, $event)" />
-      }
+
+        @if (rail() === 'next') {
+          <div class="rail-queue">
+            @for (post of upNext(); track post.id) {
+              <app-clip-queue-card [post]="post" (play)="selectClip(post)" (openComments)="openComments(post)" />
+            }
+
+            @if (upNext().length === 0 && !isLoadingFeed()) {
+              <p class="rail-empty">Sırada başka klip yok.</p>
+            }
+
+            @if (hasMore()) {
+              <button type="button" class="rail-load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+                {{ isLoadingMore() ? 'Yükleniyor…' : 'Daha fazla klip' }}
+              </button>
+            }
+          </div>
+        } @else if (hero(); as heroPost) {
+          <app-clip-rail-comments
+            [postId]="heroPost.id"
+            [currentTime]="heroTime()"
+            (seek)="onSeek($event)"
+            (countChanged)="onCommentCountChanged(heroPost.id, $event)" />
+        }
       </div>
     </aside>
   </div>
 </div>
+
+@if (isUploadOpen()) {
+  <app-clip-upload-sheet (closed)="isUploadOpen.set(false)" (posted)="onUploaded($event)" />
+}

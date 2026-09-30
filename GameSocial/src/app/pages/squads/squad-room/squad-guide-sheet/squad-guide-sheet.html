@@ -1,0 +1,118 @@
+<app-sheet-modal [title]="heading()" [subtitle]="subtitle()" (closed)="closed.emit()">
+  @if (!editing() && guide(); as current) {
+    @if (current.description) {
+      <p class="guide-desc">{{ current.description }}</p>
+    }
+    <ul class="guide-items">
+      @for (item of current.items; track item.postId) {
+        <li>
+          <button type="button" class="guide-item" (click)="openItem.emit(item)">
+            <span class="guide-item-thumb">
+              @if (item.thumbnailUrl) {
+                <img [src]="item.thumbnailUrl" alt="" />
+              }
+              <span class="guide-item-kind mono">{{ item.postType === 'Clip' ? '▶ CLIP' : '▣ ' + item.photoCount }}</span>
+            </span>
+            <span class="guide-item-caption">{{ item.caption || (item.postType === 'Clip' ? 'Klip' : 'Ekran görüntüleri') }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="guide-footer">
+      @if (canEdit()) {
+        <button type="button" class="link-danger" [disabled]="isBusy()" (click)="remove()">Guide’ı kaldır</button>
+      }
+      <span class="guide-footer-spacer"></span>
+      @if (canManage() && !current.isFeatured) {
+        <button type="button" class="btn btn-secondary" [disabled]="isBusy()" (click)="feature()">◫ Üste sabitle</button>
+      }
+      @if (canEdit()) {
+        <button type="button" class="btn btn-primary" (click)="startEdit()">Düzenle</button>
+      }
+    </div>
+  } @else {
+    <div class="form-group">
+      <label for="guide-title">Başlık</label>
+      <input
+        id="guide-title"
+        type="text"
+        [maxlength]="maxTitle"
+        [ngModel]="title()"
+        (ngModelChange)="title.set($event)"
+        placeholder="Boss 7 — sağ platform rotası">
+    </div>
+
+    <div class="form-group">
+      <label for="guide-description">Açıklama</label>
+      <textarea
+        id="guide-description"
+        rows="2"
+        [maxlength]="maxDescription"
+        [ngModel]="description()"
+        (ngModelChange)="description.set($event)"
+        placeholder="Hitbox bug'ından kaçmanın tek yolu. 2 klip + 4 görsel, adım adım."></textarea>
+    </div>
+
+    @if (games().length > 0) {
+      <div class="form-group">
+        <label for="guide-game">Oyun</label>
+        <select id="guide-game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+          <option [ngValue]="null">— Oyun yok —</option>
+          @for (game of games(); track game.id) {
+            <option [ngValue]="game.id">{{ game.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <fieldset class="guide-pick">
+      <legend>Klipler ve ekran görüntüleri <span class="mono">{{ selectedPostIds().length }}/20</span></legend>
+      @if (isLoadingCandidates()) {
+        <p class="guide-hint">Yükleniyor…</p>
+      } @else if (candidates().length === 0) {
+        <p class="guide-hint">Bu squad'a henüz klip veya ekran görüntüsü paylaşılmadı.</p>
+      } @else {
+        <ul class="guide-candidates">
+          @for (post of candidates(); track post.id) {
+            <li>
+              <button
+                type="button"
+                class="guide-candidate"
+                [class.selected]="isSelected(post.id)"
+                [attr.aria-pressed]="isSelected(post.id)"
+                (click)="toggle(post.id)">
+                <span class="guide-item-thumb">
+                  @if (thumb(post); as src) {
+                    <img [src]="src" alt="" />
+                  }
+                  <span class="guide-item-kind mono">{{ post.postType === 'Clip' ? '▶' : '▣' }}</span>
+                  @if (isSelected(post.id)) {
+                    <span class="guide-check" aria-hidden="true">✓</span>
+                  }
+                </span>
+                <span class="guide-item-caption">{{ post.caption || post.gameName || post.username }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </fieldset>
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="guide-footer">
+      <button type="button" class="btn btn-secondary" (click)="guide() ? editing.set(false) : closed.emit()">Vazgeç</button>
+      <span class="guide-footer-spacer"></span>
+      <button type="button" class="btn btn-primary" [disabled]="isBusy()" (click)="save()">
+        {{ isBusy() ? 'Kaydediliyor…' : guide() ? 'Değişiklikleri kaydet' : 'Guide’ı sabitle' }}
+      </button>
+    </div>
+  }
+</app-sheet-modal>

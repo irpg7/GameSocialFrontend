@@ -1,0 +1,82 @@
+@use '../../../styles/variables' as *;
+
+// Design (08-sheets L81-92): strip on #16161C, 1px #23232B, radius 11, padding 6, gap 5.
+:host {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 6px;
+  border-radius: 11px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+}
+
+// 28×28, radius 8, #1B1B21, hover #23232B. Exposed un-encapsulated via ::ng-deep so
+// projected extra buttons (▶ Embed clip) can reuse `.rt-tool .rt-tool-wide`.
+:host ::ng-deep .rt-tool {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: $color-bg-tertiary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font: 700 12px/1 $font-family-primary;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-border;
+  }
+}
+
+:host ::ng-deep .rt-tool-wide {
+  width: auto;
+  padding: 0 9px;
+  font: 700 11px/1 $font-family-primary;
+}
+
+.rt-tool-b {
+  font: 800 13px/1 $font-family-primary;
+  color: $color-text-primary;
+}
+
+.rt-tool-i {
+  font: italic 700 13px/1 Georgia, serif;
+  color: $color-text-primary;
+}
+
+.rt-tool-u {
+  color: $color-text-primary;
+  text-decoration: underline;
+}
+
+.rt-tool-muted {
+  font-size: 13px;
+}
+
+.rt-tool-sm {
+  font-size: 12px;
+}
+
+.rt-tool-accent {
+  color: $color-accent-light;
+}
+
+.rt-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: $color-border;
+}
+
+.rt-hint {
+  margin-left: auto;
+  font: 600 10px/1 $font-family-primary;
+  color: $color-text-tertiary;
+}

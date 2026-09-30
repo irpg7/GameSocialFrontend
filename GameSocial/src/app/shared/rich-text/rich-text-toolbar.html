@@ -1,0 +1,12 @@
+<button type="button" class="rt-tool rt-tool-b" (click)="bold()" aria-label="Kalın">B</button>
+<button type="button" class="rt-tool rt-tool-i" (click)="italic()" aria-label="İtalik">I</button>
+<button type="button" class="rt-tool rt-tool-u" (click)="underline()" aria-label="Altı çizili">U</button>
+<span class="rt-divider" aria-hidden="true"></span>
+<button type="button" class="rt-tool rt-tool-muted" (click)="bullet()" aria-label="Madde işareti">•</button>
+<button type="button" class="rt-tool rt-tool-muted rt-tool-sm" (click)="quote()" aria-label="Alıntı">❝</button>
+<button type="button" class="rt-tool rt-tool-muted rt-tool-sm" (click)="link()" aria-label="Bağlantı">🔗</button>
+<button type="button" class="rt-tool rt-tool-wide rt-tool-accent" (click)="spoiler()">▨ Spoiler</button>
+<ng-content />
+@if (hint()) {
+  <span class="rt-hint">{{ hint() }}</span>
+}

@@ -1,59 +1,65 @@
 <aside class="squad-rail">
-  <section class="panel-card">
+  <!-- 05-squad.html L258: Roster -->
+  <section class="panel-card" aria-labelledby="squad-roster-label">
     <div class="panel-head">
-      <span class="section-head-label" id="squad-roster-label">Roster</span>
-      <span class="panel-count mono">{{ roster().length }} member{{ roster().length === 1 ? '' : 's' }}</span>
+      <span class="panel-label" id="squad-roster-label">Roster</span>
+      <span class="panel-online mono">{{ onlineCount() }} online</span>
     </div>
 
     @if (rosterError(); as error) {
-      <p class="text-muted rail-status">{{ error }}</p>
+      <p class="rail-status">{{ error }}</p>
     } @else if (roster().length === 0) {
-      <p class="text-muted rail-status">No members yet.</p>
+      <p class="rail-status">Henüz üye yok.</p>
     } @else {
-      <ul class="roster" aria-labelledby="squad-roster-label">
+      <ul class="roster">
         @for (member of roster(); track member.userId) {
-          <li class="roster-row" [class.self]="isSelf(member.userId)">
-            <span class="roster-avatar" aria-hidden="true">{{ initial(member.username) }}</span>
+          @let offline = member.presence === 'offline' || !member.presence;
+          <li class="roster-row" [class.offline]="offline">
+            <span class="roster-avatar-wrap">
+              <span class="roster-avatar" aria-hidden="true">
+                @if (member.avatarUrl) {
+                  <img [src]="member.avatarUrl" alt="" />
+                }
+              </span>
+              <span class="roster-dot" [class]="'roster-dot presence-' + (member.presence ?? 'offline')" [attr.aria-label]="presenceLabel(member.presence)"></span>
+            </span>
             <span class="roster-identity">
               <span class="roster-name-row">
                 <a class="roster-name" [routerLink]="['/profile', member.userId]">{{ member.username }}</a>
-                @if (member.level !== null) {
-                  <span class="roster-level mono">LV {{ member.level }}</span>
+                @if (member.role === 'Captain') {
+                  <span class="roster-tag mono">CAP</span>
                 }
               </span>
-              <span class="roster-status">
-                {{ member.role }} · joined {{ joined(member.joinedAt) }}
-              </span>
+              <span class="roster-status">{{ status(member) }}</span>
             </span>
           </li>
         }
       </ul>
     }
 
-    @if (isCaptain()) {
-      <button type="button" class="panel-dashed" (click)="invite.emit()">＋ Invite a player</button>
-      <button type="button" class="rail-manage" (click)="manageMembers.emit()">Manage members</button>
-    }
+    <button type="button" class="panel-dashed" (click)="invite.emit()">＋ Invite a player</button>
   </section>
 
-  <section class="panel-card">
-    <!-- Mock says "This week's board"; no weekly XP is stored, so this is honest. -->
-    <div class="panel-head">
-      <span class="section-head-label" id="squad-board-label">All-time board</span>
-    </div>
+  <!-- L279: This week's board -->
+  <section class="panel-card" aria-labelledby="squad-board-label">
+    <div class="panel-label board-title" id="squad-board-label">This week's board</div>
 
     @if (leaderboardError(); as error) {
-      <p class="text-muted rail-status">{{ error }}</p>
-    } @else if (leaderboard().length === 0) {
-      <p class="text-muted rail-status">No XP earned yet.</p>
+      <p class="rail-status">{{ error }}</p>
+    } @else if (board().length === 0) {
+      <p class="rail-status">Bu hafta henüz XP kazanılmadı.</p>
     } @else {
-      <ol class="board" aria-labelledby="squad-board-label">
-        @for (entry of leaderboard(); track entry.userId; let i = $index) {
-          <li class="board-row" [class.self]="isSelf(entry.userId)">
-            <span class="board-rank mono" [class.top]="i === 0">{{ i + 1 }}</span>
-            <span class="board-avatar" aria-hidden="true">{{ initial(entry.username) }}</span>
-            <span class="board-name">{{ isSelf(entry.userId) ? 'You' : entry.username }}</span>
-            <span class="board-xp mono">{{ entry.xp }}</span>
+      <ol class="board">
+        @for (row of board(); track row.entry.userId) {
+          <li class="board-row" [class.self]="row.self" [class.top]="row.rank === 1">
+            <span class="board-rank mono">{{ row.rank }}</span>
+            <span class="board-avatar" aria-hidden="true">
+              @if (row.entry.avatarUrl) {
+                <img [src]="row.entry.avatarUrl" alt="" />
+              }
+            </span>
+            <span class="board-name">{{ row.self ? 'You' : row.entry.username }}</span>
+            <span class="board-xp mono">{{ format(row.entry.xp) }}</span>
           </li>
         }
       </ol>

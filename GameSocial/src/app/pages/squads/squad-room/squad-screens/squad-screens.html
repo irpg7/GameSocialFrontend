@@ -1,31 +1,31 @@
 <div class="tab-panel">
-  <div class="filter-row">
-    @for (filter of filters(); track filter.id) {
+  <!-- 05-squad.html L159: All N / game chips · ＋ Add screens -->
+  <div class="filter-row" role="toolbar" aria-label="Ekran görüntüsü filtreleri">
+    <button type="button" class="filter-chip" [class.active]="activeGameId() === null" [attr.aria-pressed]="activeGameId() === null" (click)="gamePicked.emit(null)">All {{ totalCount() }}</button>
+    @for (game of games(); track game.id) {
       <button
         type="button"
-        class="chip"
-        [class.active]="activeGameId() === filter.id"
-        [attr.aria-pressed]="activeGameId() === filter.id"
-        (click)="gamePicked.emit(filter.id)">
-        {{ filter.label }}
-      </button>
+        class="filter-chip"
+        [class.active]="activeGameId() === game.id"
+        [attr.aria-pressed]="activeGameId() === game.id"
+        (click)="gamePicked.emit(game.id)">{{ game.name }}</button>
     }
     @if (canPost()) {
-      <button type="button" class="btn btn-primary btn-sm filter-row-action" (click)="add.emit()">＋ Add screens</button>
+      <button type="button" class="filter-action" (click)="add.emit()">＋ Add screens</button>
     }
   </div>
 
-  @if (isLoading()) {
-    <p class="text-muted tab-status">Loading screenshots…</p>
-  } @else if (visibleTiles().length === 0) {
-    <p class="text-muted tab-status">No screenshots posted to this squad yet.</p>
+  @if (isLoading() && tiles().length === 0) {
+    <p class="tab-status">Ekran görüntüleri yükleniyor…</p>
+  } @else if (tiles().length === 0) {
+    <p class="tab-status">Bu squad'a henüz ekran görüntüsü paylaşılmadı.</p>
   } @else {
-    <!-- Design: 4 columns, lead tile spans 2x2, last tile carries the +N overlay -->
+    <!-- L166: 4 columns × 104px rows, lead tile 2×2, 5 tiles, last one carries "+N" -->
     <ul class="screen-mosaic">
-      @for (tile of visibleTiles(); track tile.media.id; let i = $index; let last = $last) {
-        <li class="screen-cell">
-          <button type="button" class="screen-tile" (click)="openTile(tile)">
-            <img [src]="tile.media.url" [alt]="tileAlt(tile)" />
+      @for (tile of visibleTiles(); track tile.media.id; let first = $first; let last = $last) {
+        <li class="screen-cell" [class.lead]="first">
+          <button type="button" class="screen-tile" [attr.aria-label]="tileAlt(tile)" (click)="openTile(tile)">
+            <img [src]="tile.media.thumbnailUrl || tile.media.url" alt="" />
             @if (last && hiddenCount() > 0) {
               <span class="screen-more">+{{ hiddenCount() }}</span>
             }
@@ -35,11 +35,15 @@
     </ul>
 
     @if (latestActivity(); as activity) {
+      <!-- L173 -->
       <div class="screen-activity">
-        <span class="screen-activity-avatar" aria-hidden="true">{{ activity.initial }}</span>
+        <span class="screen-activity-avatar" aria-hidden="true">
+          @if (activity.avatarUrl) {
+            <img [src]="activity.avatarUrl" alt="" />
+          }
+        </span>
         <p>
-          <b>{{ activity.username }}</b> added {{ activity.count }}
-          screen{{ activity.count === 1 ? '' : 's' }}@if (activity.gameName) { to <b>{{ activity.gameName }}</b>}
+          <b>{{ activity.username }}</b> added {{ activity.count }} screen{{ activity.count === 1 ? '' : 's' }}@if (activity.gameName) { to <b>{{ activity.gameName }}</b>}
         </p>
         <span class="screen-activity-when">{{ activity.when }}</span>
       </div>

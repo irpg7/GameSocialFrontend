@@ -24,8 +24,8 @@
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
+  background-color: $color-bg-sheet;
+  border: 1px solid $color-border-strong;
   border-radius: $border-radius-sheet;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   overflow: hidden;
@@ -55,7 +55,7 @@
   font-size: 12px;
   line-height: 17px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
   margin-top: 2px;
 }
 
@@ -64,8 +64,8 @@
   flex: none;
   width: 34px;
   height: 34px;
-  border-radius: $border-radius-md;
-  background-color: $color-bg-secondary;
+  border-radius: 12px;
+  background-color: $color-bg-tertiary;
   border: 1px solid $color-border;
   color: $color-text-secondary;
   font-size: 15px;
@@ -74,8 +74,9 @@
   cursor: pointer;
   transition: border-color $transition-speed-fast, color $transition-speed-fast;
 
-  &:hover {
-    border-color: $color-text-secondary;
+  &:hover,
+  &:focus-visible {
+    border-color: $color-border-dashed;
     color: $color-text-primary;
   }
 }

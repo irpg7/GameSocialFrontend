@@ -1,119 +1,146 @@
-<app-sheet-modal
+<app-squad-sheet-frame
   title="Create a squad"
   subtitle="Small groups work best — 4 to 8 people who actually play together"
+  [width]="620"
   (closed)="closed.emit()">
 
-  <!-- sheetSquad: 74px icon beside the name + main-game stack -->
-  <div class="create-identity">
-    <div class="create-icon" aria-hidden="true">
-      @if (initial()) {
-        {{ initial() }}
-      } @else {
-        <span class="create-icon-hint">Squad<br />icon</span>
-      }
-    </div>
-    <div class="create-identity-fields">
-      <div class="form-group">
-        <label for="squad-name">Name</label>
+  <div class="create-body">
+    <div class="create-identity">
+      <!-- Dashed 74px "Squad icon" slot — a real upload -->
+      <label class="create-icon" [class.has-image]="iconPreview()">
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="visually-hidden" (change)="onIconPicked($event)" />
+        @if (iconPreview(); as preview) {
+          <img [src]="preview" alt="Selected squad icon" />
+        } @else {
+          <span>Squad<br />icon</span>
+        }
+      </label>
+
+      <div class="create-identity-fields">
+        <label class="visually-hidden" for="squad-name">Squad name</label>
         <input
           id="squad-name"
+          class="create-box create-name"
           type="text"
           [ngModel]="name()"
           (ngModelChange)="name.set($event)"
           [maxlength]="maxNameLength"
-          placeholder="Squad name">
-      </div>
-      <div class="form-group">
-        <label for="squad-game">Main game <span class="text-muted">(optional)</span></label>
-        <select id="squad-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
-          <option [ngValue]="null">— No main game —</option>
+          placeholder="Squad name" />
+
+        <label class="visually-hidden" for="squad-game">Main game</label>
+        <select id="squad-game" class="create-box create-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
+          <option [ngValue]="null">Main game — none</option>
           @for (game of games(); track game.id) {
-            <option [ngValue]="game.id">{{ game.name }}</option>
+            <option [ngValue]="game.id">Main game — {{ game.name }}</option>
           }
         </select>
       </div>
     </div>
-  </div>
 
-  <div class="form-group">
-    <label for="squad-description">What is this squad for? <span class="text-muted">(optional)</span></label>
+    <label class="visually-hidden" for="squad-description">What is this squad for?</label>
     <textarea
       id="squad-description"
-      rows="3"
+      class="create-purpose"
+      rows="2"
       [ngModel]="description()"
       (ngModelChange)="description.set($event)"
       [maxlength]="maxDescriptionLength"
-      placeholder="Weeknight raids, no mic shaming…"></textarea>
-    <span class="char-count">{{ description().length }}/{{ maxDescriptionLength }}</span>
-  </div>
+      placeholder="What is this squad for? Weeknight raids, no mic shaming…"></textarea>
 
-  <!-- sheetSquad: described radio cards, not a chip row -->
-  <fieldset class="policy-group">
-    <legend class="section-head-label">Who can join</legend>
-    <div class="policy-cards">
-      @for (policy of joinPolicies; track policy.value) {
-        <label class="policy-card" [class.selected]="joinPolicy() === policy.value">
+    <fieldset class="create-group">
+      <legend class="create-label">Who can join</legend>
+      <div class="policy-cards">
+        @for (policy of joinPolicies; track policy.value) {
+          <label class="policy-card" [class.selected]="joinPolicy() === policy.value">
+            <input
+              type="radio"
+              class="visually-hidden"
+              name="createJoinPolicy"
+              [value]="policy.value"
+              [checked]="joinPolicy() === policy.value"
+              (change)="joinPolicy.set(policy.value)" />
+            <span class="policy-card-label">{{ policy.label }}</span>
+            <span class="policy-card-desc">{{ policy.description }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="create-group" role="group" aria-labelledby="starter-channels-label">
+      <div class="create-label" id="starter-channels-label">Başlangıç kanalları</div>
+      <div class="channel-chips">
+        @for (channel of channels(); track channel) {
+          <button
+            type="button"
+            class="channel-chip"
+            [class.on]="isSelected(channel)"
+            [attr.aria-pressed]="isSelected(channel)"
+            (click)="toggleChannel(channel)">#{{ channel }}</button>
+        }
+        @if (isAddingChannel()) {
+          <span class="channel-chip channel-chip-input">
+            #<label class="visually-hidden" for="new-channel">New channel name</label>
+            <input
+              id="new-channel"
+              type="text"
+              [maxlength]="maxChannelNameLength"
+              [ngModel]="newChannelName()"
+              (ngModelChange)="newChannelName.set($event)"
+              (keydown.enter)="$event.preventDefault(); commitChannel()"
+              (keydown.escape)="$event.stopPropagation(); cancelChannel()"
+              (blur)="commitChannel()"
+              placeholder="channel" />
+          </span>
+        } @else {
+          <button type="button" class="channel-chip channel-chip-add" (click)="startAddChannel()">＋ channel</button>
+        }
+      </div>
+    </div>
+
+    <div class="invite-nudge">
+      <div class="invite-avatars">
+        @for (slot of nudgeSlots(); track $index) {
+          <span class="invite-avatar" [attr.aria-hidden]="slot ? null : true" [attr.title]="slot">
+            {{ slot ? slot.charAt(0).toUpperCase() : '' }}
+          </span>
+        }
+        <button type="button" class="invite-avatar invite-avatar-add" aria-label="Invite a friend by username" (click)="startInvite()">＋</button>
+      </div>
+      <p>Invite 2 friends now — squads with 3+ members stay alive twice as long</p>
+    </div>
+
+    @if (isInviting() || invitees().length > 0) {
+      <div class="invitee-row">
+        @for (username of invitees(); track username) {
+          <span class="invitee-chip">
+            {{ username }}
+            <button type="button" [attr.aria-label]="'Remove ' + username" (click)="removeInvitee(username)">✕</button>
+          </span>
+        }
+        @if (isInviting()) {
+          <label class="visually-hidden" for="invite-username">Username to invite</label>
           <input
-            type="radio"
-            name="joinPolicy"
-            [value]="policy.value"
-            [checked]="joinPolicy() === policy.value"
-            (change)="joinPolicy.set(policy.value)">
-          <span class="policy-card-label">{{ policy.label }}</span>
-          <span class="policy-card-desc">{{ policy.description }}</span>
-        </label>
-      }
-    </div>
-    <p class="hint text-muted">
-      Only "Invite only" behaves differently today — the captain adds members by username.
-      Ask-to-join and Open are stored but have no request inbox or self-serve join flow yet.
-    </p>
-  </fieldset>
+            id="invite-username"
+            class="invitee-input"
+            type="text"
+            [ngModel]="inviteUsername()"
+            (ngModelChange)="inviteUsername.set($event)"
+            (keydown.enter)="$event.preventDefault(); commitInvite()"
+            placeholder="Username — press Enter" />
+        }
+      </div>
+    }
 
-  <div class="form-group">
-    <span class="section-head-label">Starter channels</span>
-    <div class="starter-channels">
-      <span class="chip active" aria-disabled="true">#general</span>
-      <span class="chip active" aria-disabled="true">#clips</span>
-      @for (channelName of additionalChannelNames(); track channelName; let i = $index) {
-        <span class="chip active removable-chip">
-          #{{ channelName }}
-          <button type="button" [attr.aria-label]="'Remove #' + channelName" (click)="removeChannelName(i)">&times;</button>
-        </span>
-      }
-    </div>
-    <div class="add-channel-row">
-      <label class="visually-hidden" for="squad-new-channel">Add another channel</label>
-      <input
-        id="squad-new-channel"
-        type="text"
-        [ngModel]="newChannelName()"
-        (ngModelChange)="newChannelName.set($event)"
-        [maxlength]="maxChannelNameLength"
-        placeholder="Add another channel"
-        (keydown.enter)="$event.preventDefault(); addChannelName()">
-      <button type="button" class="btn btn-secondary" (click)="addChannelName()">Add</button>
-    </div>
+    @if (errorMessage(); as error) {
+      <p class="create-error" role="alert">{{ error }}</p>
+    }
   </div>
 
-  <!-- sheetSquad: stacked-avatar invite nudge -->
-  <div class="invite-nudge">
-    <div class="invite-avatars" aria-hidden="true">
-      <span class="invite-avatar"></span>
-      <span class="invite-avatar"></span>
-      <span class="invite-avatar invite-avatar-add">＋</span>
-    </div>
-    <p>Invite 2 friends now — squads with 3+ members stay alive twice as long</p>
-  </div>
-
-  @if (errorMessage()) {
-    <p class="form-error">{{ errorMessage() }}</p>
-  }
-
-  <div class="composer-footer">
-    <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
-    <button type="button" class="btn btn-primary" [disabled]="isSubmitting()" (click)="submit()">
-      {{ isSubmitting() ? 'Creating...' : 'Create squad' }}
+  <div class="create-footer">
+    <button type="button" class="foot-cancel" (click)="closed.emit()">Cancel</button>
+    <button type="button" class="foot-draft" (click)="saveDraft()">Save draft</button>
+    <button type="button" class="foot-create" [disabled]="isSubmitting()" (click)="submit()">
+      {{ isSubmitting() ? 'Creating…' : 'Create squad' }}
     </button>
   </div>
-</app-sheet-modal>
+</app-squad-sheet-frame>

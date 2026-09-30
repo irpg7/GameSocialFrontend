@@ -1,27 +1,41 @@
 @use '../../../styles/variables' as *;
 
-// The design's stars are the brand red with a flat grey for the empty ones —
-// there is no yellow anywhere in Gamer Feed.dc.html.
-
+// Design: glyph stars in #E11D2E, empty ones #3a3a44 — 11px/letter-spacing 1px on
+// the review cards, 22px/letter-spacing 2px in the Write-a-review sheet.
 :host {
+  --star-size: 11px;
   display: inline-flex;
   align-items: center;
-  gap: 1px;
+  gap: calc(var(--star-size) / 11);
+  font-size: var(--star-size);
+  line-height: 1;
+  color: $color-accent-primary;
+}
+
+:host(.interactive) {
+  gap: calc(var(--star-size) / 11 * 2);
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 3px;
+  }
 }
 
 .star {
-  flex-shrink: 0;
+  position: relative;
+  display: inline-block;
+}
 
-  &-full {
-    color: $color-accent-primary;
-  }
+.star-empty {
+  color: $color-border-dashed;
+}
 
-  &-half {
-    color: $color-accent-primary;
-    opacity: 0.5;
-  }
-
-  &-empty {
-    color: $color-bg-tertiary;
-  }
+.star-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: $color-accent-primary;
 }

@@ -35,6 +35,8 @@ export class GamesAdmin implements OnInit {
 
   protected readonly newName = signal('');
   protected readonly newGenres = signal<Set<GameGenreName>>(new Set());
+  protected readonly newStudio = signal('');
+  protected readonly newDeveloper = signal('');
   private newPosterFile = signal<File | null>(null);
   protected readonly isCreating = signal(false);
   protected readonly createError = signal<string | null>(null);
@@ -42,6 +44,8 @@ export class GamesAdmin implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly editName = signal('');
   protected readonly editGenres = signal<Set<GameGenreName>>(new Set());
+  protected readonly editStudio = signal('');
+  protected readonly editDeveloper = signal('');
   private editPosterFile = signal<File | null>(null);
   protected readonly isSaving = signal(false);
   protected readonly editError = signal<string | null>(null);
@@ -77,6 +81,8 @@ export class GamesAdmin implements OnInit {
     for (const genre of this.newGenres()) {
       formData.append('Genres', genre);
     }
+    formData.append('Studio', this.newStudio().trim());
+    formData.append('DeveloperUsername', this.newDeveloper().trim());
     if (file) {
       formData.append('Poster', file);
     }
@@ -89,6 +95,8 @@ export class GamesAdmin implements OnInit {
           this.games.update((existing) => [...existing, game].sort((a, b) => a.name.localeCompare(b.name)));
           this.newName.set('');
           this.newGenres.set(new Set());
+          this.newStudio.set('');
+          this.newDeveloper.set('');
           this.newPosterFile.set(null);
         },
         error: (err) => this.createError.set(extractApiErrorMessage(err, 'Failed to create game.')),
@@ -115,6 +123,8 @@ export class GamesAdmin implements OnInit {
     this.editingId.set(game.id);
     this.editName.set(game.name);
     this.editGenres.set(new Set(game.genres));
+    this.editStudio.set(game.studio ?? '');
+    this.editDeveloper.set(game.developerUsername ?? '');
     this.editPosterFile.set(null);
     this.editError.set(null);
   }
@@ -148,6 +158,8 @@ export class GamesAdmin implements OnInit {
     for (const genre of this.editGenres()) {
       formData.append('Genres', genre);
     }
+    formData.append('Studio', this.editStudio().trim());
+    formData.append('DeveloperUsername', this.editDeveloper().trim());
     if (file) {
       formData.append('Poster', file);
     }

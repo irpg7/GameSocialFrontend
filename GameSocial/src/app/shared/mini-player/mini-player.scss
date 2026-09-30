@@ -1,0 +1,153 @@
+@use '../../../styles/variables' as *;
+
+// Clip Player.dc.html — "Mini player pinned while browsing" (276px card).
+
+.mini {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+  width: 276px;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border-strong;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  @media (max-width: 640px) {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+button:focus-visible {
+  outline: 2px solid $color-accent-light;
+  outline-offset: 2px;
+}
+
+.mini-stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 12, 0.28);
+    pointer-events: none;
+  }
+}
+
+.mini-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mini-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: flex;
+  gap: 5px;
+}
+
+.mini-corner-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: none;
+  background-color: rgba(10, 10, 12, 0.72);
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $color-accent-primary;
+  }
+}
+
+.mini-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.mini-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  background-color: rgba(10, 10, 12, 0.66);
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.mini-btn-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: $color-accent-primary;
+  font-size: 14px;
+  padding-left: 2px;
+}
+
+.mini-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.mini-progress-fill {
+  display: block;
+  height: 100%;
+  background-color: $color-accent-primary;
+}
+
+.mini-text {
+  padding: 9px 11px 10px;
+}
+
+.mini-title {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+  font-variant-numeric: tabular-nums;
+}

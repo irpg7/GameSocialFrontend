@@ -39,6 +39,21 @@
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.viewer-lv {
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 700 10px/1 $font-family-mono;
 }
 
 .viewer-author {
@@ -53,7 +68,7 @@
   font-size: 12px;
   line-height: 16px;
   font-weight: 700;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
 }
 
 .viewer-head-actions {
@@ -66,7 +81,7 @@
 .viewer-action {
   height: 32px;
   padding: 0 12px;
-  border: 1px solid $color-bg-tertiary;
+  border: 1px solid $color-border-strong;
   border-radius: 11px;
   background: none;
   color: $color-text-primary;
@@ -86,9 +101,9 @@
 .viewer-close {
   width: 32px;
   height: 32px;
-  border: 1px solid $color-bg-tertiary;
+  border: 1px solid $color-border-strong;
   border-radius: 11px;
-  background-color: $color-bg-primary;
+  background-color: $color-bg-tertiary;
   color: $color-text-primary;
   font-size: 13px;
   line-height: 1;
@@ -115,7 +130,7 @@
   width: 44px;
   height: 44px;
   flex: none;
-  border: 1px solid $color-bg-tertiary;
+  border: 1px solid $color-border-strong;
   border-radius: 15px;
   background-color: $color-bg-secondary;
   color: $color-text-primary;
@@ -222,4 +237,8 @@
     width: 60px;
     height: 38px;
   }
+}
+
+.viewer-action.saved {
+  color: $color-accent-light;
 }

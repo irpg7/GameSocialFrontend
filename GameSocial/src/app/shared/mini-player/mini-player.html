@@ -1,0 +1,35 @@
+@if (visible() && post(); as clip) {
+  <aside class="mini" aria-label="Mini oynatıcı">
+    <div class="mini-stage">
+      <video
+        #video
+        class="mini-video"
+        [src]="src()"
+        [attr.poster]="poster()"
+        playsinline
+        preload="metadata"
+        (loadedmetadata)="onLoadedMetadata()"
+        (timeupdate)="onTimeUpdate()"
+        (play)="playing.set(true)"
+        (pause)="playing.set(false)"
+        (ended)="onEnded()"></video>
+
+      <div class="mini-corner">
+        <button type="button" class="mini-corner-btn" aria-label="Oynatıcıda aç" (click)="expand()">⤢</button>
+        <button type="button" class="mini-corner-btn" aria-label="Mini oynatıcıyı kapat" (click)="close()">✕</button>
+      </div>
+
+      <div class="mini-controls">
+        <button type="button" class="mini-btn" aria-label="Önceki klip" [disabled]="!hasPrev()" (click)="step(-1)">⏮</button>
+        <button type="button" class="mini-btn mini-btn-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playing() ? '‖' : '▶' }}</button>
+        <button type="button" class="mini-btn" aria-label="Sonraki klip" [disabled]="!hasNext()" (click)="step(1)">⏭</button>
+      </div>
+
+      <span class="mini-progress" aria-hidden="true"><span class="mini-progress-fill" [style.width.%]="progress()"></span></span>
+    </div>
+    <div class="mini-text">
+      <div class="mini-title">{{ title() }}</div>
+      <div class="mini-meta">{{ metaLine() }}</div>
+    </div>
+  </aside>
+}

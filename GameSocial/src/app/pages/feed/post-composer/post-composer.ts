@@ -1,4 +1,21 @@
-import { Component, ElementRef, OnDestroy, OnInit, computed, inject, input, linkedSignal, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  OnDestroy,
+  OnInit,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  viewChild,
+  viewChildren,
+  WritableSignal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { GameModel } from '../../../models/game.model';
@@ -6,11 +23,15 @@ import { PostModel } from '../../../models/post.model';
 import { PatchLineStatus, PostMediaType, PostPhotoType, PostType } from '../../../models/post-enums.model';
 import { PostService } from '../../../services/post/post.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { MeService } from '../../../services/me/me.service';
 import { SquadService } from '../../../services/squad/squad.service';
+import { XpAwardsService } from '../../../services/config/xp-awards.service';
 import { SquadModel } from '../../../models/squad.model';
 import { extractApiErrorMessage } from '../../../shared/api-error.util';
 import { SheetModal } from '../../../shared/sheet-modal/sheet-modal';
 import { ReviewSheet } from '../../../shared/review-sheet/review-sheet';
+import { RichTextToolbar } from '../../../shared/rich-text/rich-text-toolbar';
+import { DevlogMetaService, DevlogNextSequenceModel } from './devlog-meta.service';
 
 const MAX_CAPTION_LENGTH = 500;
 const MAX_TITLE_LENGTH = 200;
@@ -20,10 +41,29 @@ const MAX_POLL_OPTION_LENGTH = 120;
 const MIN_POLL_OPTIONS = 2;
 const MAX_POLL_OPTIONS = 6;
 const MAX_SCREENSHOTS = 10;
+const MAX_POST_TAGS = 8;
+const MAX_POST_TAG_LENGTH = 30;
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+/**
+ * The "TEST BRANCH ▾" picker — must equal CreatePostCommandValidator.AllowedBranchTags.
+ */
+export const BRANCH_TAGS = ['TEST BRANCH', 'PUBLIC', 'BETA', 'EXPERIMENTAL'] as const;
+type BranchTag = (typeof BRANCH_TAGS)[number];
+
+/** Screenshots panel preset tag chips (design: "Photo mode", "No spoilers", "＋ tag"). */
+const PRESET_SCREENSHOT_TAGS = ['Photo mode', 'No spoilers'];
+
+/** Poll "Open for" chips — the server only accepts these three durations. */
+const POLL_DURATIONS = [
+  { key: '24h', label: '24 hours', hours: 24 },
+  { key: '3d', label: '3 days', hours: 72 },
+  { key: '1w', label: '1 week', hours: 168 },
+] as const;
+type PollDuration = (typeof POLL_DURATIONS)[number]['key'];
 
 interface ScreenshotEntry {
   file: File;
@@ -35,40 +75,53 @@ interface PatchLineEntry {
   status: PatchLineStatus;
 }
 
-type PollDuration = '24h' | '3d' | '1w';
+interface DevlogMediaEntry {
+  file: File;
+  previewUrl: string;
+}
+
 type ComposerTab = 'clip' | 'screenshots';
 type ComposerSheet = 'poll' | 'devlog' | null;
 
+/** Order the patch-line glyph cycles through on click. */
+const PATCH_STATUS_CYCLE = [PatchLineStatus.Shipped, PatchLineStatus.Fixed, PatchLineStatus.Investigating];
+
 /**
- * Post-type picker + composer. Clip and Screenshots expand an inline panel
- * right in this bar; Poll and Devlog open a `SheetModal` right here, while
- * Review opens the standalone `ReviewSheet` component (factored out in
- * Phase 3 so the Reviews page can open the exact same form) — per the
- * spec's own composer=inline / sheet=modal split. All 5 types still submit
- * through the same FormData-based PostService.createPost — see
- * buildFormData() for the exact field mapping per type, confirmed against
- * CreatePostCommandValidator.cs directly.
+ * Post-type picker + composer (Gamer Feed.dc.html composer bar + sheetPoll /
+ * sheetDevlog). Clip and Screenshots expand an inline panel in this bar; Poll
+ * and DevLog open a `SheetModal`; Review opens the standalone `ReviewSheet`.
+ * "···" opens the more-post-types menu, which also lists saved drafts.
+ *
+ * Every type submits through PostService.createPost (multipart) — see
+ * buildFormData() for the field mapping, confirmed against
+ * CreatePostCommandValidator.cs. "Save draft" sends the same payload with
+ * IsDraft=true; drafts are published/deleted from the "···" menu.
+ *
+ * "◷ Open a bug thread" has no bug-tracker entity behind it: it adds an
+ * Investigating patch line (the design's own "still investigating, keep the
+ * clips coming" line), and the thread itself lives in the post's comments.
  */
 @Component({
   selector: 'app-post-composer',
-  imports: [FormsModule, SheetModal, ReviewSheet],
+  imports: [FormsModule, SheetModal, ReviewSheet, RichTextToolbar],
   templateUrl: './post-composer.html',
   styleUrl: './post-composer.scss',
 })
 export class PostComposer implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private squadService = inject(SquadService);
+  private meService = inject(MeService);
+  private devlogMeta = inject(DevlogMetaService);
+  private injector = inject(Injector);
   protected readonly authService = inject(AuthService);
+  protected readonly xpAwards = inject(XpAwardsService);
 
   games = input.required<GameModel[]>();
   posted = output<PostModel>();
 
   /**
    * When set, the composer posts to this squad and the squad picker is
-   * replaced by a locked chip. Used by the squad room, which hosts this
-   * composer in a sheet so "＋ Post to squad" / "＋ Upload clip" /
-   * "＋ Add screens" all land in the squad you are looking at.
-   * Follows the ReviewSheet.preselectedGameId precedent.
+   * replaced by a locked chip. Used by the squad room.
    */
   preselectedSquadId = input<string | null>(null);
   /** Label for the locked squad chip (the squad list is not fetched twice). */
@@ -76,39 +129,27 @@ export class PostComposer implements OnInit, OnDestroy {
   /** Opens the composer straight on the clip or screenshots tab. */
   initialTab = input<ComposerTab | null>(null);
 
-  protected readonly PostPhotoType = PostPhotoType;
   protected readonly PatchLineStatus = PatchLineStatus;
+  protected readonly branchTags = BRANCH_TAGS;
+  protected readonly pollDurations = POLL_DURATIONS;
+  protected readonly presetScreenshotTags = PRESET_SCREENSHOT_TAGS;
 
   protected readonly maxCaptionLength = MAX_CAPTION_LENGTH;
   protected readonly maxTitleLength = MAX_TITLE_LENGTH;
   protected readonly maxBodyLength = MAX_BODY_LENGTH;
   protected readonly maxTagLength = MAX_TAG_LENGTH;
   protected readonly maxPollOptionLength = MAX_POLL_OPTION_LENGTH;
-  protected readonly minPollOptions = MIN_POLL_OPTIONS;
   protected readonly maxPollOptions = MAX_POLL_OPTIONS;
   protected readonly maxScreenshots = MAX_SCREENSHOTS;
+  protected readonly maxPostTagLength = MAX_POST_TAG_LENGTH;
 
   protected readonly isDevlogAllowed = computed(() => this.authService.currentUser()?.isDeveloper ?? false);
 
-  /**
-   * The chip row drives three independent pieces of UI, kept as separate
-   * signals so a modal opening never bleeds into the Clip/Screenshots chip
-   * highlighting (the bug this replaced: opening Review/Poll/Devlog used to
-   * force the underlying `postType` back to Clip, which made the Clip chip
-   * light up *alongside* whichever sheet was actually open).
-   */
-  // Nothing is picked until the user picks it — the design's composer starts on
-  // `composer: null`, with no chip lit and no panel open. initialTab lets a host
-  // (the squad room) open the composer straight on a tab instead.
   protected readonly selectedTab = linkedSignal<ComposerTab | null>(() => this.initialTab());
   protected readonly openSheet = signal<ComposerSheet>(null);
-  /** Review isn't driven by `openSheet` — it's the standalone ReviewSheet, opened/closed independently. */
   protected readonly isReviewSheetOpen = signal(false);
+  protected readonly isMoreMenuOpen = signal(false);
 
-  /**
-   * The one line of guidance in the design's composer bar, which changes with
-   * the selected post type (`hints` in Gamer Feed.dc.html's composer logic).
-   */
   protected readonly composerHint = computed(() => {
     if (this.isReviewSheetOpen()) {
       return 'Review — score it, then say why';
@@ -130,7 +171,6 @@ export class PostComposer implements OnInit, OnDestroy {
     }
   });
 
-  /** The post type the inline Post button / open sheet is currently about to submit, or null while no type is picked. */
   protected readonly activePostType = computed<PostType | null>(() => {
     const sheet = this.openSheet();
     if (sheet === 'poll') return PostType.Poll;
@@ -140,18 +180,15 @@ export class PostComposer implements OnInit, OnDestroy {
     return tab === 'clip' ? PostType.Clip : null;
   });
 
-  /** Populates the optional squad-tag select for Clip/Screenshots — only squads the user is a member of (required server-side). */
   protected readonly mySquads = signal<SquadModel[]>([]);
+
+  /** Real XP for a clip ("Posting a clip is worth +120 XP") — from GET config/xp-awards. */
+  protected readonly clipXp = computed(() => this.xpAwards.amount('clip'));
 
   // ─── Clip / Screenshots (shared inline panel fields) ─────────
   protected readonly gameId = signal<number | null>(null);
   protected readonly caption = signal('');
-  // SquadModel.id is a GUID string and PostListFilters.squadId is a string, but
-  // this signal used to be typed `number` — so `[ngValue]="squad.id"` was putting
-  // a string into it and `String(...)` was stringifying it straight back. It is a
-  // linkedSignal so a host-supplied preselectedSquadId seeds it and stays in sync.
   protected readonly squadId = linkedSignal<string | null>(() => this.preselectedSquadId());
-  protected readonly photoType = signal<PostPhotoType>(PostPhotoType.Screenshot);
 
   // ─── Clip ──────────────────────────────────────────────────────
   private fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInput');
@@ -161,29 +198,99 @@ export class PostComposer implements OnInit, OnDestroy {
 
   // ─── Screenshots ───────────────────────────────────────────────
   private screenshotsInputRef = viewChild<ElementRef<HTMLInputElement>>('screenshotsInput');
+  private tagInputRef = viewChild<ElementRef<HTMLInputElement>>('tagInput');
   protected readonly screenshotFiles = signal<ScreenshotEntry[]>([]);
   protected readonly isDraggingScreenshots = signal(false);
+  protected readonly screenshotTags = signal<string[]>([]);
+  protected readonly isAddingTag = signal(false);
+  protected readonly newTag = signal('');
+  /** Custom tags (everything that isn't one of the preset chips), rendered after them. */
+  protected readonly customScreenshotTags = computed(() =>
+    this.screenshotTags().filter((t) => !PRESET_SCREENSHOT_TAGS.includes(t)),
+  );
 
   // ─── Devlog sheet ──────────────────────────────────────────────
-  private devlogFileInputRef = viewChild<ElementRef<HTMLInputElement>>('devlogFileInput');
+  private devlogVideoInputRef = viewChild<ElementRef<HTMLInputElement>>('devlogVideoInput');
+  private devlogPhotoInputRef = viewChild<ElementRef<HTMLInputElement>>('devlogPhotoInput');
+  private patchInputs = viewChildren<ElementRef<HTMLInputElement>>('patchInput');
   protected readonly devlogTitle = signal('');
   protected readonly devlogBody = signal('');
   protected readonly devlogGameId = signal<number | null>(null);
+  /**
+   * DevLogs can only go to games this account may post for: games whose owner is
+   * the current user, or unowned games (the server enforces the same rule).
+   */
+  protected readonly devlogGames = computed(() => {
+    const myId = this.meService.me()?.id;
+    return this.games().filter((g) => !g.developerUserId || g.developerUserId === myId);
+  });
   protected readonly buildTag = signal('');
-  protected readonly branchTag = signal('');
-  protected readonly devlogFile = signal<File | null>(null);
-  protected readonly devlogPreviewUrl = signal<string | null>(null);
+  protected readonly branchTag = signal<BranchTag>('TEST BRANCH');
+  protected readonly testBranchUrl = signal('');
+  protected readonly devlogClip = signal<DevlogMediaEntry | null>(null);
+  protected readonly devlogBefore = signal<DevlogMediaEntry | null>(null);
+  protected readonly devlogAfter = signal<DevlogMediaEntry | null>(null);
   protected readonly patchLines = signal<PatchLineEntry[]>([]);
+  protected readonly devlogSequence = signal<DevlogNextSequenceModel | null>(null);
+  protected readonly devlogFollowerCount = signal<number | null>(null);
+
+  /** Identity card name: the game's studio, else the developer's studio name, else the username. */
+  protected readonly devlogStudioName = computed(
+    () =>
+      this.devlogSequence()?.studio ||
+      this.meService.me()?.studioName ||
+      this.authService.currentUser()?.username ||
+      '',
+  );
+  protected readonly devlogAvatarUrl = computed(() => this.meService.me()?.avatarUrl ?? null);
+  protected readonly devlogGameName = computed(() => {
+    const id = this.devlogGameId();
+    return id === null ? null : (this.games().find((g) => g.id === id)?.name ?? this.devlogSequence()?.gameName ?? null);
+  });
+  protected readonly devlogFollowerLabel = computed(() => formatCount(this.devlogFollowerCount() ?? 0));
 
   // ─── Poll sheet ────────────────────────────────────────────────
+  private pollOptionInputs = viewChildren<ElementRef<HTMLInputElement>>('pollOptionInput');
   protected readonly pollQuestion = signal('');
   protected readonly pollOptions = signal<string[]>(['', '']);
   protected readonly pollDuration = signal<PollDuration>('24h');
   protected readonly pollGameId = signal<number | null>(null);
-  protected readonly pollHideResults = signal(false);
+  /** The design draws the switch on by default. */
+  protected readonly pollHideResults = signal(true);
+
+  // ─── Drafts ("···" menu) ───────────────────────────────────────
+  protected readonly drafts = signal<PostModel[]>([]);
+  protected readonly isLoadingDrafts = signal(false);
+  protected readonly draftBusyId = signal<string | null>(null);
 
   protected readonly isSubmitting = signal(false);
+  protected readonly isSavingDraft = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly noticeMessage = signal<string | null>(null);
+
+  constructor() {
+    // Picking a game in the DevLog sheet loads its "DEVLOG #n" preview and follower count.
+    effect((onCleanup) => {
+      const gameId = this.devlogGameId();
+      this.devlogSequence.set(null);
+      this.devlogFollowerCount.set(null);
+      if (gameId === null || this.openSheet() !== 'devlog') {
+        return;
+      }
+      const seqSub = this.devlogMeta.nextSequence(gameId).subscribe({
+        next: (seq) => this.devlogSequence.set(seq),
+        error: () => void 0,
+      });
+      const countSub = this.devlogMeta.followerCount(gameId).subscribe({
+        next: (res) => this.devlogFollowerCount.set(res.followerCount),
+        error: () => void 0,
+      });
+      onCleanup(() => {
+        seqSub.unsubscribe();
+        countSub.unsubscribe();
+      });
+    });
+  }
 
   ngOnInit(): void {
     this.squadService.getMine().subscribe({
@@ -194,7 +301,9 @@ export class PostComposer implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.revoke(this.previewUrl());
-    this.revoke(this.devlogPreviewUrl());
+    for (const entry of [this.devlogClip(), this.devlogBefore(), this.devlogAfter()]) {
+      this.revoke(entry?.previewUrl ?? null);
+    }
     for (const entry of this.screenshotFiles()) {
       this.revoke(entry.previewUrl);
     }
@@ -203,8 +312,10 @@ export class PostComposer implements OnInit, OnDestroy {
   selectTab(tab: ComposerTab): void {
     this.openSheet.set(null);
     this.isReviewSheetOpen.set(false);
+    this.isMoreMenuOpen.set(false);
     this.selectedTab.set(this.selectedTab() === tab ? null : tab);
     this.errorMessage.set(null);
+    this.noticeMessage.set(null);
   }
 
   openSheetFor(sheet: 'poll' | 'devlog'): void {
@@ -212,18 +323,22 @@ export class PostComposer implements OnInit, OnDestroy {
       return;
     }
     this.isReviewSheetOpen.set(false);
+    this.isMoreMenuOpen.set(false);
     this.selectedTab.set(null);
     this.openSheet.set(sheet);
     this.errorMessage.set(null);
+    this.noticeMessage.set(null);
   }
 
   closeSheet(): void {
     this.openSheet.set(null);
+    this.errorMessage.set(null);
   }
 
   openReviewSheet(): void {
     this.openSheet.set(null);
     this.selectedTab.set(null);
+    this.isMoreMenuOpen.set(false);
     this.isReviewSheetOpen.set(true);
     this.errorMessage.set(null);
   }
@@ -231,6 +346,63 @@ export class PostComposer implements OnInit, OnDestroy {
   onReviewPosted(post: PostModel): void {
     this.posted.emit(post);
     this.isReviewSheetOpen.set(false);
+  }
+
+  // ─── "···" more post types + drafts ─────────────────────────────
+  toggleMoreMenu(): void {
+    const open = !this.isMoreMenuOpen();
+    this.isMoreMenuOpen.set(open);
+    if (open) {
+      this.loadDrafts();
+    }
+  }
+
+  closeMoreMenu(): void {
+    this.isMoreMenuOpen.set(false);
+  }
+
+  private loadDrafts(): void {
+    this.isLoadingDrafts.set(true);
+    this.postService
+      .getDrafts()
+      .pipe(finalize(() => this.isLoadingDrafts.set(false)))
+      .subscribe({
+        next: (drafts) => this.drafts.set(drafts),
+        error: () => this.drafts.set([]),
+      });
+  }
+
+  draftLabel(draft: PostModel): string {
+    return draft.devlog?.title || draft.caption || `${draft.postType} draft`;
+  }
+
+  publishDraft(draft: PostModel): void {
+    this.draftBusyId.set(draft.id);
+    this.postService
+      .publishDraft(draft.id)
+      .pipe(finalize(() => this.draftBusyId.set(null)))
+      .subscribe({
+        next: (post) => {
+          this.drafts.update((list) => list.filter((d) => d.id !== draft.id));
+          this.posted.emit(post);
+          this.refreshMe();
+        },
+        error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'Could not publish the draft.')),
+      });
+  }
+
+  deleteDraft(draft: PostModel): void {
+    this.draftBusyId.set(draft.id);
+    this.postService
+      .deleteDraft(draft.id)
+      .pipe(finalize(() => this.draftBusyId.set(null)))
+      .subscribe({
+        next: () => {
+          this.drafts.update((list) => list.filter((d) => d.id !== draft.id));
+          this.refreshMe();
+        },
+        error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'Could not delete the draft.')),
+      });
   }
 
   // ─── Clip file handling ────────────────────────────────────────
@@ -312,72 +484,205 @@ export class PostComposer implements OnInit, OnDestroy {
     this.screenshotFiles.set(entries.filter((_, i) => i !== index));
   }
 
-  // ─── Devlog file handling ───────────────────────────────────────
-  onDevlogFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.setDevlogFile(input.files?.[0] ?? null);
+  // ─── Screenshot tags ───────────────────────────────────────────
+  hasTag(tag: string): boolean {
+    return this.screenshotTags().includes(tag);
   }
 
-  clearDevlogFile(): void {
-    this.setDevlogFile(null);
+  toggleTag(tag: string): void {
+    if (this.hasTag(tag)) {
+      this.screenshotTags.update((tags) => tags.filter((t) => t !== tag));
+    } else if (this.screenshotTags().length < MAX_POST_TAGS) {
+      this.screenshotTags.update((tags) => [...tags, tag]);
+    }
+  }
+
+  startAddingTag(): void {
+    if (this.screenshotTags().length >= MAX_POST_TAGS) {
+      this.errorMessage.set(`At most ${MAX_POST_TAGS} tags.`);
+      return;
+    }
+    this.isAddingTag.set(true);
+    afterNextRender(() => this.tagInputRef()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  commitTag(): void {
+    const tag = this.newTag().trim().replace(/^#/, '');
+    if (tag && !this.screenshotTags().some((t) => t.toLowerCase() === tag.toLowerCase())) {
+      this.screenshotTags.update((tags) => [...tags, tag.slice(0, MAX_POST_TAG_LENGTH)].slice(0, MAX_POST_TAGS));
+    }
+    this.newTag.set('');
+    this.isAddingTag.set(false);
+  }
+
+  cancelTag(): void {
+    this.newTag.set('');
+    this.isAddingTag.set(false);
+  }
+
+  // ─── Devlog media band ──────────────────────────────────────────
+  triggerDevlogClip(): void {
+    this.devlogVideoInputRef()?.nativeElement.click();
+  }
+
+  triggerDevlogBeforeAfter(): void {
+    this.devlogPhotoInputRef()?.nativeElement.click();
+  }
+
+  onDevlogClipSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+    if (file) {
+      this.setDevlogMedia(this.devlogClip, file);
+    }
+  }
+
+  /** "▣ Before / after": the first picked image is Before, the second After (a single pick fills the empty slot). */
+  onDevlogPhotosSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []).slice(0, 2);
+    input.value = '';
+    if (files.length === 2) {
+      this.setDevlogMedia(this.devlogBefore, files[0]);
+      this.setDevlogMedia(this.devlogAfter, files[1]);
+    } else if (files.length === 1) {
+      this.setDevlogMedia(this.devlogBefore() && !this.devlogAfter() ? this.devlogAfter : this.devlogBefore, files[0]);
+    }
+  }
+
+  removeDevlogMedia(slot: 'clip' | 'before' | 'after'): void {
+    const target = slot === 'clip' ? this.devlogClip : slot === 'before' ? this.devlogBefore : this.devlogAfter;
+    this.revoke(target()?.previewUrl ?? null);
+    target.set(null);
+  }
+
+  private setDevlogMedia(target: WritableSignal<DevlogMediaEntry | null>, file: File): void {
+    this.revoke(target()?.previewUrl ?? null);
+    target.set({ file, previewUrl: URL.createObjectURL(file) });
   }
 
   // ─── Devlog patch lines ─────────────────────────────────────────
-  addPatchLine(): void {
-    this.patchLines.update((lines) => [...lines, { text: '', status: PatchLineStatus.Shipped }]);
+  addPatchLine(status: PatchLineStatus = PatchLineStatus.Shipped): void {
+    this.patchLines.update((lines) => [...lines, { text: '', status }]);
+    afterNextRender(() => this.patchInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
   }
 
-  removePatchLine(index: number): void {
-    this.patchLines.update((lines) => lines.filter((_, i) => i !== index));
+  /** "◷ Open a bug thread" — an Investigating patch line; the thread itself is the post's comments. */
+  openBugThread(): void {
+    this.addPatchLine(PatchLineStatus.Investigating);
+  }
+
+  cyclePatchStatus(index: number): void {
+    this.patchLines.update((lines) =>
+      lines.map((line, i) => {
+        if (i !== index) return line;
+        const next = PATCH_STATUS_CYCLE[(PATCH_STATUS_CYCLE.indexOf(line.status) + 1) % PATCH_STATUS_CYCLE.length];
+        return { ...line, status: next };
+      }),
+    );
+  }
+
+  patchStatusLabel(status: PatchLineStatus): string {
+    return status === PatchLineStatus.Shipped ? 'Shipped' : status === PatchLineStatus.Fixed ? 'Fixed' : 'Investigating';
   }
 
   updatePatchLineText(index: number, text: string): void {
     this.patchLines.update((lines) => lines.map((line, i) => (i === index ? { ...line, text } : line)));
   }
 
-  updatePatchLineStatus(index: number, status: PatchLineStatus): void {
-    this.patchLines.update((lines) => lines.map((line, i) => (i === index ? { ...line, status } : line)));
+  /** Backspace in an empty line removes it (the design draws no per-line remove button). */
+  onPatchKeydown(event: KeyboardEvent, index: number): void {
+    if (event.key === 'Backspace' && !this.patchLines()[index]?.text) {
+      event.preventDefault();
+      this.patchLines.update((lines) => lines.filter((_, i) => i !== index));
+      afterNextRender(() => this.patchInputs().at(Math.max(index - 1, 0))?.nativeElement.focus(), {
+        injector: this.injector,
+      });
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.addPatchLine();
+    }
   }
 
   // ─── Poll options ────────────────────────────────────────────────
   addPollOption(): void {
     if (this.pollOptions().length < MAX_POLL_OPTIONS) {
       this.pollOptions.update((options) => [...options, '']);
+      afterNextRender(() => this.pollOptionInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
     }
   }
 
-  removePollOption(index: number): void {
-    if (this.pollOptions().length > MIN_POLL_OPTIONS) {
-      this.pollOptions.update((options) => options.filter((_, i) => i !== index));
+  /** Typing into the trailing "Add an option" row turns it into a real option. */
+  onGhostOptionInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    input.value = '';
+    if (!value || this.pollOptions().length >= MAX_POLL_OPTIONS) {
+      return;
     }
+    this.pollOptions.update((options) => [...options, value]);
+    afterNextRender(
+      () => {
+        const el = this.pollOptionInputs().at(-1)?.nativeElement;
+        el?.focus();
+        el?.setSelectionRange(value.length, value.length);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  removePollOption(index: number): void {
+    this.pollOptions.update((options) => options.filter((_, i) => i !== index));
   }
 
   updatePollOption(index: number, value: string): void {
     this.pollOptions.update((options) => options.map((option, i) => (i === index ? value : option)));
   }
 
+  // ─── Submit ─────────────────────────────────────────────────────
   submit(): void {
+    this.send(false);
+  }
+
+  saveDraft(): void {
+    this.send(true);
+  }
+
+  private send(asDraft: boolean): void {
     this.errorMessage.set(null);
-    const validationError = this.validate();
+    this.noticeMessage.set(null);
+    // A draft may be partial (the server relaxes required fields and re-checks them on publish).
+    const validationError = asDraft ? this.validateDraft() : this.validate();
     if (validationError) {
       this.errorMessage.set(validationError);
       return;
     }
 
     const submittedType = this.activePostType()!;
-    this.isSubmitting.set(true);
+    const busy = asDraft ? this.isSavingDraft : this.isSubmitting;
+    busy.set(true);
     this.postService
-      .createPost(this.buildFormData(submittedType))
-      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .createPost(this.buildFormData(submittedType, asDraft))
+      .pipe(finalize(() => busy.set(false)))
       .subscribe({
         next: (post) => {
-          this.posted.emit(post);
+          if (asDraft) {
+            this.noticeMessage.set('Draft saved — find it under ··· in the composer.');
+          } else {
+            this.posted.emit(post);
+          }
+          this.refreshMe();
           this.resetTypeForm(submittedType);
           this.openSheet.set(null);
           this.selectedTab.set(null);
         },
         error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'Failed to publish post. Please try again.')),
       });
+  }
+
+  private refreshMe(): void {
+    this.meService.refresh().subscribe({ error: () => void 0 });
   }
 
   private validate(): string | null {
@@ -395,9 +700,25 @@ export class PostComposer implements OnInit, OnDestroy {
       case PostType.Poll:
         return this.validatePoll();
       default:
-        // Review is handled entirely by the standalone ReviewSheet, never via this signal.
         return null;
     }
+  }
+
+  private validateDraft(): string | null {
+    const type = this.activePostType();
+    if (type === PostType.Devlog) {
+      if (!this.isDevlogAllowed()) {
+        return 'Only developer accounts can publish devlogs.';
+      }
+      if (this.devlogGameId() === null) {
+        return 'Pick the game this DevLog is about.';
+      }
+      return null;
+    }
+    if (type === PostType.Poll) {
+      return null;
+    }
+    return this.validate();
   }
 
   private validateClip(): string | null {
@@ -409,7 +730,7 @@ export class PostComposer implements OnInit, OnDestroy {
       return 'Please attach a video.';
     }
     if (this.caption().length > MAX_CAPTION_LENGTH) {
-      return `Caption must be ${MAX_CAPTION_LENGTH} characters or fewer.`;
+      return `Title must be ${MAX_CAPTION_LENGTH} characters or fewer.`;
     }
     if (!VIDEO_MIME_TYPES.includes(file.type)) {
       return 'Unsupported video format. Use mp4, mov or webm.';
@@ -421,9 +742,6 @@ export class PostComposer implements OnInit, OnDestroy {
   }
 
   private validateScreenshots(): string | null {
-    if (this.gameId() === null) {
-      return 'Please select a game.';
-    }
     const files = this.screenshotFiles();
     if (files.length < 1 || files.length > MAX_SCREENSHOTS) {
       return `Please attach 1 to ${MAX_SCREENSHOTS} photos.`;
@@ -446,14 +764,20 @@ export class PostComposer implements OnInit, OnDestroy {
     if (!this.isDevlogAllowed()) {
       return 'Only developer accounts can publish devlogs.';
     }
+    if (this.devlogGameId() === null) {
+      return 'Pick the game this DevLog is about.';
+    }
+    if (this.devlogSequence()?.canPublish === false) {
+      return 'Only the game’s developer account can publish DevLogs for it.';
+    }
     if (!this.devlogTitle().trim()) {
-      return 'Title is required.';
+      return 'Headline is required.';
     }
     if (this.devlogTitle().length > MAX_TITLE_LENGTH) {
-      return `Title must be ${MAX_TITLE_LENGTH} characters or fewer.`;
+      return `Headline must be ${MAX_TITLE_LENGTH} characters or fewer.`;
     }
     if (!this.devlogBody().trim()) {
-      return 'Body is required.';
+      return 'Tell people what changed — the body is required.';
     }
     if (this.devlogBody().length > MAX_BODY_LENGTH) {
       return `Body must be ${MAX_BODY_LENGTH} characters or fewer.`;
@@ -461,16 +785,17 @@ export class PostComposer implements OnInit, OnDestroy {
     if (this.buildTag().length > MAX_TAG_LENGTH) {
       return `Build tag must be ${MAX_TAG_LENGTH} characters or fewer.`;
     }
-    if (this.branchTag().length > MAX_TAG_LENGTH) {
-      return `Branch tag must be ${MAX_TAG_LENGTH} characters or fewer.`;
+    const url = this.testBranchUrl().trim();
+    if (url && !/^https?:\/\/\S+$/i.test(url)) {
+      return 'Test branch link must start with http:// or https://.';
     }
-    const file = this.devlogFile();
-    if (file) {
-      if (!PHOTO_MIME_TYPES.includes(file.type)) {
-        return 'Devlog media must be an image (jpg, png or webp).';
-      }
-      if (file.size > MAX_PHOTO_BYTES) {
-        return 'Image must be 5MB or smaller.';
+    const clip = this.devlogClip()?.file;
+    if (clip && (!VIDEO_MIME_TYPES.includes(clip.type) || clip.size > MAX_VIDEO_BYTES)) {
+      return 'In-engine clip must be an mp4, mov or webm video of 100MB or less.';
+    }
+    for (const photo of [this.devlogBefore()?.file, this.devlogAfter()?.file]) {
+      if (photo && (!PHOTO_MIME_TYPES.includes(photo.type) || photo.size > MAX_PHOTO_BYTES)) {
+        return 'Before / after images must be jpg, png or webp, 5MB or less.';
       }
     }
     return null;
@@ -478,10 +803,10 @@ export class PostComposer implements OnInit, OnDestroy {
 
   private validatePoll(): string | null {
     if (!this.pollQuestion().trim()) {
-      return 'Question is required.';
+      return 'Ask the feed something — the question is required.';
     }
-    if (this.pollQuestion().length > MAX_TITLE_LENGTH) {
-      return `Question must be ${MAX_TITLE_LENGTH} characters or fewer.`;
+    if (this.pollQuestion().length > MAX_CAPTION_LENGTH) {
+      return `Question must be ${MAX_CAPTION_LENGTH} characters or fewer.`;
     }
     const options = this.pollOptions()
       .map((option) => option.trim())
@@ -495,9 +820,12 @@ export class PostComposer implements OnInit, OnDestroy {
     return null;
   }
 
-  private buildFormData(type: PostType): FormData {
+  private buildFormData(type: PostType, asDraft: boolean): FormData {
     const formData = new FormData();
     formData.append('PostType', String(type));
+    if (asDraft) {
+      formData.append('IsDraft', 'true');
+    }
 
     switch (type) {
       case PostType.Clip: {
@@ -513,15 +841,17 @@ export class PostComposer implements OnInit, OnDestroy {
         break;
       }
       case PostType.Screenshots: {
-        formData.append('GameId', String(this.gameId()));
         if (this.caption().trim()) {
           formData.append('Caption', this.caption().trim());
         }
         if (this.squadId() !== null) {
           formData.append('SquadId', String(this.squadId()));
         }
+        for (const tag of this.screenshotTags()) {
+          formData.append('Tags', tag);
+        }
         formData.append('MediaType', String(PostMediaType.Photo));
-        formData.append('PhotoType', String(this.photoType()));
+        formData.append('PhotoType', String(PostPhotoType.Screenshot));
         for (const entry of this.screenshotFiles()) {
           formData.append('Media', entry.file);
         }
@@ -530,14 +860,13 @@ export class PostComposer implements OnInit, OnDestroy {
       case PostType.Devlog: {
         formData.append('Title', this.devlogTitle().trim());
         formData.append('Body', this.devlogBody().trim());
-        if (this.devlogGameId() !== null) {
-          formData.append('GameId', String(this.devlogGameId()));
-        }
+        formData.append('GameId', String(this.devlogGameId()));
         if (this.buildTag().trim()) {
-          formData.append('BuildTag', this.buildTag().trim());
+          formData.append('BuildTag', this.buildTag().trim().toUpperCase());
         }
-        if (this.branchTag().trim()) {
-          formData.append('BranchTag', this.branchTag().trim());
+        formData.append('BranchTag', this.branchTag());
+        if (this.testBranchUrl().trim()) {
+          formData.append('TestBranchUrl', this.testBranchUrl().trim());
         }
         const lines = this.patchLines().filter((line) => line.text.trim().length > 0);
         if (lines.length > 0) {
@@ -545,16 +874,23 @@ export class PostComposer implements OnInit, OnDestroy {
           formData.append('PatchLinesJson', JSON.stringify(payload));
         }
         formData.append('MediaType', String(PostMediaType.Photo));
-        const file = this.devlogFile();
-        if (file) {
-          formData.append('PhotoType', String(this.photoType()));
-          formData.append('Media', file);
+        const band: [DevlogMediaEntry | null, string][] = [
+          [this.devlogClip(), 'InEngine'],
+          [this.devlogBefore(), 'Before'],
+          [this.devlogAfter(), 'After'],
+        ];
+        for (const [entry, role] of band) {
+          if (entry) {
+            formData.append('Media', entry.file);
+            formData.append('MediaRoles', role);
+          }
+        }
+        if (this.devlogBefore() || this.devlogAfter()) {
+          formData.append('PhotoType', String(PostPhotoType.Screenshot));
         }
         break;
       }
       case PostType.Poll: {
-        // Fixed server-side: Poll has no Title/Body in its contract either —
-        // Caption is the one required "question" field.
         formData.append('Caption', this.pollQuestion().trim());
         for (const option of this.pollOptions()) {
           if (option.trim()) {
@@ -575,7 +911,7 @@ export class PostComposer implements OnInit, OnDestroy {
   }
 
   private computeExpiresAt(): Date {
-    const hours = this.pollDuration() === '24h' ? 24 : this.pollDuration() === '3d' ? 72 : 24 * 7;
+    const hours = POLL_DURATIONS.find((d) => d.key === this.pollDuration())!.hours;
     return new Date(Date.now() + hours * 60 * 60 * 1000);
   }
 
@@ -584,14 +920,13 @@ export class PostComposer implements OnInit, OnDestroy {
       case PostType.Clip:
         this.gameId.set(null);
         this.caption.set('');
-        this.squadId.set(null);
+        this.squadId.set(this.preselectedSquadId());
         this.setFile(null);
         break;
       case PostType.Screenshots:
-        this.gameId.set(null);
         this.caption.set('');
-        this.squadId.set(null);
-        this.photoType.set(PostPhotoType.Screenshot);
+        this.squadId.set(this.preselectedSquadId());
+        this.screenshotTags.set([]);
         for (const entry of this.screenshotFiles()) {
           this.revoke(entry.previewUrl);
         }
@@ -602,16 +937,19 @@ export class PostComposer implements OnInit, OnDestroy {
         this.devlogBody.set('');
         this.devlogGameId.set(null);
         this.buildTag.set('');
-        this.branchTag.set('');
+        this.branchTag.set('TEST BRANCH');
+        this.testBranchUrl.set('');
         this.patchLines.set([]);
-        this.setDevlogFile(null);
+        this.removeDevlogMedia('clip');
+        this.removeDevlogMedia('before');
+        this.removeDevlogMedia('after');
         break;
       case PostType.Poll:
         this.pollQuestion.set('');
         this.pollOptions.set(['', '']);
         this.pollDuration.set('24h');
         this.pollGameId.set(null);
-        this.pollHideResults.set(false);
+        this.pollHideResults.set(true);
         break;
     }
   }
@@ -628,21 +966,20 @@ export class PostComposer implements OnInit, OnDestroy {
     }
   }
 
-  private setDevlogFile(file: File | null): void {
-    this.revoke(this.devlogPreviewUrl());
-    this.devlogFile.set(file);
-    this.devlogPreviewUrl.set(file ? URL.createObjectURL(file) : null);
-    if (!file) {
-      const inputEl = this.devlogFileInputRef();
-      if (inputEl) {
-        inputEl.nativeElement.value = '';
-      }
-    }
-  }
-
   private revoke(url: string | null): void {
     if (url) {
       URL.revokeObjectURL(url);
     }
   }
+}
+
+/** 12400 → "12.4k", 1_200_000 → "1.2M". */
+function formatCount(value: number): string {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  }
+  return String(value);
 }

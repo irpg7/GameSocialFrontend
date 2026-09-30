@@ -62,9 +62,8 @@
   overflow: hidden;
 }
 
-// ─── Sekme satırı ───────────────────────────────────────────────────────────
-// Tasarım burada alt-çizgili metin sekmeler değil, dolu pill'ler kullanıyor:
-// pasif olan kart yüzeyinde, aktif olan dolu accent.
+// ─── Sekme satırı (05-squad.html L102, script tabStyle) ─────────────────────
+// Dolu pill'ler: pasif #141418 + #23232B çerçeve, aktif dolu accent; 8px 13px / radius 12.
 .tab-row {
   flex: none;
   display: flex;
@@ -77,40 +76,44 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 11px;
-  border-radius: 10px;
-  border: 1px solid transparent;
+  padding: 8px 13px;
+  border-radius: 12px;
+  border: 1px solid $color-border;
   background-color: $color-bg-secondary;
   color: $color-text-secondary;
   font-family: $font-family-primary;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
+  transition: border-color $transition-speed-fast;
 
   &:hover:not(.active) {
-    border-color: $color-text-secondary;
-    color: $color-text-primary;
+    border-color: $color-border-dashed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
   }
 
   &.active {
     background-color: $color-accent-primary;
     border-color: $color-accent-primary;
     color: #fff;
-    font-weight: 700;
   }
 }
 
 .tab-count {
+  font-family: $font-family-mono;
   opacity: 0.6;
 }
 
-// Sekme satırının sağ ucundaki kütüphane etiketi.
+// Sekme satırının sağ ucundaki "{squad} library" etiketi.
 .tab-library {
   margin-left: auto;
   font-size: 11px;
   line-height: 14px;
   font-weight: 600;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
 }

@@ -1,150 +1,37 @@
 @use '../../../../../styles/variables' as *;
-@use '../../../../../styles/panels';
+@use '../squad-tab-panel';
 
-// Gamer Feed.dc.html `onPinned`.
-
-// ─── Featured pin ───────────────────────────────────────────────────────────
-.pin-featured {
+// 05-squad.html L183: öne çıkan guide kartı.
+.guide-featured {
   flex: none;
   display: flex;
   gap: 14px;
+  width: 100%;
   padding: 16px;
-  background-color: $color-bg-primary;
-  // The design lifts this card with an accent-tinted border.
-  border: 1px solid rgba($color-accent-primary, 0.35);
+  text-align: left;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-accent-border;
   border-radius: 18px;
+  font-family: $font-family-primary;
+  color: $color-text-primary;
+  cursor: pointer;
 
-  @media (max-width: 620px) {
-    flex-direction: column;
+  &:hover {
+    border-color: rgba(225, 29, 46, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
   }
 }
 
-.pin-cover {
+.guide-cover {
   flex: none;
   width: 120px;
   height: 80px;
   border-radius: 12px;
-  background-color: $color-bg-secondary;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.pin-cover-mark {
-  font-size: 22px;
-  color: $color-text-secondary;
-}
-
-.pin-featured-body {
-  min-width: 0;
-}
-
-.pin-featured-head {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pin-badge {
-  padding: 4px 8px;
-  border-radius: $border-radius-sm;
-  background-color: rgba($color-accent-primary, 0.14);
-  color: $color-accent-light;
-  font-size: 10px;
-  line-height: 12px;
-  font-weight: 800;
-}
-
-.pin-byline {
-  font-size: 11px;
-  line-height: 15px;
-  font-weight: 500;
-  color: $color-text-secondary;
-}
-
-.pin-title {
-  font-size: 17px;
-  line-height: 24px;
-  font-weight: 800;
-  color: $color-text-primary;
-  margin: 6px 0 0;
-  text-wrap: pretty;
-  overflow-wrap: anywhere;
-}
-
-.pin-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.pin-chip {
-  padding: 5px 9px;
-  border-radius: $border-radius-sm;
-  background-color: $color-bg-secondary;
-  font-size: 11px;
-  font-weight: 600;
-  color: $color-text-secondary;
-}
-
-.pin-open {
-  margin-top: 10px;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: $font-family-primary;
-  font-size: 12px;
-  font-weight: 700;
-  color: $color-accent-light;
-  cursor: pointer;
-
-  &:hover {
-    color: $color-accent-primary;
-  }
-}
-
-// ─── Remaining pins ─────────────────────────────────────────────────────────
-.pin-rows {
-  list-style: none;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pin-row {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  width: 100%;
-  text-align: left;
-  padding: 13px 15px;
-  background-color: $color-bg-primary;
-  border: 1px solid $color-bg-tertiary;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: border-color $transition-speed-fast;
-
-  &:hover {
-    border-color: $color-text-secondary;
-  }
-}
-
-.pin-row-thumb {
-  flex: none;
-  width: 52px;
-  height: 38px;
-  border-radius: 10px;
-  background-color: $color-bg-secondary;
+  background-color: $color-bg-tertiary;
   overflow: hidden;
 
   img {
@@ -155,65 +42,167 @@
   }
 }
 
-.pin-row-body {
-  flex: 1;
+.guide-featured-body {
   min-width: 0;
+  display: block;
+}
+
+.guide-featured-head {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
 }
 
-.pin-row-title {
-  font-size: 14px;
-  line-height: 19px;
-  font-weight: 700;
-  color: $color-text-primary;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.guide-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: $color-accent-tint;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 800;
+  color: $color-accent-light;
 }
 
-.pin-row-meta {
+.guide-byline {
   font-size: 11px;
   line-height: 15px;
   font-weight: 500;
-  color: $color-text-secondary;
+  color: $color-text-tertiary;
 }
 
-.pin-row-open {
-  flex: none;
+.guide-title {
+  display: block;
+  margin-top: 6px;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 800;
+}
+
+.guide-desc {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  text-wrap: pretty;
+}
+
+.guide-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.guide-chip {
+  padding: 5px 9px;
+  border-radius: 8px;
+  background-color: $color-bg-tertiary;
   font-size: 11px;
   font-weight: 600;
   color: $color-text-secondary;
 }
 
-// ─── Dashed hint ────────────────────────────────────────────────────────────
-.pin-dashed {
+// L192: satırlar, 10px gap.
+.guide-rows {
   flex: none;
-  display: block;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guide-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
   width: 100%;
   padding: 13px 15px;
-  border: 1px dashed $color-bg-tertiary;
+  text-align: left;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: 16px;
+  font-family: $font-family-primary;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $color-border-dashed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+}
+
+.guide-row-thumb {
+  flex: none;
+  width: 52px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: $color-bg-tertiary;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.guide-row-body {
+  min-width: 0;
+  display: block;
+}
+
+.guide-row-title {
+  display: block;
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 700;
+}
+
+.guide-row-meta {
+  display: block;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.guide-row-open {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+}
+
+// L203
+.guide-dashed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 13px 15px;
+  border: 1px dashed $color-border-dashed;
   border-radius: 16px;
   background: none;
   font-family: $font-family-primary;
   font-size: 13px;
   font-weight: 700;
-  color: $color-text-secondary;
-  text-align: center;
+  color: $color-text-tertiary;
   cursor: pointer;
   transition: border-color $transition-speed-fast, color $transition-speed-fast;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     border-color: $color-accent-primary;
     color: $color-accent-light;
   }
-}
-
-// Bkz. squad-sidebar: sekme gövdesinin kolonu doldurabilmesi için host'un da
-// flex olması şart (composer tasarımda kolonun en altına yapışık duruyor).
-:host {
-  display: flex;
-  flex: 1;
-  min-height: 0;
 }

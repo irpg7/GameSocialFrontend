@@ -1,28 +1,24 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SquadLeaderboardEntryModel, SquadMemberModel } from '../../../../models/squad.model';
-import { formatTimeAgo } from '../../../../shared/clip-format';
+import { PresenceName, SquadLeaderboardEntryModel, SquadMemberModel } from '../../../../models/squad.model';
+import { leftAgoTr, thousands } from '../squad-format';
 
-/** A roster row: membership merged with the member's leaderboard standing. */
-export interface RosterEntry extends SquadMemberModel {
-  /** null when the leaderboard has not loaded (or failed). */
-  level: number | null;
-  xp: number | null;
+interface BoardRow {
+  rank: number;
+  self: boolean;
+  entry: SquadLeaderboardEntryModel;
 }
 
+/** The design's board shows four rows. */
+const BOARD_ROWS = 4;
+
 /**
- * Squad room right rail, from Gamer Feed.dc.html `onSquad`: a Roster panel
- * (avatar + level tag + status line per member, with a dashed invite action)
- * and a standings panel underneath.
- *
- * Two honest departures from the mock:
- *  - the presence dot, the "N online" counter and the "in-game" status text
- *    have no data source (no presence tracking anywhere in the stack), so the
- *    counter shows the member count and the second line shows the member's
- *    role and join date instead;
- *  - the mock's panel is titled "This week's board", but no weekly XP delta is
- *    stored — not even derivable, since only a running total exists — so it is
- *    labelled "All-time board" rather than mislabelling all-time data.
+ * Squad room right rail (05-squad.html L257–288): the Roster panel ("N
+ * online", presence dot per avatar — green / amber quiet / grey offline —
+ * CAP tag, live status line: current activity, "sessiz mod", or "2 gün önce
+ * çıktı"; offline rows dimmed) with the dashed invite action, and "This
+ * week's board" (top four by XP earned in the last 7 days, your row
+ * highlighted).
  */
 @Component({
   selector: 'app-squad-rail',
@@ -31,25 +27,63 @@ export interface RosterEntry extends SquadMemberModel {
   styleUrl: './squad-rail.scss',
 })
 export class SquadRail {
-  roster = input.required<RosterEntry[]>();
+  roster = input.required<SquadMemberModel[]>();
   leaderboard = input.required<SquadLeaderboardEntryModel[]>();
   currentUserId = input<string | undefined>(undefined);
-  isCaptain = input(false);
   rosterError = input<string | null>(null);
   leaderboardError = input<string | null>(null);
 
   invite = output<void>();
-  manageMembers = output<void>();
 
-  protected initial(name: string): string {
-    return name.charAt(0).toUpperCase();
+  protected readonly onlineCount = computed(
+    () => this.roster().filter((member) => member.presence && member.presence !== 'offline').length,
+  );
+
+  protected readonly board = computed<BoardRow[]>(() => {
+    const me = this.currentUserId();
+    const rows = this.leaderboard().map((entry, index) => ({ rank: index + 1, self: entry.userId === me, entry }));
+    const top = rows.slice(0, BOARD_ROWS);
+    const mine = rows.find((row) => row.self);
+    if (mine && !top.includes(mine)) {
+      top[top.length - 1] = mine;
+    }
+    return top;
+  });
+
+  protected format(value: number): string {
+    return thousands(value);
   }
 
-  protected joined(iso: string): string {
-    return formatTimeAgo(iso);
+  protected presenceLabel(presence: PresenceName | undefined): string {
+    switch (presence) {
+      case 'online':
+        return 'Çevrimiçi';
+      case 'away':
+        return 'Sessiz mod';
+      case 'dnd':
+        return 'Rahatsız etmeyin';
+      default:
+        return 'Çevrimdışı';
+    }
   }
 
-  protected isSelf(userId: string): boolean {
-    return userId === this.currentUserId();
+  /** "Sen · LV 24 · çevrimiçi" / "Ashfall · Boss 7 · 2. deneme" / "… · sessiz mod" / "2 gün önce çıktı" */
+  protected status(member: SquadMemberModel): string {
+    const presence = member.presence ?? 'offline';
+    if (presence === 'offline') {
+      return leftAgoTr(member.lastSeenAt);
+    }
+    const level = member.level ? `LV ${member.level}` : null;
+    if (member.userId === this.currentUserId()) {
+      return ['Sen', level, presence === 'online' ? 'çevrimiçi' : this.presenceLabel(presence).toLowerCase()]
+        .filter(Boolean)
+        .join(' · ');
+    }
+    const activity = member.currentActivity?.trim();
+    if (presence === 'online') {
+      return activity || [level, 'çevrimiçi'].filter(Boolean).join(' · ');
+    }
+    const suffix = presence === 'away' ? 'sessiz mod' : 'rahatsız etmeyin';
+    return activity ? `${activity} · ${suffix}` : suffix;
   }
 }

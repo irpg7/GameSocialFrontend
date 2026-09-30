@@ -25,6 +25,8 @@ export const routes: Routes = [
       { path: 'feed', loadComponent: () => import('./pages/feed/feed').then((m) => m.Feed) },
       { path: 'games', loadComponent: () => import('./pages/games/games').then((m) => m.Games) },
       { path: 'clips', loadComponent: () => import('./pages/clips/clips').then((m) => m.Clips) },
+      // Clip Player.dc.html — full player + queue (?from=hot|following|new, ?t=seconds).
+      { path: 'clips/:id', loadComponent: () => import('./pages/clip-player/clip-player').then((m) => m.ClipPlayer) },
       { path: 'reviews', loadComponent: () => import('./pages/reviews/reviews').then((m) => m.Reviews) },
       { path: 'trophies', loadComponent: () => import('./pages/trophies/trophies').then((m) => m.Trophies) },
       { path: 'squads', loadComponent: () => import('./pages/squads/squads').then((m) => m.Squads) },
@@ -37,6 +39,12 @@ export const routes: Routes = [
       },
       { path: 'profile/:id', loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile) },
       { path: 'onboarding', loadComponent: () => import('./pages/onboarding/onboarding').then((m) => m.Onboarding) },
+      // Account menu lists + header search (feed agent).
+      { path: 'saved', data: { mode: 'saved' }, loadComponent: () => import('./pages/me/post-list/my-post-list').then((m) => m.MyPostList) },
+      { path: 'me/clips', data: { mode: 'clips' }, loadComponent: () => import('./pages/me/post-list/my-post-list').then((m) => m.MyPostList) },
+      { path: 'me/reviews', data: { mode: 'reviews' }, loadComponent: () => import('./pages/me/post-list/my-post-list').then((m) => m.MyPostList) },
+      { path: 'drafts', loadComponent: () => import('./pages/me/drafts/drafts').then((m) => m.Drafts) },
+      { path: 'search', loadComponent: () => import('./pages/search/search-results').then((m) => m.SearchResults) },
     ],
   },
   {
