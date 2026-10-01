@@ -1,5 +1,61 @@
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## This project (Tavern / GameSocial frontend)
+
+Recent work and the reasoning behind it: `../CHANGELOG.md` — read it before starting in an area you haven't
+touched this session.
+
+### Workspace (shared with the backend repo)
+Tavern (repo name GameSocial) is a social app for gamers: feed (photo / clip / review / devlog / poll posts),
+clips, reviews, trophies, squads (Discord-like rooms with channels and realtime chat). The UI calls it **Tavern**.
+The backend is a separate git repo next to this one: `../../GameSocialBackend` (.NET 10, FastEndpoints,
+EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
+
+- Local dev: `ng serve` proxies `/api` (including the SignalR hub, ws) and `/media` to the API at
+  `http://localhost:5234` (`proxy.conf.json`); the user usually has the API running.
+  DB is the Docker container `posgreslocal` (Postgres, db `GameSocial`). Inspect it read-only with
+  `docker exec posgreslocal psql -U postgres -d GameSocial -c '<sql>'` (quote PascalCase names) —
+  handy when a list renders empty. API calls need a JWT, so unauthenticated curl only shows 401.
+- Verify with `npx ng build --configuration development`. The default (production) build fails on pre-existing
+  CSS budget errors in `post-composer.scss` / `clip-stage.scss` — not a regression. Say exactly what was and
+  wasn't exercised.
+- UI copy is English, except the squad room (sidebar/sheets), which is Turkish.
+- Designs come from the ARENA mockups (Claude Design); comments like `05-squad.html L22` / `expl.html 2a`
+  point into them. Match designs closely — read every state, don't approximate.
+- After a meaningful change, add a line to `../CHANGELOG.md` (newest first, 1–2 lines, what + why).
+
+### Map (`src/app`)
+- `pages/<page>/` — lazy routes from `app.routes.ts` (feed, games, clips, clips/:id, reviews, trophies, squads,
+  squads/:id, profile/:id, onboarding, saved, me/*, drafts, search). Big pages split into child folders
+  (`pages/feed/feed-sidebar`, `pages/squads/squad-room/squad-sidebar`, `pages/squads/hub/*`).
+- `backoffice/` — admin area (games, languages, settings, users); `guards/` (auth, guest, permission, backoffice).
+- `services/<area>/` — one HTTP service per backend area, `@Service()` + `inject(HttpClient)`, URLs `/api/...`.
+  Squads are split: `squad.service` (core/chat), `squad-room.service` (room data), `squad-hub.service`
+  (discover/join/invites/sessions), `squad-realtime.service` (SignalR hub `/api/hubs/squads`).
+- `models/*.model.ts` — mirror `Domain.Responses.*` (comments name the C# type). Enums are string unions.
+- `shared/` — reusable UI: `sheet-modal`, `squad-create-sheet` (+ `squad-sheet-frame` for small sheets),
+  `player-picker` (username combobox: followed users first, then `/api/search`; only real accounts),
+  `review-sheet`, `clip-stage`, `mini-player`, `photo-viewer`, `star-rating`, `api-error.util.ts`
+  (`extractApiErrorMessage(err, fallback)` — always use it for server messages).
+- `layout/` — `main-layout`, `topbar` (brand: `assets/tavern-logo.png` + "Tavern"), `toast-list`.
+- Toasts: `NotificationService.success()/error()`. Current user: `AuthService.currentUser()` (from JWT claims);
+  full profile: `MeService.me()`.
+- Feature flags: `src/environments/environment*.ts` → `environment.features` (`squadVoice: false` hides squad
+  voice sessions everywhere). Update both files.
+
+### Styling
+- Tokens in `src/styles/_variables.scss` (`$color-*`, radius scale, `$font-family-mono`); shared primitives in
+  `src/styles.scss` (`.card`, `.btn`, `.page-head`/`.page-sub`, `.section-head*`, `.mono`, `.visually-hidden`)
+  and `src/styles/_form-controls.scss` (`.chip`, `.chip-divider`). Reuse them; don't re-derive px values.
+- Palette: accent red + greys only (no yellow/indigo); avatars are rounded squares.
+- Component styles have an 8 kB warning / 16 kB error budget — split big components instead of growing one file.
+
+### Patterns
+- Filter "tabs" made of chips: exactly one selected, `role="tablist"`/`role="tab"` + `aria-selected`.
+- List reloads on filter/search change: cancel the in-flight request (keep the `Subscription`, unsubscribe)
+  and clear the old list, so a slow older response can't overwrite the new one.
+- Popovers inside sheets: the sheet body scrolls, so render suggestion lists in flow, not absolutely positioned.
+
 ## TypeScript Best Practices
 
 - Use strict type checking

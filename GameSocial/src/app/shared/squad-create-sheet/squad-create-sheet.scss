@@ -341,14 +341,9 @@
   }
 }
 
-.invitee-input {
-  flex: 1;
-  min-width: 180px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 10px;
-  background: $color-bg-secondary;
-  font-size: 12px;
+// The player picker owns its input + suggestion list (shared/player-picker).
+.invitee-picker {
+  display: flex;
 }
 
 .create-error {

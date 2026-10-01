@@ -109,7 +109,7 @@
       <p>Invite 2 friends now — squads with 3+ members stay alive twice as long</p>
     </div>
 
-    @if (isInviting() || invitees().length > 0) {
+    @if (invitees().length > 0) {
       <div class="invitee-row">
         @for (username of invitees(); track username) {
           <span class="invitee-chip">
@@ -117,17 +117,16 @@
             <button type="button" [attr.aria-label]="'Remove ' + username" (click)="removeInvitee(username)">✕</button>
           </span>
         }
-        @if (isInviting()) {
-          <label class="visually-hidden" for="invite-username">Username to invite</label>
-          <input
-            id="invite-username"
-            class="invitee-input"
-            type="text"
-            [ngModel]="inviteUsername()"
-            (ngModelChange)="inviteUsername.set($event)"
-            (keydown.enter)="$event.preventDefault(); commitInvite()"
-            placeholder="Username — press Enter" />
-        }
+      </div>
+    }
+    @if (isInviting() && invitees().length < maxInvites) {
+      <div class="invitee-picker">
+        <label class="visually-hidden" for="invite-username">Friend or username to invite</label>
+        <app-player-picker
+          inputId="invite-username"
+          placeholder="Search a friend or username"
+          [exclude]="invitees()"
+          (picked)="addInvitee($event)" />
       </div>
     }
 

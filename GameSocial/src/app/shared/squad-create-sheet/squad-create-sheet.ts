@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, output, signal } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, afterNextRender, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
@@ -9,6 +9,7 @@ import { JoinPolicyName, SquadModel } from '../../models/squad.model';
 import { GameModel } from '../../models/game.model';
 import { extractApiErrorMessage } from '../api-error.util';
 import { SquadSheetFrame } from './squad-sheet-frame';
+import { PlayerOption, PlayerPicker } from '../player-picker/player-picker';
 
 const MAX_NAME_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 1000;
@@ -43,7 +44,8 @@ interface SquadDraft {
  * "Squad icon" upload slot beside label-less "Squad name" and
  * "Main game — … ▾" boxes, a purpose box, "Who can join" described cards,
  * toggleable "Başlangıç kanalları" preset chips plus a dashed "＋ channel",
- * the invite nudge (its dashed ＋ avatar opens a username input), and a
+ * the invite nudge (its dashed ＋ avatar opens a player picker — people you
+ * follow first, then any player; only real accounts can be added), and a
  * Cancel / Save draft / Create squad footer.
  *
  * Squads have no server-side draft, so "Save draft" keeps the form in
@@ -52,7 +54,7 @@ interface SquadDraft {
  */
 @Component({
   selector: 'app-squad-create-sheet',
-  imports: [FormsModule, SquadSheetFrame],
+  imports: [FormsModule, SquadSheetFrame, PlayerPicker],
   templateUrl: './squad-create-sheet.html',
   styleUrl: './squad-create-sheet.scss',
 })
@@ -61,6 +63,7 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
   private hubService = inject(SquadHubService);
   private gameService = inject(GameService);
   private notificationService = inject(NotificationService);
+  private injector = inject(Injector);
 
   created = output<SquadModel>();
   closed = output<void>();
@@ -83,7 +86,7 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
 
   protected readonly invitees = signal<string[]>([]);
   protected readonly isInviting = signal(false);
-  protected readonly inviteUsername = signal('');
+  protected readonly maxInvites = MAX_INVITES;
 
   protected readonly iconFile = signal<File | null>(null);
   protected readonly iconPreview = signal<string | null>(null);
@@ -158,22 +161,18 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
 
   protected startInvite(): void {
     this.isInviting.set(true);
+    afterNextRender(() => document.getElementById('invite-username')?.focus(), { injector: this.injector });
   }
 
-  protected commitInvite(): void {
-    const username = this.inviteUsername().trim().replace(/^@/, '');
-    if (!username) {
-      this.isInviting.set(false);
-      return;
-    }
+  /** The picker only hands over real accounts, in the server's exact casing. */
+  protected addInvitee(player: PlayerOption): void {
     if (this.invitees().length >= MAX_INVITES) {
       this.errorMessage.set(`You can invite at most ${MAX_INVITES} people at once.`);
       return;
     }
-    if (!this.invitees().some((u) => u.toLowerCase() === username.toLowerCase())) {
-      this.invitees.update((list) => [...list, username]);
+    if (!this.invitees().some((u) => u.toLowerCase() === player.username.toLowerCase())) {
+      this.invitees.update((list) => [...list, player.username]);
     }
-    this.inviteUsername.set('');
   }
 
   protected removeInvitee(username: string): void {
