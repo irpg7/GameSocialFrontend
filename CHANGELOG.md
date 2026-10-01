@@ -4,6 +4,44 @@ Newest first. One or two lines per change: what + why, with the key file/area. M
 date when it's committed. Paths are relative to `GameSocial/src/app`.
 
 ## Unreleased
+- Every feed clip now uses the "clip of the day" card: the clip-stage `feed` variant plus the "Öne çıkan yorumlar"
+  thread. Only the badge differs ("CLIP OF THE DAY" / "CLIP"). The post's ··· menu (save, link, edit, delete) moved
+  into the stage's buttons via the new `extraActions` input. Right to left the buttons are ⛶, mute, ···; feed
+  cards have no speed button, while the Clips hero keeps it. The old inline card and its styles are no longer used in the feed.
+- Feed autoplay is off: inline clips no longer start muted when scrolled into view; they play only when tapped,
+  and a playing clip still pauses once it scrolls away (`clip-stage` `observeVisibility`).
+- Feed and Clips card buttons share one order, right to left: ⛶ Clip Player, mute, speed (`clip-stage` feed/hero and
+  inline variants). The inline card gained the speed button.
+- The feed "clip of the day" ⛶ now opens the Clip Player like the inline card and the Clips hero. It used to open the
+  fullscreen overlay, so the same button did different things.
+- Post composer: below ~340px the post-type buttons wrap instead of scrolling the feed sideways (`post-composer.mobile.scss`).
+- `/clips/:id` on phones uses the 9:16 vertical stage only for portrait clips. Landscape clips keep the full 16:9
+  player, which lost half the picture and its controls before. Under 640px the control row drops the volume slider,
+  ⏮ ⏭, CC and theater (`shared/clip-stage/clip-stage.mobile.scss`).
+- Feed inline clips: tapping the picture plays/pauses in place; a new ⛶ button opens the Clip Player. It used to
+  navigate on any tap, which felt like being sent to Clips (the Clips tab is active on `/clips/:id`).
+- ≤ 600px: the feed "clip of the day" and the Clips hero letterbox the clip instead of cropping it, with a smaller overlay.
+  The Clips hero box no longer cuts off the author row and progress bar.
+- Phone navigation (≤ 768px): a new `layout/mobile-tab-bar` (Feed, Clips, Reviews, Squads, Trophies). The topbar keeps
+  only the logo, a search icon that opens search full-width, and the avatar; the account menu opens as a bottom sheet
+  (`topbar.mobile.scss`). Desktop is unchanged.
+- Removed "Squads looking for you": the squads hub lists other squads only for a search or "Browse all".
+- Backoffice games have a release date; the review sheet caps hours played to the time since release. Reviews copy
+  no longer claims "tracked playtime".
+- A post's owner can delete others' comments on it (feed card, `review-card` — which had no comment delete before —
+  and `clip-rail-comments` via the new `postOwnerId` input).
+- Post edit/delete for the author: "✎ Edit post" / "✕ Delete post" (click twice) in the feed card's ··· menu (the review
+  layout gained the menu), and Edit/Delete pills on `review-card`. Editing uses the new `shared/post-edit-sheet`.
+  Edited posts show "· edited". Vote buttons are disabled on your own posts.
+- Comment editing ("Düzenle", "· düzenlendi") in `post-card`, `review-card` and `clip-rail-comments`.
+- Register asks for a developer account instead of granting one. Backoffice → Users has a Developer checkbox with a
+  "Requested" badge and a Decline button. The devlog composer only lists games owned by your account.
+- The review sheet hides games you already reviewed (`me.reviewedGameIds`).
+- Squad settings: "Yasakla" on members and join requests, plus a "Yasaklılar" list with "Yasağı kaldır". The room
+  leaves to /squads when the server sends `removedFromSquad`.
+- Removed the `/images` proxy (the backend no longer serves a default poster).
+- Squads hub cards (`hub-squad-card`, `hub-discover-card`, `hub-peek-sheet`) use the squad placeholder
+  instead of the name's initial. They have inline templates, so the earlier rollout had missed them.
 - Every `<select>` now has a themed dropdown list (`styles.scss`, using `appearance: base-select` behind `@supports`).
   It's a dark sheet panel with hover rows, a red-tinted selected row with a ✓, and the arrow flips when open.
   Browsers without support keep the native list. `squad-create-sheet` dropped its hand-drawn ▾ in favour of it.
