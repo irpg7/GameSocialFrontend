@@ -41,7 +41,7 @@
           <li>
             <a [routerLink]="['/squads', item.squadId]" class="activity-row">
               <span class="activity-avatar">
-                @if (item.avatarUrl) { <img [src]="item.avatarUrl" alt="" /> }
+                <img [appImg]="item.avatarUrl" fallback="avatar" alt="" />
               </span>
               <span class="activity-body">
                 <span class="activity-text">
@@ -54,7 +54,7 @@
                 </span>
                 <span class="activity-meta">
                   <span class="activity-squad-icon">
-                    @if (item.squadIconUrl) { <img [src]="item.squadIconUrl" alt="" /> }
+                    <img [appImg]="item.squadIconUrl" fallback="squad" alt="" />
                   </span>
                   <span class="activity-squad">{{ item.squadName }}</span>
                 </span>

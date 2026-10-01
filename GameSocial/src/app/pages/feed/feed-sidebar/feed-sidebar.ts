@@ -10,6 +10,7 @@ import { FollowedGameModel, FollowedUserModel } from '../../../models/follow.mod
 import { GameModel } from '../../../models/game.model';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadCreateSheet } from '../../../shared/squad-create-sheet/squad-create-sheet';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 type FollowTab = 'games' | 'people';
 
@@ -26,7 +27,7 @@ const SUGGESTED_GAMES = 5;
  */
 @Component({
   selector: 'app-feed-sidebar',
-  imports: [RouterLink, SquadCreateSheet],
+  imports: [ImgFallback, RouterLink, SquadCreateSheet],
   templateUrl: './feed-sidebar.html',
   styleUrl: './feed-sidebar.scss',
 })

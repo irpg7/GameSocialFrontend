@@ -4,6 +4,7 @@ import { SquadChannelModel, SquadLatestActivityModel, SquadModel } from '../../.
 import { SquadSessionModel } from '../../../../models/squad-hub.model';
 import { agoTr, clockTime } from '../squad-format';
 import { SquadVoicePanel } from '../squad-voice-panel/squad-voice-panel';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 /**
  * The squad room's left sidebar, from `onSquad` (05-squad.html L22–76):
@@ -16,7 +17,7 @@ import { SquadVoicePanel } from '../squad-voice-panel/squad-voice-panel';
  */
 @Component({
   selector: 'app-squad-sidebar',
-  imports: [RouterLink, SquadVoicePanel],
+  imports: [ImgFallback, RouterLink, SquadVoicePanel],
   templateUrl: './squad-sidebar.html',
   styleUrl: './squad-sidebar.scss',
 })

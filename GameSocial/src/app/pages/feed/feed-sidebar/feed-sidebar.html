@@ -26,7 +26,7 @@
             <li>
               <button type="button" class="follow-row" [class.active]="selectedGameId() === game.id" [attr.aria-pressed]="selectedGameId() === game.id" (click)="selectGame(game)">
                 <span class="follow-icon">
-                  @if (game.coverImageUrl) { <img [src]="game.coverImageUrl" alt="" /> }
+                  <img [appImg]="game.coverImageUrl" fallback="game" alt="" />
                 </span>
                 <span class="follow-name">{{ game.name }}</span>
                 @if (game.newPostCount > 0) {
@@ -45,7 +45,7 @@
             @for (game of suggestedGames(); track game.id) {
               <li class="follow-row follow-suggest">
                 <span class="follow-icon">
-                  @if (game.coverImageUrl) { <img [src]="game.coverImageUrl" alt="" /> }
+                  <img [appImg]="game.coverImageUrl" fallback="game" alt="" />
                 </span>
                 <span class="follow-name">{{ game.name }}</span>
                 <button
@@ -66,7 +66,7 @@
             <li>
               <button type="button" class="follow-row" [class.active]="selectedUserId() === person.userId" [attr.aria-pressed]="selectedUserId() === person.userId" (click)="selectPerson(person)">
                 <span class="follow-icon">
-                  @if (person.avatarUrl) { <img [src]="person.avatarUrl" alt="" /> }
+                  <img [appImg]="person.avatarUrl" fallback="avatar" alt="" />
                 </span>
                 <span class="follow-name">{{ person.username }}</span>
                 @if (person.isDeveloper) {
@@ -91,7 +91,7 @@
         <li>
           <a [routerLink]="['/squads', squad.id]" class="squad-row">
             <span class="squad-icon">
-              @if (squad.iconUrl) { <img [src]="squad.iconUrl" alt="" /> }
+              <img [appImg]="squad.iconUrl" fallback="squad" alt="" />
             </span>
             <span class="squad-name">{{ squad.name }}</span>
             @if (hasUnread(squad)) {

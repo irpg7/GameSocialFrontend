@@ -32,6 +32,7 @@ import { SheetModal } from '../../../shared/sheet-modal/sheet-modal';
 import { ReviewSheet } from '../../../shared/review-sheet/review-sheet';
 import { RichTextToolbar } from '../../../shared/rich-text/rich-text-toolbar';
 import { DevlogMetaService, DevlogNextSequenceModel } from './devlog-meta.service';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 const MAX_CAPTION_LENGTH = 500;
 const MAX_TITLE_LENGTH = 200;
@@ -103,7 +104,7 @@ const PATCH_STATUS_CYCLE = [PatchLineStatus.Shipped, PatchLineStatus.Fixed, Patc
  */
 @Component({
   selector: 'app-post-composer',
-  imports: [FormsModule, SheetModal, ReviewSheet, RichTextToolbar],
+  imports: [ImgFallback, FormsModule, SheetModal, ReviewSheet, RichTextToolbar],
   templateUrl: './post-composer.html',
   styleUrl: './post-composer.scss',
 })

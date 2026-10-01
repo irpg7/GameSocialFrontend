@@ -38,9 +38,7 @@
       <!-- L173 -->
       <div class="screen-activity">
         <span class="screen-activity-avatar" aria-hidden="true">
-          @if (activity.avatarUrl) {
-            <img [src]="activity.avatarUrl" alt="" />
-          }
+          <img [appImg]="activity.avatarUrl" fallback="avatar" alt="" />
         </span>
         <p>
           <b>{{ activity.username }}</b> added {{ activity.count }} screen{{ activity.count === 1 ? '' : 's' }}@if (activity.gameName) { to <b>{{ activity.gameName }}</b>}

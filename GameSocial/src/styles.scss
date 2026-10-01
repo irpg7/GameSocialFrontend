@@ -139,6 +139,120 @@ select {
   }
 }
 
+/* Themed dropdown list for every <select> (customizable select, Chromium 135+).
+   Other browsers keep the native list, so nothing here may be load-bearing. */
+@supports (appearance: base-select) {
+  select,
+  select::picker(select) {
+    appearance: base-select;
+  }
+
+  // Every <select> carries `<button><selectedcontent></selectedcontent></button>` so a long
+  // value truncates with "…" instead of wrapping the field onto several lines.
+  select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    cursor: pointer;
+
+    > button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+
+    selectedcontent {
+      display: block;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    &::picker-icon {
+      flex: none;
+      color: $color-text-tertiary;
+      transition: rotate $transition-speed-fast;
+    }
+
+    &:open {
+      border-color: $color-accent-primary;
+
+      &::picker-icon {
+        rotate: 180deg;
+        color: $color-text-primary;
+      }
+    }
+  }
+
+  select::picker(select) {
+    margin-block: 6px;
+    padding: 5px;
+    min-width: anchor-size(width);
+    max-width: min(360px, calc(100vw - 32px));
+    max-height: min(320px, 50vh);
+    overflow-y: auto;
+    border: 1px solid $color-border-strong;
+    border-radius: $border-radius-md;
+    background-color: $color-bg-sheet;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    scrollbar-width: thin;
+    scrollbar-color: $color-border-dashed transparent;
+  }
+
+  select option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: $border-radius-sm;
+    color: $color-text-secondary;
+    font: 500 13px/18px $font-family-primary;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+    &::checkmark {
+      order: 1;
+      margin-left: auto;
+      color: $color-accent-primary;
+      font-weight: 700;
+    }
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background-color: $color-bg-tertiary;
+      color: $color-text-primary;
+    }
+
+    &:checked {
+      background-color: $color-accent-tint;
+      color: $color-text-primary;
+      font-weight: 600;
+    }
+
+    &:disabled {
+      color: $color-text-tertiary;
+      cursor: not-allowed;
+      background-color: transparent;
+    }
+  }
+
+  select optgroup {
+    padding-top: 4px;
+    color: $color-text-tertiary;
+    font: 700 10px/16px $font-family-mono;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
 .form-group {
   margin-bottom: $spacing-md;
 

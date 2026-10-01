@@ -5,7 +5,6 @@ import { filter, map, startWith } from 'rxjs';
 import { Topbar } from '../topbar/topbar';
 import { ToastList } from '../toast-list/toast-list';
 import { MeService } from '../../services/me/me.service';
-import { MiniPlayer } from '../../shared/mini-player/mini-player';
 
 /**
  * Shell for every authenticated route. No longer owns a global right rail —
@@ -18,7 +17,7 @@ import { MiniPlayer } from '../../shared/mini-player/mini-player';
  */
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, Topbar, ToastList, MiniPlayer],
+  imports: [RouterOutlet, Topbar, ToastList],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
 })

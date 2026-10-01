@@ -8,11 +8,7 @@
   <div class="rail-comment" [class.is-own]="isFresh(comment)" [class.is-reply]="reply" [class.is-pinned]="comment.isPinned">
     <div class="rail-comment-head">
       <a [routerLink]="['/profile', comment.userId]" class="rail-comment-avatar" [attr.aria-label]="comment.username">
-        @if (comment.authorAvatarUrl) {
-          <img [src]="comment.authorAvatarUrl" alt="" />
-        } @else {
-          {{ comment.username.charAt(0).toUpperCase() }}
-        }
+        <img [appImg]="comment.authorAvatarUrl" fallback="avatar" alt="" />
       </a>
       <a [routerLink]="['/profile', comment.userId]" class="rail-comment-author">{{ comment.username }}</a>
       <span class="rail-comment-lv">LV {{ comment.authorLevel }}</span>

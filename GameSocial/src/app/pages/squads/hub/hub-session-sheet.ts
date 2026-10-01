@@ -20,6 +20,7 @@ import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-
         <div>
           <label class="hs-label" for="session-game">Game</label>
           <select id="session-game" class="hs-input" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+            <button><selectedcontent></selectedcontent></button>
             <option [ngValue]="null">No game</option>
             @for (game of games(); track game.id) {
               <option [ngValue]="game.id">{{ game.name }}</option>

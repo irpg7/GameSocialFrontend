@@ -28,7 +28,6 @@
           [commentsActive]="rail() === 'comments'"
           (toggleComments)="setRail(rail() === 'comments' ? 'next' : 'comments')"
           (timeChanged)="heroTime.set($event)"
-          (playingChange)="heroPlaying.set($event)"
           (ended)="onHeroEnded()" />
       } @else if (isLoadingFeed()) {
         <p class="clips-status">Klipler yükleniyor…</p>

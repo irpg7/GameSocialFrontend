@@ -5,6 +5,7 @@ import { GameService } from '../../services/game/game.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { GAME_GENRES, GameGenreName, GameModel } from '../../models/game.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 const POSTER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -21,7 +22,7 @@ function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
 
 @Component({
   selector: 'app-games-admin',
-  imports: [FormsModule],
+  imports: [ImgFallback, FormsModule],
   templateUrl: './games-admin.html',
   styleUrl: './games-admin.scss',
 })

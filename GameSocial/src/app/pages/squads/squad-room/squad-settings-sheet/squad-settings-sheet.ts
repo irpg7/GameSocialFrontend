@@ -17,6 +17,7 @@ import { SquadGameOptionModel, SquadJoinRequestModel } from '../../../../models/
 import { GameModel } from '../../../../models/game.model';
 import { extractApiErrorMessage } from '../../../../shared/api-error.util';
 import { SquadSheetFrame } from '../../../../shared/squad-create-sheet/squad-sheet-frame';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 type SettingsTab = 'general' | 'content' | 'members';
 type RuleKey = 'allowMemberUploads' | 'requireSpoilerTag' | 'requireMemberApproval' | 'weeklyDigest';
@@ -51,7 +52,7 @@ const numberFormat = new Intl.NumberFormat('en-US');
  */
 @Component({
   selector: 'app-squad-settings-sheet',
-  imports: [FormsModule, SquadSheetFrame],
+  imports: [ImgFallback, FormsModule, SquadSheetFrame],
   templateUrl: './squad-settings-sheet.html',
   styleUrl: './squad-settings-sheet.scss',
 })

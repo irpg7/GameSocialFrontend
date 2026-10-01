@@ -252,11 +252,7 @@
 
         <div class="stage-meta">
           <a [routerLink]="['/profile', post().userId]" class="stage-avatar" [attr.aria-label]="post().username">
-            @if (post().authorAvatarUrl; as avatar) {
-              <img [src]="avatar" alt="" />
-            } @else {
-              {{ initial() }}
-            }
+            <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
           </a>
           <a [routerLink]="['/profile', post().userId]" class="stage-author">{{ post().username }}</a>
           <span class="stage-level">{{ levelLabel() }}</span>

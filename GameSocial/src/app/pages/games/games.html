@@ -20,11 +20,7 @@
       @for (game of filteredGames(); track game.id) {
         <div class="game-card">
           <div class="game-cover">
-            @if (game.coverImageUrl) {
-              <img [src]="game.coverImageUrl" [alt]="game.name" />
-            } @else {
-              <span class="game-cover-placeholder" aria-hidden="true">{{ game.name.charAt(0).toUpperCase() }}</span>
-            }
+            <img [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
           </div>
           <div class="game-info">
             <h3>{{ game.name }}</h3>

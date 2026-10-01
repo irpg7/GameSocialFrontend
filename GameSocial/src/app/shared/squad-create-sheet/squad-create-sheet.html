@@ -29,6 +29,7 @@
 
         <label class="visually-hidden" for="squad-game">Main game</label>
         <select id="squad-game" class="create-box create-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
+          <button><selectedcontent></selectedcontent></button>
           <option [ngValue]="null">Main game — none</option>
           @for (game of games(); track game.id) {
             <option [ngValue]="game.id">Main game — {{ game.name }}</option>

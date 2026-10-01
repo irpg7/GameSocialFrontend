@@ -59,11 +59,7 @@
             @if (editingId() === game.id) {
               <tr>
                 <td>
-                  @if (game.coverImageUrl) {
-                    <img class="poster-thumb" [src]="game.coverImageUrl" [alt]="game.name" />
-                  } @else {
-                    <div class="poster-thumb poster-thumb-empty">🎮</div>
-                  }
+                  <img class="poster-thumb" [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
                   <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onEditPosterSelected($event)">
                 </td>
                 <td>
@@ -96,11 +92,7 @@
             } @else {
               <tr>
                 <td>
-                  @if (game.coverImageUrl) {
-                    <img class="poster-thumb" [src]="game.coverImageUrl" [alt]="game.name" />
-                  } @else {
-                    <div class="poster-thumb poster-thumb-empty">🎮</div>
-                  }
+                  <img class="poster-thumb" [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
                 </td>
                 <td>{{ game.name }}</td>
                 <td class="text-muted">{{ game.genres.join(', ') }}</td>

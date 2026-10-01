@@ -21,11 +21,7 @@
 
   <div class="queue-author-row">
     <span class="queue-avatar" aria-hidden="true">
-      @if (post().authorAvatarUrl; as avatar) {
-        <img [src]="avatar" alt="" />
-      } @else {
-        {{ initial() }}
-      }
+      <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
     </span>
     <span class="queue-author">{{ post().username }}</span>
     <button

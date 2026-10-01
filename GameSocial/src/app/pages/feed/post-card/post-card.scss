@@ -452,6 +452,15 @@
   font-family: $font-family-mono;
 }
 
+.cm-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 2px solid $color-border;
+}
+
 .cm-reply-form {
   display: flex;
   gap: 8px;

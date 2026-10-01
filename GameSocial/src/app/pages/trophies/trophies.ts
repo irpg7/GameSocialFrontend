@@ -18,6 +18,7 @@ import {
   rarestId,
   rarityLabel,
 } from '../../shared/trophy-tile/trophy-format';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 /**
  * "Where XP comes from" — the design lists these four, in this order, with
@@ -43,7 +44,7 @@ type SortMode = 'default' | 'rarest';
  */
 @Component({
   selector: 'app-trophies',
-  imports: [RouterLink, DecimalPipe, TrophyTile],
+  imports: [ImgFallback, RouterLink, DecimalPipe, TrophyTile],
   templateUrl: './trophies.html',
   styleUrl: './trophies.scss',
 })

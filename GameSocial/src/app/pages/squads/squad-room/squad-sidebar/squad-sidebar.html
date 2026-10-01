@@ -15,9 +15,7 @@
           [attr.aria-current]="active ? 'page' : null">
           <span class="squad-card-top">
             <span class="squad-card-mark" aria-hidden="true">
-              @if (squad.iconUrl) {
-                <img [src]="squad.iconUrl" alt="" />
-              }
+              <img [appImg]="squad.iconUrl" fallback="squad" alt="" />
             </span>
             <span class="squad-card-identity">
               <span class="squad-card-name">{{ squad.name }}</span>
@@ -130,11 +128,7 @@
                   @for (person of session.attendees; track person.userId) {
                     <li class="voice-attendee">
                       <span class="voice-avatar" [class.host]="person.userId === session.hostUserId" aria-hidden="true">
-                        @if (person.avatarUrl) {
-                          <img [src]="person.avatarUrl" alt="" />
-                        } @else {
-                          {{ person.username.charAt(0).toUpperCase() }}
-                        }
+                        <img [appImg]="person.avatarUrl" fallback="avatar" alt="" />
                       </span>
                       <span class="voice-attendee-name">{{ person.username }}</span>
                     </li>

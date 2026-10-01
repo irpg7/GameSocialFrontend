@@ -45,9 +45,7 @@
         } @else {
           <article class="message">
             <span class="message-avatar" aria-hidden="true">
-              @if (message.userAvatarUrl) {
-                <img [src]="message.userAvatarUrl" alt="" />
-              }
+              <img [appImg]="message.userAvatarUrl" fallback="avatar" alt="" />
             </span>
 
             <div class="message-main">
@@ -125,9 +123,7 @@
     <!-- L244: avatar + field + clip / screens / send -->
     <div class="composer">
       <span class="composer-avatar" aria-hidden="true">
-        @if (currentAvatarUrl()) {
-          <img [src]="currentAvatarUrl()" alt="" />
-        }
+        <img [appImg]="currentAvatarUrl()" fallback="avatar" alt="" />
       </span>
       <label class="visually-hidden" for="squad-chat-input">#{{ channelName() }} kanalına yaz</label>
       <input

@@ -18,7 +18,6 @@
         (theaterToggle)="theater.set(!theater())"
         (toggleComments)="toggleComments()"
         (timeChanged)="time.set($event)"
-        (playingChange)="playing.set($event)"
         (ended)="onEnded()" />
 
       @if (hotMoments().length > 0) {
@@ -46,11 +45,7 @@
 
       <div class="cp-author">
         <a [routerLink]="['/profile', clip.userId]" class="cp-avatar" [attr.aria-label]="clip.username">
-          @if (clip.authorAvatarUrl; as avatar) {
-            <img [src]="avatar" alt="" />
-          } @else {
-            {{ clip.username.charAt(0).toUpperCase() }}
-          }
+          <img [appImg]="clip.authorAvatarUrl" fallback="avatar" alt="" />
         </a>
         <div class="cp-author-text">
           <a [routerLink]="['/profile', clip.userId]" class="cp-author-name">{{ clip.username }}</a>
@@ -88,11 +83,7 @@
         @for (item of queue(); track item.id) {
           <button type="button" class="cp-item" [class.is-current]="item.id === clip.id" [attr.aria-current]="item.id === clip.id" (click)="go(item)">
             <span class="cp-thumb">
-              @if (thumb(item); as src) {
-                <img [src]="src" alt="" />
-              } @else {
-                <video [src]="thumbVideo(item)" muted playsinline preload="metadata" tabindex="-1" aria-hidden="true"></video>
-              }
+              <img [appImg]="thumb(item)" fallback="avatar" alt="" />
               <span class="cp-duration">{{ duration(item) }}</span>
               @if (item.id === clip.id) {
                 <span class="cp-now" aria-hidden="true">▶</span>

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, finalize } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
@@ -9,7 +9,7 @@ import { PagedResult } from '../../models/paged-result.model';
 import { HotMomentModel } from '../../models/clip.model';
 import { ClipStage } from '../../shared/clip-stage/clip-stage';
 import { ClipUploadSheet } from '../../shared/clip-upload-sheet/clip-upload-sheet';
-import { PlayerStateService } from '../../shared/mini-player/player-state.service';
+import { ClipAutoplayService } from '../../shared/clip-autoplay.service';
 import { ClipQueueCard } from './clip-queue-card/clip-queue-card';
 import { ClipRailComments } from './clip-rail-comments/clip-rail-comments';
 
@@ -32,9 +32,6 @@ const FILTER_LABELS: Record<ClipFilter, string> = { hot: 'Hot today', following:
  *    the "4,182 clips today" line, and its order is the hero's "#N TODAY".
  *  - Following = `GET posts/following?postType=Clip`.
  *  - New = newest first ("Posted in the last hour" is the design's fixed copy).
- *
- * Leaving the page while the hero plays pins it to the mini player; coming
- * back (or expanding the mini player) resumes where it was.
  */
 @Component({
   selector: 'app-clips',
@@ -42,11 +39,11 @@ const FILTER_LABELS: Record<ClipFilter, string> = { hot: 'Hot today', following:
   templateUrl: './clips.html',
   styleUrl: './clips.scss',
 })
-export class Clips implements OnInit, OnDestroy {
+export class Clips implements OnInit {
   private postService = inject(PostService);
   private clipService = inject(ClipService);
   private notificationService = inject(NotificationService);
-  private playerState = inject(PlayerStateService);
+  private clipAutoplay = inject(ClipAutoplayService);
   private route = inject(ActivatedRoute);
 
   private readonly stage = viewChild(ClipStage);
@@ -60,16 +57,15 @@ export class Clips implements OnInit, OnDestroy {
 
   protected readonly filter = signal<ClipFilter>('hot');
   protected readonly rail = signal<ClipRail>('next');
-  protected readonly autoplay = this.playerState.autoplay;
+  protected readonly autoplay = this.clipAutoplay.autoplay;
   protected readonly selectedClipId = signal<string | null>(null);
   protected readonly startAt = signal<number | null>(null);
   protected readonly heroTime = signal(0);
-  protected readonly heroPlaying = signal(false);
   protected readonly hotMoments = signal<HotMomentModel[]>([]);
   protected readonly isUploadOpen = signal(false);
   /** Today's hot ranking (post ids in order) — "#N TODAY". */
   private readonly hotRanking = signal<string[]>([]);
-  /** A deep-linked / resumed clip that is not in the loaded page yet. */
+  /** A deep-linked clip that is not in the loaded page yet. */
   private readonly pinnedExtra = signal<PostModel | null>(null);
   /** While a deep-linked clip is being fetched the hero waits instead of flashing the first clip. */
   private readonly awaitingDeepLink = signal(false);
@@ -147,15 +143,8 @@ export class Clips implements OnInit, OnDestroy {
   ngOnInit(): void {
     const params = this.route.snapshot.queryParamMap;
     const requested = params.get('clip');
-    const resumed = this.playerState.takeOver(requested ?? undefined);
-    // Only one clip plays at a time: a different pinned clip stops when the Clips page opens.
-    this.playerState.dismiss();
 
-    if (resumed) {
-      this.pinnedExtra.set(resumed.post);
-      this.selectedClipId.set(resumed.post.id);
-      this.startAt.set(resumed.time);
-    } else if (requested) {
+    if (requested) {
       // The feed clip card's "Klip sayfasında aç" hands its post id over here.
       this.selectedClipId.set(requested);
       const t = Number(params.get('t'));
@@ -180,13 +169,6 @@ export class Clips implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    const hero = this.hero();
-    if (hero && this.heroPlaying()) {
-      this.playerState.pin({ post: hero, time: this.heroTime(), queue: this.clips(), source: FILTER_LABELS[this.filter()] });
-    }
-  }
-
   setFilter(filter: ClipFilter): void {
     if (filter === this.filter()) {
       return;
@@ -203,7 +185,7 @@ export class Clips implements OnInit, OnDestroy {
   }
 
   toggleAutoplay(): void {
-    this.playerState.setAutoplay(!this.autoplay());
+    this.clipAutoplay.setAutoplay(!this.autoplay());
   }
 
   selectClip(post: PostModel): void {

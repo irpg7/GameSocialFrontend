@@ -21,6 +21,7 @@ import { HubDiscoverCard } from './hub/hub-discover-card';
 import { HubInviteSheet } from './hub/hub-invite-sheet';
 import { HubPeekSheet } from './hub/hub-peek-sheet';
 import { friendStatus, initialOf, isInVoice } from './hub/hub-format';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 const DISCOVER_PREVIEW = 3;
 const BROWSE_PAGE = 12;
@@ -33,7 +34,7 @@ const BROWSE_PAGE = 12;
  */
 @Component({
   selector: 'app-squads',
-  imports: [
+  imports: [ImgFallback, 
     FormsModule,
     RouterLink,
     SquadCreateSheet,

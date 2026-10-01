@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PresenceName, SquadLeaderboardEntryModel, SquadMemberModel } from '../../../../models/squad.model';
 import { leftAgoTr, thousands } from '../squad-format';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 interface BoardRow {
   rank: number;
@@ -22,7 +23,7 @@ const BOARD_ROWS = 4;
  */
 @Component({
   selector: 'app-squad-rail',
-  imports: [RouterLink],
+  imports: [ImgFallback, RouterLink],
   templateUrl: './squad-rail.html',
   styleUrl: './squad-rail.scss',
 })

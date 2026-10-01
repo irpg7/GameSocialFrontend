@@ -4,19 +4,11 @@
     <label sheet-icon class="settings-icon settings-icon-editable" [class.busy]="isUploadingIcon()">
       <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="visually-hidden" (change)="onIconPicked($event)" />
       <span class="visually-hidden">Squad ikonunu değiştir</span>
-      @if (iconUrl(); as icon) {
-        <img [src]="icon" alt="" />
-      } @else {
-        <span aria-hidden="true">{{ initial(squad().name) }}</span>
-      }
+      <img [appImg]="iconUrl()" fallback="squad" alt="" />
     </label>
   } @else {
     <span sheet-icon class="settings-icon" aria-hidden="true">
-      @if (iconUrl(); as icon) {
-        <img [src]="icon" alt="" />
-      } @else {
-        {{ initial(squad().name) }}
-      }
+      <img [appImg]="iconUrl()" fallback="squad" alt="" />
     </span>
   }
 
@@ -95,9 +87,7 @@
                     [attr.aria-disabled]="isGameSelected(option.id) || !canAddGame()"
                     (click)="addGame(option)">
                     <span class="game-result-cover">
-                      @if (option.coverImageUrl) {
-                        <img [src]="option.coverImageUrl" alt="" />
-                      }
+                      <img [appImg]="option.coverImageUrl" fallback="game" alt="" />
                     </span>
                     <span class="game-result-body">
                       <span class="game-result-name">{{ option.name }}</span>
@@ -171,11 +161,7 @@
           @for (request of joinRequests(); track request.userId) {
             <div class="member-row">
               <span class="member-avatar" aria-hidden="true">
-                @if (request.avatarUrl) {
-                  <img [src]="request.avatarUrl" alt="" />
-                } @else {
-                  {{ initial(request.username) }}
-                }
+                <img [appImg]="request.avatarUrl" fallback="avatar" alt="" />
               </span>
               <span class="member-identity">
                 <span class="member-name">{{ request.username }}</span>
@@ -191,11 +177,7 @@
         @for (member of activeMembers(); track member.userId) {
           <div class="member-row">
             <span class="member-avatar" aria-hidden="true">
-              @if (member.avatarUrl) {
-                <img [src]="member.avatarUrl" alt="" />
-              } @else {
-                {{ initial(member.username) }}
-              }
+              <img [appImg]="member.avatarUrl" fallback="avatar" alt="" />
             </span>
             <span class="member-identity">
               <span class="member-name">{{ member.username }}{{ isSelf(member.userId) ? ' (sen)' : '' }}</span>
@@ -276,6 +258,7 @@
         @if (isFounder() && otherActiveMembers().length > 0) {
           <label for="transfer-target">Yeni kurucu</label>
           <select id="transfer-target" [ngModel]="transferTargetId()" (ngModelChange)="transferTargetId.set($event)">
+            <button><selectedcontent></selectedcontent></button>
             @for (member of otherActiveMembers(); track member.userId) {
               <option [ngValue]="member.userId">{{ member.username }}</option>
             }

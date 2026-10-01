@@ -36,7 +36,7 @@
               @for (p of r.players; track p.userId) {
                 <a class="pop-row" [routerLink]="['/profile', p.userId]" (click)="pickResult()">
                   <span class="pop-tile">
-                    @if (p.avatarUrl) { <img [src]="p.avatarUrl" alt="" /> }
+                    <img [appImg]="p.avatarUrl" fallback="avatar" alt="" />
                   </span>
                   <span class="pop-name">{{ p.username }}</span>
                   <span class="lv-chip">LV {{ p.level }}</span>
@@ -49,7 +49,7 @@
               @for (g of r.games; track g.id) {
                 <a class="pop-row" routerLink="/feed" [queryParams]="{ game: g.id }" (click)="pickResult()">
                   <span class="pop-tile">
-                    @if (g.coverImageUrl) { <img [src]="g.coverImageUrl" alt="" /> }
+                    <img [appImg]="g.coverImageUrl" fallback="game" alt="" />
                   </span>
                   <span class="pop-name">{{ g.name }}</span>
                 </a>
@@ -93,9 +93,7 @@
         [attr.aria-expanded]="isMenuOpen()"
         [attr.aria-label]="'Account menu for ' + (authService.currentUser()?.username ?? '')"
         (click)="toggleMenu(); $event.stopPropagation()">
-        @if (meService.me()?.avatarUrl; as avatar) {
-          <img [src]="avatar" alt="" />
-        }
+        <img [appImg]="meService.me()?.avatarUrl" fallback="avatar" alt="" />
       </button>
 
       @if (isMenuOpen()) {
@@ -103,7 +101,7 @@
           @if (meService.me(); as me) {
             <div class="me-id">
               <span class="me-avatar">
-                @if (me.avatarUrl) { <img [src]="me.avatarUrl" alt="" /> }
+                <img [appImg]="me.avatarUrl" fallback="avatar" alt="" />
               </span>
               <div class="me-id-body">
                 <div class="me-id-row">

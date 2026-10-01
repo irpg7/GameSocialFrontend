@@ -14,6 +14,7 @@ import { NotificationService } from '../../../services/notification/notification
 import { StarRating } from '../../../shared/star-rating/star-rating';
 import { RichText } from '../../../shared/rich-text/rich-text';
 import { formatClock, formatTimeAgo } from '../../../shared/clip-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 const COMMENT_PAGE_SIZE = 3;
 /** Scores at or above this read as the accent red, below as muted grey (design: 8.4/9.2 red, 5.6 grey). */
@@ -42,7 +43,7 @@ interface ThreadComment {
  */
 @Component({
   selector: 'app-review-card',
-  imports: [FormsModule, NgTemplateOutlet, RouterLink, StarRating, RichText],
+  imports: [ImgFallback, FormsModule, NgTemplateOutlet, RouterLink, StarRating, RichText],
   templateUrl: './review-card.html',
   styleUrl: './review-card.scss',
 })

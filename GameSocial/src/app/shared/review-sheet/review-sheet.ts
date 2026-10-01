@@ -13,6 +13,7 @@ import { formatClock, formatTimeAgo } from '../clip-format';
 import { SheetModal } from '../sheet-modal/sheet-modal';
 import { StarRating } from '../star-rating/star-rating';
 import { RichTextToolbar } from '../rich-text/rich-text-toolbar';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 const MAX_TITLE_LENGTH = 200;
 const MAX_BODY_LENGTH = 10000;
@@ -52,7 +53,7 @@ interface ReviewFormState {
  */
 @Component({
   selector: 'app-review-sheet',
-  imports: [FormsModule, SheetModal, StarRating, RichTextToolbar],
+  imports: [ImgFallback, FormsModule, SheetModal, StarRating, RichTextToolbar],
   templateUrl: './review-sheet.html',
   styleUrl: './review-sheet.scss',
 })

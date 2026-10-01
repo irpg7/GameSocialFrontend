@@ -122,6 +122,7 @@
 
           <div class="field-row">
             <select class="field-box field-select" id="composer-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+              <button><selectedcontent></selectedcontent></button>
               <option [ngValue]="null">Pick a game</option>
               @for (game of games(); track game.id) {
                 <option [ngValue]="game.id">{{ game.name }}</option>
@@ -138,6 +139,7 @@
                 aria-label="Tag a squad (optional)"
                 [ngModel]="squadId()"
                 (ngModelChange)="squadId.set($event)">
+                <button><selectedcontent></selectedcontent></button>
                 <option [ngValue]="null">＋ Tag squad</option>
                 @for (squad of mySquads(); track squad.id) {
                   <option [ngValue]="squad.id">{{ squad.name }}</option>
@@ -304,6 +306,7 @@
 
       <div class="split-row">
         <select class="sheet-field field-select" id="poll-game" aria-label="Game (optional)" [ngModel]="pollGameId()" (ngModelChange)="pollGameId.set($event)">
+          <button><selectedcontent></selectedcontent></button>
           <option [ngValue]="null">Any game</option>
           @for (game of games(); track game.id) {
             <option [ngValue]="game.id">{{ game.name }}</option>
@@ -347,11 +350,7 @@
     (closed)="closeSheet()">
     <div class="sheet-stack">
       <div class="identity-card">
-        @if (devlogAvatarUrl(); as avatar) {
-          <img class="identity-avatar" [src]="avatar" alt="" />
-        } @else {
-          <div class="identity-avatar" aria-hidden="true"></div>
-        }
+        <img class="identity-avatar" [appImg]="devlogAvatarUrl()" fallback="avatar" alt="" />
         <div class="identity-text">
           <div class="identity-name-row">
             <span class="identity-name">{{ devlogStudioName() }}</span>
@@ -380,11 +379,13 @@
           aria-label="Build tag"
           placeholder="BUILD 0.9.5">
         <select class="mono-field mono-field-muted field-select" aria-label="Branch" [ngModel]="branchTag()" (ngModelChange)="branchTag.set($event)">
+          <button><selectedcontent></selectedcontent></button>
           @for (branch of branchTags; track branch) {
             <option [ngValue]="branch">{{ branch }}</option>
           }
         </select>
         <select class="game-field field-select" id="devlog-game" aria-label="Game" [ngModel]="devlogGameId()" (ngModelChange)="devlogGameId.set($event)">
+          <button><selectedcontent></selectedcontent></button>
           <option [ngValue]="null">Pick a game</option>
           @for (game of devlogGames(); track game.id) {
             <option [ngValue]="game.id">{{ game.name }}</option>

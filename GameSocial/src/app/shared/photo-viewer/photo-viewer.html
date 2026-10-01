@@ -1,7 +1,7 @@
 <div class="viewer" role="dialog" aria-modal="true" aria-label="Photos" (click)="onBackdrop($event)" (keydown)="onKeydown($event)">
   <div class="viewer-head">
     <a [routerLink]="['/profile', userId()]" class="viewer-avatar" (click)="closed.emit()">
-      @if (authorAvatarUrl()) { <img [src]="authorAvatarUrl()" alt="" /> } @else { {{ initial() }} }
+      <img [appImg]="authorAvatarUrl()" fallback="avatar" alt="" />
     </a>
     <a [routerLink]="['/profile', userId()]" class="viewer-author" (click)="closed.emit()">{{ username() }}</a>
     @if (authorLevel() != null) {

@@ -8,11 +8,7 @@
   <div class="rc-main">
     <div class="rc-meta">
       <a class="rc-avatar" [routerLink]="['/profile', post().userId]" [attr.aria-label]="post().username">
-        @if (post().authorAvatarUrl; as avatar) {
-          <img [src]="avatar" alt="" />
-        } @else {
-          {{ authorInitial() }}
-        }
+        <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
       </a>
       <a class="rc-author" [routerLink]="['/profile', post().userId]">{{ post().username }}</a>
       <span class="rc-lv">LV {{ post().authorLevel }}</span>
@@ -95,9 +91,7 @@
         </div>
         <div class="rc-pinned-body">
           <span class="rc-c-avatar" aria-hidden="true">
-            @if (pinned.authorAvatarUrl; as avatar) {
-              <img [src]="avatar" alt="" />
-            }
+            <img [appImg]="pinned.authorAvatarUrl" fallback="avatar" alt="" />
           </span>
           <div class="rc-c-main">
             <div class="rc-c-meta">
@@ -141,9 +135,7 @@
 <ng-template #commentRow let-c let-item="item">
   <div class="rc-comment">
     <a class="rc-c-avatar" [routerLink]="['/profile', c.userId]" [attr.aria-label]="c.username">
-      @if (c.authorAvatarUrl) {
-        <img [src]="c.authorAvatarUrl" alt="" />
-      }
+      <img [appImg]="c.authorAvatarUrl" fallback="avatar" alt="" />
     </a>
     <div class="rc-c-main">
       <div class="rc-c-meta">

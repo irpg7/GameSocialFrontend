@@ -1,16 +1,12 @@
 <header class="squad-banner">
-  @if (bannerUrl(); as banner) {
-    <img class="squad-banner-image" [src]="banner" alt="" aria-hidden="true" />
-  }
+  <img class="squad-banner-image" [appImg]="bannerUrl()" fallback="banner" alt="" aria-hidden="true" />
   <span class="squad-banner-fade" aria-hidden="true"></span>
 
   <div class="squad-banner-content">
     <div class="squad-banner-lead">
       <a routerLink="/feed" class="squad-banner-back" aria-label="Back to feed">←</a>
       <span class="squad-banner-mark" aria-hidden="true">
-        @if (squad().iconUrl) {
-          <img [src]="squad().iconUrl" alt="" />
-        }
+        <img [appImg]="squad().iconUrl" fallback="squad" alt="" />
       </span>
     </div>
 

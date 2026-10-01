@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { SquadGuideModel } from '../../../../models/squad.model';
 import { agoEn } from '../squad-format';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 /**
  * "◫ Pinned guides" tab, `onSquad` + `onPinned` (05-squad.html L181–206):
@@ -10,6 +11,7 @@ import { agoEn } from '../squad-format';
  * dashed "＋ Pin a guide from #genel". Backed by GET /squads/{id}/guides.
  */
 @Component({
+  imports: [ImgFallback],
   selector: 'app-squad-pins',
   templateUrl: './squad-pins.html',
   styleUrl: './squad-pins.scss',

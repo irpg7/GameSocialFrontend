@@ -7,6 +7,7 @@ import { MeService } from '../../services/me/me.service';
 import { SearchService } from '../../services/search/search.service';
 import { PresenceStatusName } from '../../models/me.model';
 import { SearchResultModel } from '../../models/search.model';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 const HEARTBEAT_MS = 60_000;
 
@@ -26,7 +27,7 @@ interface MenuItem {
 
 @Component({
   selector: 'app-topbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [ImgFallback, RouterLink, RouterLinkActive],
   templateUrl: './topbar.html',
   styleUrl: './topbar.scss',
   host: {

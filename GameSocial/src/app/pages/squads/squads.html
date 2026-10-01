@@ -97,11 +97,7 @@
         <h2 class="section-head-label hub-panel-title" id="hub-invites-title">Squad invites</h2>
         <div class="hub-person">
           <span class="hub-avatar hub-avatar-38" aria-hidden="true">
-            @if (invite.squadIconUrl) {
-              <img [src]="invite.squadIconUrl" alt="" />
-            } @else {
-              {{ initialOf(invite.squadName) }}
-            }
+            <img [appImg]="invite.squadIconUrl" fallback="squad" alt="" />
           </span>
           <div class="hub-person-text">
             <div class="hub-person-name">{{ invite.squadName }}</div>
@@ -122,11 +118,7 @@
           @for (friend of friends(); track friend.userId) {
             <li class="hub-person">
               <span class="hub-avatar hub-avatar-32" aria-hidden="true">
-                @if (friend.avatarUrl) {
-                  <img [src]="friend.avatarUrl" alt="" />
-                } @else {
-                  {{ initialOf(friend.username) }}
-                }
+                <img [appImg]="friend.avatarUrl" fallback="avatar" alt="" />
               </span>
               <div class="hub-person-text">
                 <a class="hub-person-name" [routerLink]="['/profile', friend.userId]">{{ friend.username }}</a>

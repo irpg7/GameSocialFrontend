@@ -17,9 +17,7 @@
           <li class="roster-row" [class.offline]="offline">
             <span class="roster-avatar-wrap">
               <span class="roster-avatar" aria-hidden="true">
-                @if (member.avatarUrl) {
-                  <img [src]="member.avatarUrl" alt="" />
-                }
+                <img [appImg]="member.avatarUrl" fallback="avatar" alt="" />
               </span>
               <span class="roster-dot" [class]="'roster-dot presence-' + (member.presence ?? 'offline')" [attr.aria-label]="presenceLabel(member.presence)"></span>
             </span>
@@ -54,9 +52,7 @@
           <li class="board-row" [class.self]="row.self" [class.top]="row.rank === 1">
             <span class="board-rank mono">{{ row.rank }}</span>
             <span class="board-avatar" aria-hidden="true">
-              @if (row.entry.avatarUrl) {
-                <img [src]="row.entry.avatarUrl" alt="" />
-              }
+              <img [appImg]="row.entry.avatarUrl" fallback="avatar" alt="" />
             </span>
             <span class="board-name">{{ row.self ? 'You' : row.entry.username }}</span>
             <span class="board-xp mono">{{ format(row.entry.xp) }}</span>

@@ -8,6 +8,7 @@ import { CommentService } from '../../../services/comment/comment.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { formatAgoShortTr, formatClock, formatCount } from '../../../shared/clip-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 interface ReplyThread {
   open: boolean;
@@ -23,7 +24,7 @@ interface ReplyThread {
  */
 @Component({
   selector: 'app-clip-rail-comments',
-  imports: [FormsModule, RouterLink, NgTemplateOutlet],
+  imports: [ImgFallback, FormsModule, RouterLink, NgTemplateOutlet],
   templateUrl: './clip-rail-comments.html',
   styleUrl: './clip-rail-comments.scss',
   host: { class: 'clip-rail-comments' },

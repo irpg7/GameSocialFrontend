@@ -15,11 +15,7 @@
     }
 
     <div class="rs-game">
-      @if (selectedGame()?.coverImageUrl; as cover) {
-        <img class="rs-cover" [src]="cover" alt="" />
-      } @else {
-        <span class="rs-cover" aria-hidden="true"></span>
-      }
+      <img class="rs-cover" [appImg]="selectedGame()?.coverImageUrl" fallback="game" alt="" />
       <div class="rs-game-info">
         @if (selectedGame(); as game) {
           <div class="rs-game-name">{{ game.name }}</div>
@@ -55,6 +51,7 @@
     @if (isPickingGame() || !selectedGame()) {
       <label class="visually-hidden" for="review-game">Game</label>
       <select id="review-game" class="rs-select" [ngModel]="gameId()" (ngModelChange)="selectGame($event)">
+        <button><selectedcontent></selectedcontent></button>
         <option [ngValue]="null">— Select a game —</option>
         @for (game of games(); track game.id) {
           <option [ngValue]="game.id">{{ game.name }}</option>

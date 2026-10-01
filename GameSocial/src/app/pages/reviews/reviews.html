@@ -30,11 +30,7 @@
 
     @if (summary(); as s) {
       <section class="summary" [attr.aria-label]="s.gameName + ' review summary'">
-        @if (s.coverImageUrl) {
-          <img class="summary-cover" [src]="s.coverImageUrl" alt="" />
-        } @else {
-          <span class="summary-cover" aria-hidden="true"></span>
-        }
+        <img class="summary-cover" [appImg]="s.coverImageUrl" fallback="game" alt="" />
         <div class="summary-main">
           <div class="summary-title">
             <span class="summary-name">{{ s.gameName }}</span>
@@ -107,11 +103,7 @@
         <ul class="waiting-list">
           @for (game of waitingGames(); track game.gameId; let first = $first) {
             <li class="waiting-row">
-              @if (game.coverImageUrl) {
-                <img class="waiting-cover" [src]="game.coverImageUrl" alt="" />
-              } @else {
-                <span class="waiting-cover" aria-hidden="true"></span>
-              }
+              <img class="waiting-cover" [appImg]="game.coverImageUrl" fallback="game" alt="" />
               <span class="waiting-info">
                 <span class="waiting-name">{{ game.gameName }}</span>
                 <span class="waiting-meta">{{ waitingMeta(game) }}</span>
@@ -133,9 +125,7 @@
           @for (reviewer of trustedReviewers(); track reviewer.userId) {
             <li class="reviewer-row">
               <span class="reviewer-icon" aria-hidden="true">
-                @if (reviewer.avatarUrl) {
-                  <img [src]="reviewer.avatarUrl" alt="" />
-                }
+                <img [appImg]="reviewer.avatarUrl" fallback="avatar" alt="" />
               </span>
               <span class="reviewer-info">
                 <span class="reviewer-name">{{ reviewer.username }}</span>

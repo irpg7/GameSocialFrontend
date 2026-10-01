@@ -18,9 +18,17 @@ import { PhotoGrid } from '../../../shared/photo-grid/photo-grid';
 import { PhotoViewer } from '../../../shared/photo-viewer/photo-viewer';
 import { RichText } from '../../../shared/rich-text/rich-text';
 import { formatClock, formatCount, formatTimeAgo } from '../../../shared/clip-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 /** How many comments the featured clip's "Öne çıkan yorumlar" block shows. */
 const FEATURED_COMMENTS = 3;
+
+/** A top-level comment's lazily loaded replies (one level deep). */
+interface ReplyThread {
+  open: boolean;
+  loading: boolean;
+  items: CommentModel[];
+}
 
 /**
  * One post in the feed, drawn per type exactly as Gamer Feed.dc.html does:
@@ -35,7 +43,7 @@ const FEATURED_COMMENTS = 3;
  */
 @Component({
   selector: 'app-post-card',
-  imports: [NgTemplateOutlet, RouterLink, StarRating, ClipStage, PhotoGrid, PhotoViewer, RichText],
+  imports: [ImgFallback, NgTemplateOutlet, RouterLink, StarRating, ClipStage, PhotoGrid, PhotoViewer, RichText],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
   host: {
@@ -82,6 +90,7 @@ export class PostCard {
   protected readonly isSubmittingComment = signal(false);
   protected readonly replyingTo = signal<string | null>(null);
   protected readonly replyBody = signal('');
+  protected readonly replyThreads = signal<Record<string, ReplyThread>>({});
 
   protected readonly isOwnPost = computed(() => this.post().userId === this.authService.currentUser()?.id);
   protected readonly timeAgo = computed(() => formatTimeAgo(this.post().createdAt));
@@ -355,28 +364,42 @@ export class PostCard {
     if (!body || this.isSubmittingComment()) {
       return;
     }
+    // Replying to a reply attaches to its top-level parent.
+    const parentId = comment.parentCommentId ?? comment.id;
     this.isSubmittingComment.set(true);
     this.commentService
-      .create(this.post().id, body, { parentCommentId: comment.parentCommentId ?? comment.id })
+      .create(this.post().id, body, { parentCommentId: parentId })
       .pipe(finalize(() => this.isSubmittingComment.set(false)))
       .subscribe({
-        next: () => {
-          this.comments.update((existing) => existing.map((c) => (c.id === comment.id ? { ...c, replyCount: c.replyCount + 1 } : c)));
+        next: (reply) => {
+          this.comments.update((existing) => existing.map((c) => (c.id === parentId ? { ...c, replyCount: c.replyCount + 1 } : c)));
+          const thread = this.replyThreads()[parentId];
+          if (thread?.items.length || thread?.open) {
+            this.patchThread(parentId, { open: true, items: [...thread.items, reply] });
+          } else {
+            this.loadReplies(parentId);
+          }
           this.commentCount.update((count) => count + 1);
           this.replyingTo.set(null);
           this.replyBody.set('');
-          this.notificationService.success('Yanıtın gönderildi.');
         },
         error: () => this.notificationService.error('Failed to post reply.'),
       });
   }
 
+  /** "N yanıt" / "Yanıtları gizle" under a top-level comment. */
+  toggleReplies(comment: CommentModel): void {
+    if (this.replyThreads()[comment.id]?.open) {
+      this.patchThread(comment.id, { open: false });
+      return;
+    }
+    this.loadReplies(comment.id);
+  }
+
   voteComment(comment: CommentModel): void {
     this.commentService.toggleVote(this.post().id, comment.id).subscribe({
       next: (result) =>
-        this.comments.update((existing) =>
-          existing.map((c) => (c.id === comment.id ? { ...c, isVotedByCurrentUser: result.voted, voteCount: result.voteCount } : c)),
-        ),
+        this.updateComment(comment, (c) => ({ ...c, isVotedByCurrentUser: result.voted, voteCount: result.voteCount })),
       error: () => this.notificationService.error('Failed to vote.'),
     });
   }
@@ -384,7 +407,18 @@ export class PostCard {
   deleteComment(comment: CommentModel): void {
     this.commentService.delete(this.post().id, comment.id).subscribe({
       next: () => {
-        this.comments.update((existing) => existing.filter((c) => c.id !== comment.id));
+        const parentId = comment.parentCommentId;
+        if (parentId) {
+          const thread = this.replyThreads()[parentId];
+          if (thread) {
+            this.patchThread(parentId, { items: thread.items.filter((r) => r.id !== comment.id) });
+          }
+          this.comments.update((existing) =>
+            existing.map((c) => (c.id === parentId ? { ...c, replyCount: Math.max(0, c.replyCount - 1) } : c)),
+          );
+        } else {
+          this.comments.update((existing) => existing.filter((c) => c.id !== comment.id));
+        }
         this.commentCount.update((count) => Math.max(0, count - 1));
       },
       error: () => this.notificationService.error('Failed to delete comment.'),
@@ -412,5 +446,36 @@ export class PostCard {
         },
         error: () => this.notificationService.error('Failed to load comments.'),
       });
+  }
+
+  private loadReplies(parentId: string): void {
+    this.patchThread(parentId, { open: true, loading: true });
+    this.commentService.list(this.post().id, 1, 50, { parentCommentId: parentId }).subscribe({
+      next: (result) => this.patchThread(parentId, { loading: false, items: result.items }),
+      error: () => {
+        this.patchThread(parentId, { open: false, loading: false });
+        this.notificationService.error('Failed to load replies.');
+      },
+    });
+  }
+
+  private patchThread(id: string, patch: Partial<ReplyThread>): void {
+    this.replyThreads.update((threads) => ({
+      ...threads,
+      [id]: { ...(threads[id] ?? { open: false, loading: false, items: [] }), ...patch },
+    }));
+  }
+
+  /** Applies a change to a comment wherever it lives — the top-level list or a reply thread. */
+  private updateComment(comment: CommentModel, apply: (c: CommentModel) => CommentModel): void {
+    const parentId = comment.parentCommentId;
+    if (!parentId) {
+      this.comments.update((existing) => existing.map((c) => (c.id === comment.id ? apply(c) : c)));
+      return;
+    }
+    const thread = this.replyThreads()[parentId];
+    if (thread) {
+      this.patchThread(parentId, { items: thread.items.map((r) => (r.id === comment.id ? apply(r) : r)) });
+    }
   }
 }

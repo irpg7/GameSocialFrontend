@@ -4,6 +4,7 @@ import { LikeService } from '../../../services/like/like.service';
 import { PostService } from '../../../services/post/post.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { clipVideo, formatClock, formatCount } from '../../../shared/clip-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 /**
  * One card in the Clips page "Up next" rail, from Gamer Feed.dc.html's
@@ -17,6 +18,7 @@ import { clipVideo, formatClock, formatCount } from '../../../shared/clip-format
  * (the same list as "◷ watch later" on the Clip Player).
  */
 @Component({
+  imports: [ImgFallback],
   selector: 'app-clip-queue-card',
   templateUrl: './clip-queue-card.html',
   styleUrl: './clip-queue-card.scss',

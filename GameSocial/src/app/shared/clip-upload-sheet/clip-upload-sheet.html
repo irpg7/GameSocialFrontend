@@ -50,6 +50,7 @@
 
     <div class="cu-row">
       <select class="cu-select cu-select-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+        <button><selectedcontent></selectedcontent></button>
         @if (games().length === 0) {
           <option [ngValue]="null">— Select a game —</option>
         }
@@ -58,6 +59,7 @@
         }
       </select>
       <select class="cu-select cu-select-squad" [class.empty]="squadId() === null" aria-label="Tag a squad" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
+        <button><selectedcontent></selectedcontent></button>
         <option [ngValue]="null">＋ Tag a squad</option>
         @for (s of squads(); track s.id) {
           <option [ngValue]="s.id">{{ s.name }}</option>

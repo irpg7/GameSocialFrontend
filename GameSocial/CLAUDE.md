@@ -35,7 +35,7 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
 - `models/*.model.ts` — mirror `Domain.Responses.*` (comments name the C# type). Enums are string unions.
 - `shared/` — reusable UI: `sheet-modal`, `squad-create-sheet` (+ `squad-sheet-frame` for small sheets),
   `player-picker` (username combobox: followed users first, then `/api/search`; only real accounts),
-  `review-sheet`, `clip-stage`, `mini-player`, `photo-viewer`, `star-rating`, `api-error.util.ts`
+  `review-sheet`, `clip-stage`, `photo-viewer`, `star-rating`, `api-error.util.ts`
   (`extractApiErrorMessage(err, fallback)` — always use it for server messages).
 - `layout/` — `main-layout`, `topbar` (brand: `assets/tavern-logo.png` + "Tavern"), `toast-list`.
 - Toasts: `NotificationService.success()/error()`. Current user: `AuthService.currentUser()` (from JWT claims);

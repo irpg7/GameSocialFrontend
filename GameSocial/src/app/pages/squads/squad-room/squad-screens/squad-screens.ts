@@ -3,6 +3,7 @@ import { PostModel, PostMediaModel } from '../../../../models/post.model';
 import { SquadGameModel } from '../../../../models/squad.model';
 import { PhotoViewer } from '../../../../shared/photo-viewer/photo-viewer';
 import { agoShortEn } from '../squad-format';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 interface ScreenTile {
   post: PostModel;
@@ -23,7 +24,7 @@ const MAX_TILES = 5;
  */
 @Component({
   selector: 'app-squad-screens',
-  imports: [PhotoViewer],
+  imports: [ImgFallback, PhotoViewer],
   templateUrl: './squad-screens.html',
   styleUrl: './squad-screens.scss',
 })

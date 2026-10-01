@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PostMediaModel } from '../../models/post.model';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 /**
  * The `phViewer` state of `Gamer Feed.dc.html`'s photo post card: a full-screen
@@ -27,7 +28,7 @@ import { PostMediaModel } from '../../models/post.model';
  */
 @Component({
   selector: 'app-photo-viewer',
-  imports: [RouterLink],
+  imports: [ImgFallback, RouterLink],
   templateUrl: './photo-viewer.html',
   styleUrl: './photo-viewer.scss',
   host: {

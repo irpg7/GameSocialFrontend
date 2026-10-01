@@ -7,6 +7,7 @@ import { XpAwardsService } from '../../../services/config/xp-awards.service';
 import { FeedActivityService } from '../../../services/feed/feed-activity.service';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadActivityModel } from '../../../models/squad-activity.model';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 const NUMBER_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
@@ -17,7 +18,7 @@ const NUMBER_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Sev
  */
 @Component({
   selector: 'app-feed-right-rail',
-  imports: [RouterLink],
+  imports: [ImgFallback, RouterLink],
   templateUrl: './feed-right-rail.html',
   styleUrl: './feed-right-rail.scss',
 })

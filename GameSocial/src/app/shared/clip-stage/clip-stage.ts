@@ -22,6 +22,7 @@ import { PostService } from '../../services/post/post.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { clipVideo, formatClock, formatCount, formatTimeAgo, formatViews } from '../clip-format';
 import { shareClip } from './clip-share';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 /**
  * <app-clip-stage> — the one clip surface. A real <video> with the design's
@@ -76,7 +77,7 @@ const VIEW_AFTER_SECONDS = 3;
 
 @Component({
   selector: 'app-clip-stage',
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [ImgFallback, RouterLink, NgTemplateOutlet],
   templateUrl: './clip-stage.html',
   styleUrl: './clip-stage.scss',
   host: {
@@ -109,7 +110,7 @@ export class ClipStage {
   commentsActive = input(false);
   /** Start playing as soon as this clip becomes the stage's source (Clips page queue). */
   autoplay = input(false);
-  /** Seconds to start from when a clip loads (resume from the mini player, `?t=` deep links). */
+  /** Seconds to start from when a clip loads (`?t=` deep links). */
   startAt = input<number | null>(null);
   hotMoments = input<HotMomentModel[]>([]);
   hasPrev = input(false);

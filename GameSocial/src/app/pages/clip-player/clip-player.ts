@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, finalize } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
@@ -12,9 +12,10 @@ import { PagedResult } from '../../models/paged-result.model';
 import { HotMomentModel } from '../../models/clip.model';
 import { ClipStage } from '../../shared/clip-stage/clip-stage';
 import { shareClip } from '../../shared/clip-stage/clip-share';
-import { PlayerStateService } from '../../shared/mini-player/player-state.service';
+import { ClipAutoplayService } from '../../shared/clip-autoplay.service';
 import { clipVideo, formatAgoLong, formatClock, formatCount, formatViews } from '../../shared/clip-format';
 import { ClipRailComments } from '../clips/clip-rail-comments/clip-rail-comments';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 type QueueSource = 'hot' | 'following' | 'new';
 
@@ -28,15 +29,15 @@ const QUEUE_SIZE = 12;
  * 322px queue ("Playing from Hot today · 1 / 5" + Autoplay).
  *
  * `?from=hot|following|new` picks the queue (default Hot today); `?t=` starts
- * at a position. Leaving while playing pins the clip to the mini player.
+ * at a position.
  */
 @Component({
   selector: 'app-clip-player',
-  imports: [ClipStage, ClipRailComments, RouterLink],
+  imports: [ImgFallback, ClipStage, ClipRailComments, RouterLink],
   templateUrl: './clip-player.html',
   styleUrl: './clip-player.scss',
 })
-export class ClipPlayer implements OnInit, OnDestroy {
+export class ClipPlayer implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private postService = inject(PostService);
@@ -45,7 +46,7 @@ export class ClipPlayer implements OnInit, OnDestroy {
   private likeService = inject(LikeService);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
-  private playerState = inject(PlayerStateService);
+  private clipAutoplay = inject(ClipAutoplayService);
   private destroyRef = inject(DestroyRef);
 
   private readonly stage = viewChild(ClipStage);
@@ -59,11 +60,10 @@ export class ClipPlayer implements OnInit, OnDestroy {
   protected readonly hotMoments = signal<HotMomentModel[]>([]);
   protected readonly startAt = signal<number | null>(null);
   protected readonly time = signal(0);
-  protected readonly playing = signal(false);
   protected readonly theater = signal(false);
   protected readonly commentsOpen = signal(false);
   protected readonly isMobile = signal(false);
-  protected readonly autoplay = this.playerState.autoplay;
+  protected readonly autoplay = this.clipAutoplay.autoplay;
   protected readonly isTogglingFollow = signal(false);
   protected readonly isTogglingLike = signal(false);
   protected readonly isTogglingSave = signal(false);
@@ -122,33 +122,14 @@ export class ClipPlayer implements OnInit, OnDestroy {
     this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
-  ngOnDestroy(): void {
-    const post = this.post();
-    if (post && this.playing()) {
-      this.playerState.pin({ post, time: this.time(), queue: this.queue(), source: this.sourceLabel() });
-    }
-  }
-
   private open(id: string): void {
     this.commentDelta.set(0);
     this.hotMoments.set([]);
-    const resumed = this.playerState.takeOver(id);
-    // Only one clip plays at a time: a different pinned clip stops when a full player opens.
-    this.playerState.dismiss();
     const t = Number(this.route.snapshot.queryParamMap.get('t'));
-    this.startAt.set(resumed ? resumed.time : Number.isFinite(t) && t > 0 ? t : null);
-
-    if (resumed) {
-      this.post.set(resumed.post);
-      this.isLoading.set(false);
-      if (resumed.queue.length > 1) {
-        this.queue.set(resumed.queue);
-        this.sourceLabel.set(resumed.source);
-      }
-    }
+    this.startAt.set(Number.isFinite(t) && t > 0 ? t : null);
 
     const known = this.queue().find((p) => p.id === id);
-    if (known && !resumed) {
+    if (known) {
       this.post.set(known);
       this.isLoading.set(false);
     }
@@ -220,7 +201,7 @@ export class ClipPlayer implements OnInit, OnDestroy {
   }
 
   protected toggleAutoplay(): void {
-    this.playerState.setAutoplay(!this.autoplay());
+    this.clipAutoplay.setAutoplay(!this.autoplay());
   }
 
   protected seek(seconds: number): void {

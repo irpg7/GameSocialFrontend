@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SquadModel } from '../../../../models/squad.model';
 import { foundedTr } from '../squad-format';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 /**
  * Squad room banner, from `onSquad` (05-squad.html L79–97): 168px band (the
@@ -12,7 +13,7 @@ import { foundedTr } from '../squad-format';
  */
 @Component({
   selector: 'app-squad-banner',
-  imports: [RouterLink],
+  imports: [ImgFallback, RouterLink],
   templateUrl: './squad-banner.html',
   styleUrl: './squad-banner.scss',
 })
@@ -26,7 +27,11 @@ export class SquadBanner {
   openSettings = output<void>();
 
   /** Backend returns '' (not null) when a game has no cover — treat both as absent. */
-  protected readonly bannerUrl = computed(() => this.squad().bannerUrl || this.squad().primaryGameCoverImageUrl || null);
+  /** The backend's default poster is a portrait "no cover" card — stretched into the band it reads as broken. */
+  protected readonly bannerUrl = computed(() => {
+    const cover = this.squad().primaryGameCoverImageUrl;
+    return this.squad().bannerUrl || (cover && !cover.includes('placeholder-game-poster') ? cover : null);
+  });
 
   protected readonly meta = computed(() => {
     const squad = this.squad();

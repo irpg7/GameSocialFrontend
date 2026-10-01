@@ -62,6 +62,7 @@
       <div class="form-group">
         <label for="guide-game">Oyun</label>
         <select id="guide-game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+          <button><selectedcontent></selectedcontent></button>
           <option [ngValue]="null">— Oyun yok —</option>
           @for (game of games(); track game.id) {
             <option [ngValue]="game.id">{{ game.name }}</option>

@@ -1,8 +1,8 @@
 <!-- One comment row — the design's fhComments item: avatar, author, LV, @stamp, age, text, ▲ n, Yanıtla. -->
-<ng-template #commentRow let-comment>
-  <div class="cm" [class.cm-pinned]="comment.isPinned">
+<ng-template #commentRow let-comment let-reply="reply">
+  <div class="cm" [class.cm-pinned]="comment.isPinned" [class.cm-is-reply]="reply">
     <a [routerLink]="['/profile', comment.userId]" class="cm-avatar" [attr.aria-label]="comment.username">
-      @if (comment.authorAvatarUrl) { <img [src]="comment.authorAvatarUrl" alt="" /> }
+      <img [appImg]="comment.authorAvatarUrl" fallback="avatar" alt="" />
     </a>
     <div class="cm-body">
       <div class="cm-meta">
@@ -23,8 +23,13 @@
       <div class="cm-actions">
         <button type="button" class="cm-vote" [class.active]="comment.isVotedByCurrentUser" [attr.aria-pressed]="comment.isVotedByCurrentUser" (click)="voteComment(comment)">▲ {{ count(comment.voteCount) }}</button>
         <button type="button" class="cm-reply" [attr.aria-expanded]="replyingTo() === comment.id" (click)="startReply(comment)">
-          Yanıtla@if (comment.replyCount > 0) { <span class="cm-reply-count">· {{ comment.replyCount }}</span> }
+          Yanıtla
         </button>
+        @if (!reply && comment.replyCount > 0) {
+          <button type="button" class="cm-reply" [attr.aria-expanded]="replyThreads()[comment.id]?.open ?? false" (click)="toggleReplies(comment)">
+            @if (replyThreads()[comment.id]?.open) { Yanıtları gizle } @else { <span class="cm-reply-count">{{ comment.replyCount }}</span> yanıt }
+          </button>
+        }
       </div>
       @if (replyingTo() === comment.id) {
         <div class="cm-reply-form">
@@ -37,6 +42,18 @@
             aria-label="Yanıt" />
           <button type="button" class="btn btn-primary btn-sm" [disabled]="!replyBody().trim() || isSubmittingComment()" (click)="submitReply(comment)">Gönder</button>
         </div>
+      }
+      @if (!reply && replyThreads()[comment.id]; as t) {
+        @if (t.open) {
+          <div class="cm-replies">
+            @if (t.loading && t.items.length === 0) {
+              <p class="thread-status">Yanıtlar yükleniyor…</p>
+            }
+            @for (r of t.items; track r.id) {
+              <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: r, reply: true }" />
+            }
+          </div>
+        }
       }
     </div>
   </div>
@@ -123,7 +140,7 @@
   <article class="pc">
     <div class="pc-head">
       <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
-        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+        <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
       </a>
       <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
       <span class="lv">LV {{ post().authorLevel }}</span>
@@ -156,7 +173,7 @@
     <article class="pc pc-devlog">
       <div class="dv-head">
         <a [routerLink]="['/profile', post().userId]" class="av av-40" [attr.aria-label]="post().username">
-          @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+          <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
         </a>
         <div class="dv-who">
           <div class="dv-who-row">
@@ -256,7 +273,7 @@
       <div class="rv-layout">
         <div class="rv-gutter">
           <div class="rv-cover">
-            @if (post().gameCoverImageUrl) { <img [src]="post().gameCoverImageUrl" [alt]="post().gameName ?? ''" /> }
+            <img [appImg]="post().gameCoverImageUrl" fallback="game" [alt]="post().gameName ?? ''" />
           </div>
           <div class="rv-score">{{ reviewScore() }}</div>
           <app-star-rating [score]="review.score" />
@@ -293,7 +310,7 @@
   <article class="pc">
     <div class="pc-head">
       <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
-        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+        <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
       </a>
       <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
       <span class="lv">LV {{ post().authorLevel }}</span>
@@ -340,7 +357,7 @@
   <article class="pc pc-padded">
     <div class="pc-head pc-head-flush">
       <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
-        @if (post().authorAvatarUrl) { <img [src]="post().authorAvatarUrl" alt="" /> }
+        <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
       </a>
       <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
       <span class="lv">LV {{ post().authorLevel }}</span>

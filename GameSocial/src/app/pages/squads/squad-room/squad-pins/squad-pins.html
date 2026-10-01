@@ -6,9 +6,7 @@
       <!-- 05-squad.html L183: featured PINNED guide -->
       <button type="button" class="guide-featured" (click)="openGuide.emit(guide)">
         <span class="guide-cover">
-          @if (guide.coverUrl) {
-            <img [src]="guide.coverUrl" alt="" />
-          }
+          <img [appImg]="guide.coverUrl" fallback="game" alt="" />
         </span>
         <span class="guide-featured-body">
           <span class="guide-featured-head">
@@ -39,9 +37,7 @@
         <li>
           <button type="button" class="guide-row" (click)="openGuide.emit(guide)">
             <span class="guide-row-thumb">
-              @if (guide.coverUrl) {
-                <img [src]="guide.coverUrl" alt="" />
-              }
+              <img [appImg]="guide.coverUrl" fallback="game" alt="" />
             </span>
             <span class="guide-row-body">
               <span class="guide-row-title">{{ guide.title }}</span>

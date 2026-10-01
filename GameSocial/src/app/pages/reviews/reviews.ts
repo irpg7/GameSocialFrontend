@@ -13,6 +13,7 @@ import { ReviewSummaryModel, ReviewWaitingGameModel, TrustedReviewerModel } from
 import { ReviewSheet } from '../../shared/review-sheet/review-sheet';
 import { formatTimeAgo } from '../../shared/clip-format';
 import { ReviewCard } from './review-card/review-card';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 const PAGE_SIZE = 10;
 const LONG_PLAYTIME_HOURS = 20;
@@ -47,7 +48,7 @@ const BUCKET_COLORS: Record<string, string> = {
  */
 @Component({
   selector: 'app-reviews',
-  imports: [ReviewCard, ReviewSheet],
+  imports: [ImgFallback, ReviewCard, ReviewSheet],
   templateUrl: './reviews.html',
   styleUrl: './reviews.scss',
 })

@@ -3,10 +3,11 @@ import { GameService } from '../../services/game/game.service';
 import { FollowService } from '../../services/follow/follow.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { GameModel } from '../../models/game.model';
+import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
 @Component({
   selector: 'app-games',
-  imports: [],
+  imports: [ImgFallback, ],
   templateUrl: './games.html',
   styleUrl: './games.scss',
 })

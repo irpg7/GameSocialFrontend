@@ -2,6 +2,7 @@ import { Component, ElementRef, afterRenderEffect, computed, input, output, sign
 import { FormsModule } from '@angular/forms';
 import { SharedPostPreviewModel, SquadMessageModel } from '../../../../models/squad.model';
 import { clock, clockTime } from '../squad-format';
+import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 
 interface MessageDayGroup {
   /** `Today` / `Yesterday` / a short date — the design's chat divider. */
@@ -23,7 +24,7 @@ export interface ReactRequest {
  */
 @Component({
   selector: 'app-squad-chat',
-  imports: [FormsModule],
+  imports: [ImgFallback, FormsModule],
   templateUrl: './squad-chat.html',
   styleUrl: './squad-chat.scss',
 })
