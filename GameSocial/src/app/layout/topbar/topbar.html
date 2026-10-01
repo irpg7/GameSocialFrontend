@@ -17,6 +17,7 @@
       <label class="search-box">
         <span class="search-glyph" aria-hidden="true">⌕</span>
         <input
+          #searchInput
           type="search"
           class="search-input"
           placeholder="Search players, games, clips"
@@ -27,6 +28,7 @@
           (focus)="isSearchOpen.set(true); isMenuOpen.set(false)"
           (keydown.enter)="submitSearch()" />
       </label>
+      <button type="button" class="m-search-cancel" (click)="closeAll()">Vazgeç</button>
 
       @if (isSearchOpen() && query().trim()) {
         <div class="search-pop" role="listbox" aria-label="Search results">
@@ -76,6 +78,10 @@
       }
     </div>
 
+    <button type="button" class="m-search-btn" aria-label="Search players, games, clips" (click)="openMobileSearch(); $event.stopPropagation()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+    </button>
+
     @if (meService.me(); as me) {
       <div class="xp-pill" [attr.title]="me.xp + ' XP · ' + me.xpToNextLevel + ' to next level'">
         <span class="xp-level">LV {{ me.level }}</span>
@@ -97,6 +103,8 @@
       </button>
 
       @if (isMenuOpen()) {
+        <!-- Phones: the menu is a bottom sheet over this backdrop. -->
+        <button type="button" class="m-backdrop" aria-label="Close menu" (click)="isMenuOpen.set(false)"></button>
         <div class="me-pop" role="menu">
           @if (meService.me(); as me) {
             <div class="me-id">

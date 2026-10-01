@@ -1,0 +1,62 @@
+@use '../../../styles/variables' as *;
+
+:host {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    flex: none;
+  }
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  background: $color-bg-sheet;
+  border-top: 1px solid $color-border;
+}
+
+.tab {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: $color-text-hint;
+  text-decoration: none;
+  border-radius: $border-radius-md;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: -2px;
+  }
+
+  &.active {
+    color: $color-text-primary;
+
+    .pill {
+      background: $color-accent-primary;
+      color: #fff;
+    }
+  }
+}
+
+.pill {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color $transition-speed-fast;
+}
+
+.label {
+  font: 700 11px/14px $font-family-primary;
+}

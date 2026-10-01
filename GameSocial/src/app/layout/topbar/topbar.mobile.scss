@@ -1,0 +1,144 @@
+@use '../../../styles/variables' as *;
+
+// Phone layout (≤ 768px): page links move to the bottom tab bar (layout/mobile-tab-bar),
+// the search box hides behind an icon and opens full-width over the bar, and the account
+// menu becomes a bottom sheet. Desktop styles live in topbar.scss.
+
+.m-search-btn,
+.m-search-cancel,
+.m-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .topbar-container {
+    padding: 0 12px 0 16px;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-name {
+    font-size: 19px;
+  }
+
+  .topbar-nav,
+  .xp-pill {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .m-search-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.18);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  // Search: hidden until the icon opens it, then a full-width row over the bar.
+  .search {
+    display: none;
+  }
+
+  :host(.m-search) .search {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 56px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    background: $color-accent-primary;
+  }
+
+  :host(.m-search) .search-box {
+    flex: 1;
+    width: auto;
+    height: 40px;
+  }
+
+  .search-input {
+    font-size: 16px; // under 16px iOS zooms the page on focus
+  }
+
+  :host(.m-search) .m-search-cancel {
+    display: block;
+    height: 44px;
+    padding: 0 6px;
+    border: none;
+    background: none;
+    color: #fff;
+    font: 700 14px $font-family-primary;
+    cursor: pointer;
+  }
+
+  .search-pop {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: $color-bg-primary;
+    padding: 12px 16px;
+    overflow-y: auto;
+  }
+
+  // Account menu: bottom sheet.
+  .m-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: none;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .me-pop {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    z-index: 56;
+    max-height: 85dvh;
+    overflow-y: auto;
+    border-radius: $border-radius-sheet $border-radius-sheet 0 0;
+    border-width: 1px 0 0;
+    padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+    background: $color-bg-sheet;
+  }
+
+  .me-item,
+  .me-quick-btn {
+    min-height: 44px;
+  }
+}

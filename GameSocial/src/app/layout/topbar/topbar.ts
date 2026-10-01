@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
@@ -29,8 +29,9 @@ interface MenuItem {
   selector: 'app-topbar',
   imports: [ImgFallback, RouterLink, RouterLinkActive],
   templateUrl: './topbar.html',
-  styleUrl: './topbar.scss',
+  styleUrls: ['./topbar.scss', './topbar.mobile.scss'],
   host: {
+    '[class.m-search]': 'isMobileSearch()',
     '(document:click)': 'onDocumentClick($event)',
     '(document:keydown.escape)': 'closeAll()',
   },
@@ -47,6 +48,9 @@ export class Topbar {
   protected readonly query = signal('');
   protected readonly results = signal<SearchResultModel | null>(null);
   protected readonly isSearchOpen = signal(false);
+  /** Phones: the search box is hidden behind an icon and opens full-width over the bar. */
+  protected readonly isMobileSearch = signal(false);
+  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   private readonly query$ = new Subject<string>();
 
   protected readonly hasResults = computed(() => {
@@ -98,6 +102,14 @@ export class Topbar {
   closeAll(): void {
     this.isMenuOpen.set(false);
     this.isSearchOpen.set(false);
+    this.isMobileSearch.set(false);
+  }
+
+  openMobileSearch(): void {
+    this.isMenuOpen.set(false);
+    this.isMobileSearch.set(true);
+    this.isSearchOpen.set(true);
+    setTimeout(() => this.searchInput()?.nativeElement.focus());
   }
 
   onDocumentClick(event: Event): void {
@@ -119,11 +131,13 @@ export class Topbar {
       return;
     }
     this.isSearchOpen.set(false);
+    this.isMobileSearch.set(false);
     void this.router.navigate(['/search'], { queryParams: { q } });
   }
 
   pickResult(): void {
     this.isSearchOpen.set(false);
+    this.isMobileSearch.set(false);
     this.query.set('');
     this.results.set(null);
   }
