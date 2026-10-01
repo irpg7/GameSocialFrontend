@@ -5,6 +5,10 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 Recent work and the reasoning behind it: `../CHANGELOG.md` — read it before starting in an area you haven't
 touched this session.
 
+### Skills
+- Load the `angular-developer` skill before writing or reviewing frontend code (components, signals, forms,
+  routing, styling, tests). Its guidance applies on top of the rules in this file; where they differ, this file wins.
+
 ### Workspace (shared with the backend repo)
 Tavern (repo name GameSocial) is a social app for gamers: feed (photo / clip / review / devlog / poll posts),
 clips, reviews, trophies, squads (Discord-like rooms with channels and realtime chat). The UI calls it **Tavern**.
