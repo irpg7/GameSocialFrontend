@@ -4,11 +4,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FollowService } from '../../../services/follow/follow.service';
 import { SquadService } from '../../../services/squad/squad.service';
 import { MeService } from '../../../services/me/me.service';
+import { GameService } from '../../../services/game/game.service';
+import { NotificationService } from '../../../services/notification/notification.service';
 import { FollowedGameModel, FollowedUserModel } from '../../../models/follow.model';
+import { GameModel } from '../../../models/game.model';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadCreateSheet } from '../../../shared/squad-create-sheet/squad-create-sheet';
 
 type FollowTab = 'games' | 'people';
+
+const SUGGESTED_GAMES = 5;
 
 /**
  * Feed-page-only left rail (Gamer Feed.dc.html `aside` 212px): what you
@@ -28,6 +33,8 @@ type FollowTab = 'games' | 'people';
 export class FeedSidebar {
   private followService = inject(FollowService);
   private squadService = inject(SquadService);
+  private gameService = inject(GameService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   protected readonly meService = inject(MeService);
@@ -39,6 +46,15 @@ export class FeedSidebar {
   protected readonly followedGames = signal<FollowedGameModel[]>([]);
   protected readonly followedUsers = signal<FollowedUserModel[]>([]);
   protected readonly mySquads = signal<SquadModel[]>([]);
+
+  /** The catalogue, for the "follow one" suggestions shown while you follow no games. */
+  private readonly allGames = signal<GameModel[]>([]);
+  protected readonly followBusyId = signal<number | null>(null);
+  protected readonly suggestedGames = computed(() => {
+    const query = this.filterQuery().trim().toLowerCase();
+    const games = this.allGames();
+    return (query ? games.filter((g) => g.name.toLowerCase().includes(query)) : games).slice(0, SUGGESTED_GAMES);
+  });
 
   protected readonly selectedGameId = signal<number | null>(null);
   protected readonly selectedUserId = signal<string | null>(null);
@@ -69,7 +85,15 @@ export class FeedSidebar {
     });
 
     this.followService.getFollowedGames().subscribe({
-      next: (games) => this.followedGames.set(games),
+      next: (games) => {
+        this.followedGames.set(games);
+        if (games.length === 0) {
+          this.gameService.getGames().subscribe({
+            next: (all) => this.allGames.set(all),
+            error: () => void 0,
+          });
+        }
+      },
       error: () => void 0,
     });
     this.followService.getFollowedUsers().subscribe({
@@ -97,6 +121,27 @@ export class FeedSidebar {
       this.followedGames.update((games) => games.map((g) => (g.id === game.id ? { ...g, newPostCount: 0 } : g)));
       this.followService.markGameSeen(game.id).subscribe({ error: () => void 0 });
     }
+  }
+
+  followGame(game: GameModel): void {
+    if (this.followBusyId() !== null) {
+      return;
+    }
+    this.followBusyId.set(game.id);
+    this.followService.toggleGameFollow(game.id).subscribe({
+      next: (result) => {
+        this.followBusyId.set(null);
+        if (result.following) {
+          this.followedGames.update((games) =>
+            [...games.filter((g) => g.id !== game.id), { ...game, newPostCount: 0 }].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+        }
+      },
+      error: () => {
+        this.followBusyId.set(null);
+        this.notificationService.error('Failed to follow the game.');
+      },
+    });
   }
 
   selectPerson(person: FollowedUserModel): void {

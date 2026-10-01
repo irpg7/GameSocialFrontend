@@ -77,4 +77,88 @@
       }
     </ul>
   </div>
+
+  @if (canUseVoice()) {
+    <div class="sidebar-section">
+      <div class="sidebar-heading channels-heading">
+        <span class="sidebar-label" id="squad-voice-label">Sesli sohbet</span>
+        <button type="button" class="sidebar-add" aria-label="Sesli oturum başlat" (click)="startSession.emit()">＋</button>
+      </div>
+
+      @if (sessions().length > 0) {
+        <ul class="channel-list" aria-labelledby="squad-voice-label">
+          @for (session of sessions(); track session.id) {
+            @let busy = busySessionId() === session.id;
+            <li>
+              <div class="voice-line">
+                <button
+                  type="button"
+                  class="channel-row voice-row"
+                  [class.active]="session.isLive && session.isGoing"
+                  [class.going]="!session.isLive && session.isGoing"
+                  [disabled]="busy"
+                  [attr.aria-pressed]="session.isGoing"
+                  [attr.aria-label]="sessionLabel(session)"
+                  (click)="sessionToggled.emit(session)">
+                  <span class="channel-hash voice-glyph" [class.live]="session.isLive" aria-hidden="true">{{ session.isLive ? '🔊' : '🕘' }}</span>
+                  <span class="voice-text">
+                    <span class="channel-name">{{ session.title }}</span>
+                    @if (sessionSub(session); as sub) {
+                      <span class="voice-sub">{{ sub }}</span>
+                    }
+                  </span>
+                  <span class="voice-meta mono" aria-hidden="true">
+                    @if (session.isLive) {
+                      {{ session.rsvpCount }}/{{ session.capacity }}
+                    } @else {
+                      {{ session.isGoing ? '✓ ' : '' }}{{ sessionWhen(session) }}
+                    }
+                  </span>
+                </button>
+                @if (!session.isLive && canManage(session)) {
+                  <button
+                    type="button"
+                    class="voice-start"
+                    [disabled]="busy"
+                    [attr.aria-label]="session.title + ' — şimdi başlat'"
+                    (click)="sessionStarted.emit(session)">Başlat</button>
+                }
+              </div>
+
+              @if (session.isLive && session.attendees.length > 0) {
+                <ul class="voice-attendees" [attr.aria-label]="session.title + ' — seste olanlar'">
+                  @for (person of session.attendees; track person.userId) {
+                    <li class="voice-attendee">
+                      <span class="voice-avatar" [class.host]="person.userId === session.hostUserId" aria-hidden="true">
+                        @if (person.avatarUrl) {
+                          <img [src]="person.avatarUrl" alt="" />
+                        } @else {
+                          {{ person.username.charAt(0).toUpperCase() }}
+                        }
+                      </span>
+                      <span class="voice-attendee-name">{{ person.username }}</span>
+                    </li>
+                  }
+                  @if (session.rsvpCount > session.attendees.length) {
+                    <li class="voice-attendee voice-more">+{{ session.rsvpCount - session.attendees.length }} kişi daha</li>
+                  }
+                </ul>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <button type="button" class="sidebar-dashed" (click)="startSession.emit()">🔊 Sesli sohbet başlat</button>
+      }
+    </div>
+
+    @if (connectedSession(); as live) {
+      <app-squad-voice-panel
+        [session]="live"
+        [busy]="busySessionId() === live.id"
+        [canEnd]="canManage(live)"
+        (leave)="sessionToggled.emit(live)"
+        (end)="sessionEnded.emit(live)" />
+    }
+  }
 </aside>

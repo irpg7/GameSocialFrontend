@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, effect, inject, signal } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { finalize, map } from 'rxjs';
+import { Observable, finalize, map } from 'rxjs';
 import { SquadService } from '../../../services/squad/squad.service';
 import { SquadRoomService } from '../../../services/squad/squad-room.service';
 import { SquadRealtimeService } from '../../../services/squad/squad-realtime.service';
@@ -22,6 +22,8 @@ import {
   SquadMessageModel,
   SquadModel,
 } from '../../../models/squad.model';
+import { SquadSessionModel } from '../../../models/squad-hub.model';
+import { SquadHubService } from '../../../services/squad/squad-hub.service';
 import { PostModel } from '../../../models/post.model';
 import { GameModel } from '../../../models/game.model';
 import { extractApiErrorMessage } from '../../../shared/api-error.util';
@@ -38,6 +40,8 @@ import { SquadPins } from './squad-pins/squad-pins';
 import { SquadRail } from './squad-rail/squad-rail';
 import { SquadSettingsSheet } from './squad-settings-sheet/squad-settings-sheet';
 import { SquadGuideSheet } from './squad-guide-sheet/squad-guide-sheet';
+import { HubSessionSheet } from '../hub/hub-session-sheet';
+import { environment } from '../../../../environments/environment';
 
 const MESSAGE_PAGE_SIZE = 50;
 const POST_PAGE_SIZE = 12;
@@ -55,7 +59,8 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
  * Squad room — `onSquad` in 05-squad.html. Full-bleed under the topbar: 248px
  * sidebar, banner over the tabbed main column, 268px rail. Loads data,
  * composes the child sections and wires the SignalR room channel
- * (messages, reactions, guides, typing, presence) plus a presence heartbeat.
+ * (messages, reactions, guides, typing, presence) plus a presence heartbeat,
+ * which also refreshes the sidebar's voice sessions ("Sesli sohbet").
  */
 @Component({
   selector: 'app-squad-room',
@@ -71,6 +76,7 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
     SquadRail,
     SquadSettingsSheet,
     SquadGuideSheet,
+    HubSessionSheet,
     SquadCreateSheet,
     SheetModal,
     PostComposer,
@@ -83,6 +89,7 @@ export class SquadRoom {
   private router = inject(Router);
   private squadService = inject(SquadService);
   private roomService = inject(SquadRoomService);
+  private hubService = inject(SquadHubService);
   private realtime = inject(SquadRealtimeService);
   private postService = inject(PostService);
   private gameService = inject(GameService);
@@ -150,6 +157,13 @@ export class SquadRoom {
   protected readonly leaderboard = signal<SquadLeaderboardEntryModel[]>([]);
   protected readonly rosterError = signal<string | null>(null);
   protected readonly leaderboardError = signal<string | null>(null);
+
+  // ─── Voice sessions ────────────────────────────────────────────
+  /** Off (environment.features.squadVoice) until voice ships: no list, no polling. */
+  protected readonly isVoiceEnabled = environment.features.squadVoice;
+  protected readonly sessions = signal<SquadSessionModel[]>([]);
+  protected readonly busySessionId = signal<string | null>(null);
+  protected readonly isSessionSheetOpen = signal(false);
 
   // ─── Sheets ────────────────────────────────────────────────────
   protected readonly isSettingsOpen = signal(false);
@@ -225,6 +239,7 @@ export class SquadRoom {
       } else {
         this.meService.heartbeat().subscribe({ error: () => void 0 });
       }
+      this.loadSessions();
     }, HEARTBEAT_MS);
     const typingTick = setInterval(() => this.now.set(Date.now()), 1_000);
 
@@ -423,6 +438,42 @@ export class SquadRoom {
       });
   }
 
+  // ─── Voice sessions ────────────────────────────────────────────
+  openSessionSheet(): void {
+    this.isSessionSheetOpen.set(true);
+  }
+
+  onSessionCreated(): void {
+    this.isSessionSheetOpen.set(false);
+    this.loadSessions();
+  }
+
+  /** Live: join / leave voice. Scheduled: "I'm in" RSVP. */
+  toggleSession(session: SquadSessionModel): void {
+    this.runSessionAction(session, this.hubService.toggleRsvp(session.id), 'Sesli sohbet güncellenemedi.');
+  }
+
+  /** Host or founder/admin: a scheduled session goes live now. */
+  startSessionNow(session: SquadSessionModel): void {
+    this.runSessionAction(session, this.hubService.goLive(session.id), 'Oturum başlatılamadı.');
+  }
+
+  /** Host or founder/admin: ends it for everyone. */
+  endSession(session: SquadSessionModel): void {
+    this.runSessionAction(session, this.hubService.endSession(session.id), 'Oturum bitirilemedi.');
+  }
+
+  private runSessionAction(session: SquadSessionModel, action: Observable<unknown>, fallback: string): void {
+    if (this.busySessionId()) {
+      return;
+    }
+    this.busySessionId.set(session.id);
+    action.pipe(finalize(() => this.busySessionId.set(null))).subscribe({
+      next: () => this.loadSessions(),
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, fallback)),
+    });
+  }
+
   // ─── Filters ───────────────────────────────────────────────────
   setClipGame(gameId: number | null): void {
     this.clipGameId.set(gameId);
@@ -591,6 +642,9 @@ export class SquadRoom {
     this.leaderboard.set([]);
     this.rosterError.set(null);
     this.leaderboardError.set(null);
+    this.sessions.set([]);
+    this.busySessionId.set(null);
+    this.isSessionSheetOpen.set(false);
     this.isSettingsOpen.set(false);
     this.guideSheet.set(null);
     this.composerTarget.set(null);
@@ -626,6 +680,7 @@ export class SquadRoom {
           this.loadLeaderboard();
           if (squad.currentUserRole) {
             this.loadLibrary();
+            this.loadSessions();
             void this.realtime.enter(squad.id);
           }
         },
@@ -636,6 +691,22 @@ export class SquadRoom {
   private loadLibrary(): void {
     this.roomService.getLibrary(this.squadId()).subscribe({
       next: (library) => this.library.set(library),
+      error: () => void 0,
+    });
+  }
+
+  /** Members only (server-enforced) — outsiders never see the voice list. */
+  private loadSessions(): void {
+    const squadId = this.squadId();
+    if (!this.isVoiceEnabled || !squadId || !this.isMember()) {
+      return;
+    }
+    this.hubService.getSquadSessions(squadId).subscribe({
+      next: (sessions) => {
+        if (squadId === this.squadId()) {
+          this.sessions.set(sessions);
+        }
+      },
       error: () => void 0,
     });
   }

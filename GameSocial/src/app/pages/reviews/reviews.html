@@ -8,10 +8,18 @@
       <button type="button" class="btn btn-primary" (click)="openReviewSheet(gameFilter())">★ Write a review</button>
     </div>
 
-    <div class="filter-row" role="group" aria-label="Review filters">
-      <button type="button" class="chip" [class.active]="scope() === 'games'" [attr.aria-pressed]="scope() === 'games'" (click)="setScope('games')">Games you play</button>
-      <button type="button" class="chip" [class.active]="scope() === 'following'" [attr.aria-pressed]="scope() === 'following'" (click)="setScope('following')">Following</button>
-      <button type="button" class="chip" [class.active]="newest()" [attr.aria-pressed]="newest()" (click)="toggleNewest()">Newest</button>
+    <div class="filter-row">
+      <div class="filter-tabs" role="tablist" aria-label="Review feeds">
+        @for (item of tabs; track item.value) {
+          <button
+            type="button"
+            class="chip"
+            role="tab"
+            [class.active]="tab() === item.value"
+            [attr.aria-selected]="tab() === item.value"
+            (click)="setTab(item.value)">{{ item.label }}</button>
+        }
+      </div>
       <span class="chip-divider" aria-hidden="true"></span>
       <button type="button" class="chip" [class.active]="longPlaytimeOnly()" [attr.aria-pressed]="longPlaytimeOnly()" (click)="toggleLongPlaytime()">20 h+ played only</button>
       <button type="button" class="chip" [class.active]="noSpoilers()" [attr.aria-pressed]="noSpoilers()" (click)="toggleNoSpoilers()">No spoilers</button>

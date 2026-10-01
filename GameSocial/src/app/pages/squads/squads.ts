@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Observable, catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, of, skip } from 'rxjs';
+import { Observable, Subscription, catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, of, skip } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
 import { SquadHubService } from '../../services/squad/squad-hub.service';
 import { NotificationService } from '../../services/notification/notification.service';
@@ -12,28 +12,24 @@ import {
   SquadFriendOnlineModel,
   SquadInviteModel,
   SquadJoinResultModel,
-  SquadSessionModel,
   SquadWeeklyStatsModel,
 } from '../../models/squad-hub.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 import { SquadCreateSheet } from '../../shared/squad-create-sheet/squad-create-sheet';
-import { HubSessionCard } from './hub/hub-session-card';
 import { HubSquadCard } from './hub/hub-squad-card';
 import { HubDiscoverCard } from './hub/hub-discover-card';
-import { HubVoiceBar } from './hub/hub-voice-bar';
 import { HubInviteSheet } from './hub/hub-invite-sheet';
-import { HubSessionSheet } from './hub/hub-session-sheet';
 import { HubPeekSheet } from './hub/hub-peek-sheet';
-import { friendStatus, initialOf } from './hub/hub-format';
+import { friendStatus, initialOf, isInVoice } from './hub/hub-format';
 
 const DISCOVER_PREVIEW = 3;
 const BROWSE_PAGE = 12;
 
 /**
  * `/squads` — the squad hub (expl.html 2a): page head with create/browse,
- * "Open sessions right now", "Your squads", "Squads looking for you", an
- * aside with invites / friends online / the squad XP explainer, and the
- * bottom voice bar for a live session. Rooms live at `/squads/:id`.
+ * "Your squads", "Squads looking for you" and an aside with invites /
+ * friends online / the squad XP explainer. Rooms live at `/squads/:id`,
+ * and a squad's voice sessions live in its room sidebar.
  */
 @Component({
   selector: 'app-squads',
@@ -41,12 +37,9 @@ const BROWSE_PAGE = 12;
     FormsModule,
     RouterLink,
     SquadCreateSheet,
-    HubSessionCard,
     HubSquadCard,
     HubDiscoverCard,
-    HubVoiceBar,
     HubInviteSheet,
-    HubSessionSheet,
     HubPeekSheet,
   ],
   templateUrl: './squads.html',
@@ -63,7 +56,6 @@ export class Squads implements OnInit {
 
   protected readonly mySquads = signal<SquadModel[]>([]);
   protected readonly stats = signal<Record<string, SquadWeeklyStatsModel>>({});
-  protected readonly sessions = signal<SquadSessionModel[]>([]);
   protected readonly invites = signal<SquadInviteModel[]>([]);
   /** "Later" hides an invite for this visit without declining it. */
   protected readonly postponedInviteIds = signal<string[]>([]);
@@ -71,20 +63,24 @@ export class Squads implements OnInit {
 
   protected readonly discover = signal<SquadDiscoverModel | null>(null);
   protected readonly isDiscoverLoading = signal(false);
+  protected readonly discoverError = signal(false);
   protected readonly requestedIds = signal<string[]>([]);
   protected readonly searchQuery = signal('');
+  protected readonly searchTerm = computed(() => this.searchQuery().trim());
   protected readonly isBrowsingAll = signal(false);
   protected readonly discoverPage = signal(1);
+  /** The in-flight discover call — a new search/browse cancels it so a slower old response can't win. */
+  private discoverRequest?: Subscription;
 
   protected readonly busyId = signal<string | null>(null);
 
   protected readonly isCreateSheetOpen = signal(false);
   protected readonly inviteTarget = signal<SquadModel | null>(null);
   protected readonly peekTarget = signal<SquadModel | null>(null);
-  protected readonly isSessionSheetOpen = signal(false);
 
   protected readonly initialOf = initialOf;
   protected readonly friendStatus = friendStatus;
+  protected readonly isInVoice = isInVoice;
 
   protected readonly subtitle = computed(() => {
     const count = this.mySquads().length;
@@ -97,21 +93,31 @@ export class Squads implements OnInit {
     () => this.invites().find((invite) => !this.postponedInviteIds().includes(invite.id)) ?? null,
   );
 
-  /** The bar follows the live session you're in, else the first live one. */
-  protected readonly voiceSession = computed(() => {
-    const live = this.sessions().filter((s) => s.isLive);
-    return live.find((s) => s.isGoing) ?? live[0] ?? null;
+  /**
+   * Discover never returns squads you're already in, so the search also
+   * narrows "Your squads" (name, vibe or game) — otherwise searching for
+   * your own squad finds nothing.
+   */
+  protected readonly visibleMySquads = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+    if (!term) return this.mySquads();
+    return this.mySquads().filter(
+      (squad) =>
+        squad.name.toLowerCase().includes(term) ||
+        !!squad.description?.toLowerCase().includes(term) ||
+        squad.games.some((game) => game.name.toLowerCase().includes(term)),
+    );
   });
 
   protected readonly discoverLabel = computed(() => {
-    if (this.searchQuery().trim()) return `Results for “${this.searchQuery().trim()}”`;
+    if (this.searchTerm()) return `Results for “${this.searchTerm()}”`;
     return this.isBrowsingAll() ? 'All squads' : 'Squads looking for you';
   });
 
   protected readonly discoverNote = computed(() => {
     const result = this.discover();
     if (!result) return '';
-    if (this.searchQuery().trim() || this.isBrowsingAll()) {
+    if (this.searchTerm() || this.isBrowsingAll()) {
       return `${result.totalCount} ${result.totalCount === 1 ? 'squad' : 'squads'}`;
     }
     if (result.basedOnGameName) {
@@ -122,11 +128,11 @@ export class Squads implements OnInit {
 
   protected readonly canLoadMore = computed(() => {
     const result = this.discover();
-    return !!result && (this.isBrowsingAll() || !!this.searchQuery().trim()) && result.items.length < result.totalCount;
+    return !!result && (this.isBrowsingAll() || !!this.searchTerm()) && result.items.length < result.totalCount;
   });
 
   constructor() {
-    toObservable(this.searchQuery)
+    toObservable(this.searchTerm)
       .pipe(skip(1), debounceTime(250), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(() => this.loadDiscover(true));
   }
@@ -144,16 +150,14 @@ export class Squads implements OnInit {
     forkJoin({
       mine: this.squadService.getMine(),
       stats: soft(this.hubService.getMyStats(), [] as SquadWeeklyStatsModel[]),
-      sessions: soft(this.hubService.getOpenSessions(), [] as SquadSessionModel[]),
       invites: soft(this.hubService.getMyInvites(), [] as SquadInviteModel[]),
       friends: soft(this.hubService.getFriendsOnline(), [] as SquadFriendOnlineModel[]),
     })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
-        next: ({ mine, stats, sessions, invites, friends }) => {
+        next: ({ mine, stats, invites, friends }) => {
           this.mySquads.set(mine);
           this.stats.set(Object.fromEntries(stats.map((s) => [s.squadId, s])));
-          this.sessions.set(sessions);
           this.invites.set(invites);
           this.friends.set(friends);
         },
@@ -164,12 +168,19 @@ export class Squads implements OnInit {
   }
 
   protected loadDiscover(reset: boolean): void {
-    const all = this.isBrowsingAll() || !!this.searchQuery().trim();
+    const term = this.searchTerm();
+    const all = this.isBrowsingAll() || !!term;
     const page = reset ? 1 : this.discoverPage() + 1;
+    this.discoverRequest?.unsubscribe();
+    if (reset) {
+      // Don't leave the previous list under the new "Results for …" heading while this loads.
+      this.discover.set(null);
+    }
+    this.discoverError.set(false);
     this.isDiscoverLoading.set(true);
-    this.hubService
+    this.discoverRequest = this.hubService
       .discover({
-        q: this.searchQuery().trim() || undefined,
+        q: term || undefined,
         page,
         pageSize: all ? BROWSE_PAGE : DISCOVER_PREVIEW,
       })
@@ -183,7 +194,7 @@ export class Squads implements OnInit {
           );
           this.requestedIds.update((ids) => Array.from(new Set([...(reset ? [] : ids), ...result.requestedSquadIds])));
         },
-        error: () => void 0,
+        error: () => this.discoverError.set(true),
       });
   }
 
@@ -193,18 +204,6 @@ export class Squads implements OnInit {
   }
 
   // ─── Actions ────────────────────────────────────────────────────────────
-  protected toggleRsvp(session: SquadSessionModel): void {
-    if (this.busyId()) return;
-    this.busyId.set(session.id);
-    this.hubService
-      .toggleRsvp(session.id)
-      .pipe(finalize(() => this.busyId.set(null)))
-      .subscribe({
-        next: () => this.reloadSessions(),
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Could not update your RSVP.')),
-      });
-  }
-
   protected joinSquad(squad: SquadModel): void {
     if (this.busyId()) return;
     this.busyId.set(squad.id);
@@ -241,11 +240,6 @@ export class Squads implements OnInit {
     this.router.navigate(['/squads', squad.id]);
   }
 
-  protected onSessionCreated(): void {
-    this.isSessionSheetOpen.set(false);
-    this.reloadSessions();
-  }
-
   private afterJoin(result: SquadJoinResultModel, squadName: string): void {
     this.peekTarget.set(null);
     if (result.status === 'Pending') {
@@ -255,12 +249,5 @@ export class Squads implements OnInit {
     }
     this.notificationService.success(`You joined ${squadName}.`);
     this.load();
-  }
-
-  private reloadSessions(): void {
-    this.hubService.getOpenSessions().subscribe({
-      next: (sessions) => this.sessions.set(sessions),
-      error: () => void 0,
-    });
   }
 }

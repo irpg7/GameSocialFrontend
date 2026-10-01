@@ -122,24 +122,6 @@
   }
 }
 
-.hub-count {
-  font-family: $font-family-mono;
-  font-size: 11px;
-  line-height: 14px;
-  font-weight: 700;
-  color: $color-accent-light;
-}
-
-.hub-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-  }
-}
-
 .hub-grid-3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -365,18 +347,4 @@
   font-weight: 500;
   color: $color-text-secondary;
   text-wrap: pretty;
-}
-
-// Bottom voice/party bar — pinned to the bottom of the scrolling content box
-// and bled over its 2rem/3rem inset so it spans the full width like the design.
-.hub-voice {
-  position: sticky;
-  bottom: -$spacing-xl;
-  margin: $spacing-xl (-$spacing-2xl) (-$spacing-xl);
-  z-index: 5;
-
-  @media (max-width: 640px) {
-    bottom: -$spacing-md;
-    margin: $spacing-md (-$spacing-md) (-$spacing-md);
-  }
 }

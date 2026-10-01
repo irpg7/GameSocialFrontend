@@ -1,0 +1,117 @@
+@use '../../../../../styles/variables' as *;
+
+// Sits last in the sidebar column: pushed to the bottom and kept in view while
+// the squad cards / channels scroll above it.
+:host {
+  display: block;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+.vp {
+  border-radius: 14px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.vp-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.vp-signal {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: $color-presence-online;
+}
+
+.vp-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vp-status {
+  font-size: 12px;
+  line-height: 15px;
+  font-weight: 700;
+  color: $color-presence-online;
+}
+
+.vp-name {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vp-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  button:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.vp-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background-color: $color-bg-tertiary;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &.off {
+    opacity: 0.45;
+    text-decoration: line-through;
+  }
+}
+
+.vp-btn {
+  padding: 8px 11px;
+  border-radius: 10px;
+  background-color: $color-bg-tertiary;
+  border: none;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.vp-leave {
+  margin-left: auto;
+  background-color: $color-accent-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: $color-accent-secondary;
+  }
+}

@@ -30,11 +30,36 @@
 .auth-header {
   text-align: center;
   margin-bottom: $spacing-2xl;
-  
-  h2 {
-    font-size: 2rem;
-    margin-bottom: $spacing-xs;
+}
+
+// The hanging tavern sign — swings gently from its chain (top centre).
+.auth-logo {
+  display: block;
+  margin: 0 auto $spacing-md;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 0;
+  animation: signSway 4.5s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
+}
+
+@keyframes signSway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+.auth-title {
+  font: 800 1.6rem/1.2 $font-family-primary;
+  letter-spacing: -0.5px;
+  margin: 0 0 $spacing-xs;
+  text-wrap: balance;
 }
 
 .auth-form {

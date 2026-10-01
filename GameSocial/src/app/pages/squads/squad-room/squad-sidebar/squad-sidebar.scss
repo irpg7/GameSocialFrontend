@@ -306,3 +306,152 @@
   padding: 3px 5px;
   border-radius: 6px;
 }
+
+// ─── Sesli sohbet — Discord-style voice rows under the channels ─────────────
+.voice-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.voice-row {
+  flex: 1;
+  min-width: 0;
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  &.going .voice-meta {
+    color: $color-accent-light;
+  }
+}
+
+.voice-glyph {
+  flex: none;
+  font-size: 12px;
+  opacity: 0.7;
+
+  &.live {
+    opacity: 1;
+  }
+}
+
+.voice-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.voice-sub {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.voice-meta {
+  flex: none;
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-tertiary;
+}
+
+.voice-start {
+  flex: none;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid $color-border-strong;
+  background: none;
+  font-family: $font-family-primary;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.voice-attendees {
+  list-style: none;
+  margin: 2px 0 4px;
+  padding: 0 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voice-attendee {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.voice-avatar {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  background-color: $color-border-strong;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: $color-text-primary;
+
+  &.host {
+    box-shadow: 0 0 0 1.5px $color-accent-primary;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.voice-attendee-name {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.voice-more {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: $color-text-tertiary;
+  padding-left: 28px;
+}

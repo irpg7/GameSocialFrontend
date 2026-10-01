@@ -30,8 +30,15 @@
             <h3>{{ game.name }}</h3>
             <span class="game-slug">{{ game.slug }}</span>
           </div>
-          <!-- Following is done from the feed's left rail, which owns the follow state. -->
-          <button class="btn btn-secondary" type="button" disabled title="Follow from the feed sidebar">Follow</button>
+          @let following = isFollowing(game);
+          <button
+            type="button"
+            class="btn"
+            [class.btn-primary]="!following"
+            [class.btn-secondary]="following"
+            [disabled]="busyId() === game.id"
+            [attr.aria-pressed]="following"
+            (click)="toggleFollow(game)">{{ following ? '✓ Following' : 'Follow' }}<span class="visually-hidden"> {{ game.name }}</span></button>
         </div>
       }
     </div>

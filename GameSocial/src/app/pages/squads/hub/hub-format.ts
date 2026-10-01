@@ -1,5 +1,6 @@
 import { SquadModel } from '../../../models/squad.model';
-import { SquadFriendOnlineModel, SquadSessionModel } from '../../../models/squad-hub.model';
+import { SquadFriendOnlineModel } from '../../../models/squad-hub.model';
+import { environment } from '../../../../environments/environment';
 
 const numberFormat = new Intl.NumberFormat('en-US');
 
@@ -43,46 +44,14 @@ export function discoverMeta(squad: SquadModel): string {
   return `${members} · ${plural(squad.openSlots, 'open slot', 'open slots')}`;
 }
 
-function clock(iso: string): string {
-  const date = new Date(iso);
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-
-function when(iso: string): string {
-  const date = new Date(iso);
-  const now = new Date();
-  const sameDay = date.toDateString() === now.toDateString();
-  if (sameDay) {
-    return clock(iso);
-  }
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  if (date.toDateString() === tomorrow.toDateString()) {
-    return `tomorrow ${clock(iso)}`;
-  }
-  return `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${clock(iso)}`;
-}
-
-/**
- * Live:      "Ashfall co-op · 3 of 4 in voice · needs a healer"
- * Scheduled: "Neon Drift · time trial night, 21:00"
- */
-export function sessionLine(session: SquadSessionModel): string {
-  if (session.isLive) {
-    const head = session.gameName ? `${session.gameName} ${session.title}` : session.title;
-    const parts = [head, `${session.rsvpCount} of ${session.capacity} in voice`];
-    if (session.note) {
-      parts.push(session.note);
-    }
-    return parts.join(' · ');
-  }
-  const body = `${session.title}, ${when(session.startsAt)}`;
-  return session.gameName ? `${session.gameName} · ${body}` : body;
+/** Session RSVPs only count as "in voice" once voice ships (environment.features.squadVoice). */
+export function isInVoice(friend: SquadFriendOnlineModel): boolean {
+  return environment.features.squadVoice && !!friend.inVoiceSquadName;
 }
 
 /** "In voice · Gece Vardiyası" / "Playing Neon Drift" / "Idle · 20 min". */
 export function friendStatus(friend: SquadFriendOnlineModel): string {
-  if (friend.inVoiceSquadName) {
+  if (isInVoice(friend)) {
     return `In voice · ${friend.inVoiceSquadName}`;
   }
   if (friend.presence === 'away') {

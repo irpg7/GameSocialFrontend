@@ -23,7 +23,8 @@
   min-width: 0;
 }
 
-.filter-row {
+.filter-row,
+.filter-tabs {
   display: flex;
   align-items: center;
   gap: 8px;

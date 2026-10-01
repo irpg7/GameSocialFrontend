@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { finalize } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import { PostListFilters, PostService } from '../../services/post/post.service';
 import { GameService } from '../../services/game/game.service';
 import { ReviewService } from '../../services/review/review.service';
@@ -17,8 +17,18 @@ import { ReviewCard } from './review-card/review-card';
 const PAGE_SIZE = 10;
 const LONG_PLAYTIME_HOURS = 20;
 
-/** "Games you play" / "Following" narrow whose reviews you see; exclusive, like the design's first chip group. */
-type ReviewScope = 'games' | 'following' | null;
+/**
+ * The design's first chip group — exactly one is selected, like tabs.
+ * "Games you play" / "Following" rank by usefulness this week; "Newest" is
+ * every review, latest first.
+ */
+type ReviewTab = 'games' | 'following' | 'newest';
+
+const REVIEW_TABS: { value: ReviewTab; label: string }[] = [
+  { value: 'games', label: 'Games you play' },
+  { value: 'following', label: 'Following' },
+  { value: 'newest', label: 'Newest' },
+];
 
 /** Histogram bar tint per bucket (9-10 & 7-8 brand red, 5-6 #8a1a26, 1-4 #5c1219). */
 const BUCKET_COLORS: Record<string, string> = {
@@ -57,8 +67,8 @@ export class Reviews implements OnInit {
   protected readonly isLoadingFeed = signal(true);
   protected readonly isLoadingMore = signal(false);
 
-  protected readonly scope = signal<ReviewScope>('games');
-  protected readonly newest = signal(false);
+  protected readonly tabs = REVIEW_TABS;
+  protected readonly tab = signal<ReviewTab>('games');
   protected readonly longPlaytimeOnly = signal(false);
   protected readonly noSpoilers = signal(false);
   /** `?game=` deep link (shared review links, game pages). */
@@ -68,11 +78,14 @@ export class Reviews implements OnInit {
   protected readonly waitingGames = signal<ReviewWaitingGameModel[]>([]);
   protected readonly trustedReviewers = signal<TrustedReviewerModel[]>([]);
 
+  /** The latest feed request — a tab/filter switch cancels it. */
+  private feedRequest?: Subscription;
+
   protected readonly isReviewSheetOpen = signal(false);
   protected readonly preselectedGameId = signal<number | null>(null);
 
   protected readonly reviewXp = computed(() => this.xpAwards.amount('review'));
-  protected readonly sectionLabel = computed(() => (this.newest() ? 'Newest reviews' : 'Most useful this week'));
+  protected readonly sectionLabel = computed(() => (this.tab() === 'newest' ? 'Newest reviews' : 'Most useful this week'));
   protected readonly bucketColors = BUCKET_COLORS;
 
   protected readonly summaryMeta = computed(() => {
@@ -88,7 +101,8 @@ export class Reviews implements OnInit {
     const game = Number(this.route.snapshot.queryParamMap.get('game'));
     if (Number.isInteger(game) && game > 0) {
       this.gameFilter.set(game);
-      this.scope.set(null);
+      // One game's "most useful this week" is often empty — open on its newest reviews.
+      this.tab.set('newest');
     }
 
     this.loadPosts(1);
@@ -106,13 +120,11 @@ export class Reviews implements OnInit {
     });
   }
 
-  setScope(scope: Exclude<ReviewScope, null>): void {
-    this.scope.update((current) => (current === scope ? null : scope));
-    this.reload();
-  }
-
-  toggleNewest(): void {
-    this.newest.update((v) => !v);
+  setTab(tab: ReviewTab): void {
+    if (tab === this.tab()) {
+      return;
+    }
+    this.tab.set(tab);
     this.reload();
   }
 
@@ -181,14 +193,16 @@ export class Reviews implements OnInit {
   }
 
   private filters(): PostListFilters {
-    const scope = this.scope();
+    const tab = this.tab();
+    const gameId = this.gameFilter() ?? undefined;
     return {
       postType: 'Review',
-      gameId: this.gameFilter() ?? undefined,
-      sort: this.newest() ? 'new' : 'useful',
-      window: this.newest() ? undefined : 'week',
-      followedGamesOnly: scope === 'games',
-      followingOnly: scope === 'following',
+      gameId,
+      sort: tab === 'newest' ? 'new' : 'useful',
+      window: tab === 'newest' ? undefined : 'week',
+      // A `?game=` filter already names the game, followed or not.
+      followedGamesOnly: tab === 'games' && gameId === undefined,
+      followingOnly: tab === 'following',
       minHoursPlayed: this.longPlaytimeOnly() ? LONG_PLAYTIME_HOURS : undefined,
       spoilerFreeOnly: this.noSpoilers(),
     };
@@ -210,8 +224,15 @@ export class Reviews implements OnInit {
 
   private loadPosts(page: number, append = false): void {
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
+    if (!append) {
+      // A tab/filter switch: drop the old list and whatever request is still in flight for it,
+      // so a slower earlier response can't land on top of the new tab.
+      this.feedRequest?.unsubscribe();
+      this.posts.set([]);
+      this.hasMore.set(false);
+    }
     loadingSignal.set(true);
-    this.postService
+    this.feedRequest = this.postService
       .getPosts(page, PAGE_SIZE, this.filters())
       .pipe(finalize(() => loadingSignal.set(false)))
       .subscribe({

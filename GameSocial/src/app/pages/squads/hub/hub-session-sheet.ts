@@ -8,34 +8,23 @@ import { extractApiErrorMessage } from '../../../shared/api-error.util';
 import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-frame';
 
 /**
- * Starts an "Open sessions right now" entry — live now ("co-op · needs a
- * healer") or scheduled ("time trial night, 21:00"). The hub design shows
- * only the result; this is the empty state's way to create one.
+ * Starts a voice session from the squad room's "Sesli sohbet" list — live
+ * now ("co-op · needs a healer") or scheduled ("time trial night, 21:00").
  */
 @Component({
   selector: 'app-hub-session-sheet',
   imports: [FormsModule, SquadSheetFrame],
   template: `
-    <app-squad-sheet-frame title="Start a session" subtitle="Get your squad together — live now or later today" [width]="520" (closed)="closed.emit()">
+    <app-squad-sheet-frame title="Start a session" [subtitle]="'Get ' + squad().name + ' together — live now or later today'" [width]="520" (closed)="closed.emit()">
       <div class="hs-body">
-        <div class="hs-row">
-          <div>
-            <label class="hs-label" for="session-squad">Squad</label>
-            <select id="session-squad" class="hs-input" [ngModel]="squadId()" (ngModelChange)="squadId.set($event)">
-              @for (squad of squads(); track squad.id) {
-                <option [ngValue]="squad.id">{{ squad.name }}</option>
-              }
-            </select>
-          </div>
-          <div>
-            <label class="hs-label" for="session-game">Game</label>
-            <select id="session-game" class="hs-input" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
-              <option [ngValue]="null">No game</option>
-              @for (game of games(); track game.id) {
-                <option [ngValue]="game.id">{{ game.name }}</option>
-              }
-            </select>
-          </div>
+        <div>
+          <label class="hs-label" for="session-game">Game</label>
+          <select id="session-game" class="hs-input" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+            <option [ngValue]="null">No game</option>
+            @for (game of games(); track game.id) {
+              <option [ngValue]="game.id">{{ game.name }}</option>
+            }
+          </select>
         </div>
         <div>
           <label class="hs-label" for="session-title">What's the plan?</label>
@@ -67,7 +56,7 @@ import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-
       </div>
       <div class="hs-footer">
         <button type="button" class="hs-cancel" (click)="closed.emit()">Cancel</button>
-        <button type="button" class="hs-primary" [disabled]="isSaving() || !title().trim() || !squadId()" (click)="submit()">
+        <button type="button" class="hs-primary" [disabled]="isSaving() || !title().trim()" (click)="submit()">
           {{ isSaving() ? 'Starting…' : isLive() ? 'Go live' : 'Schedule' }}
         </button>
       </div>
@@ -78,12 +67,11 @@ import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-
 export class HubSessionSheet {
   private hubService = inject(SquadHubService);
 
-  squads = input.required<SquadModel[]>();
+  squad = input.required<SquadModel>();
   created = output<SquadSessionModel>();
   closed = output<void>();
 
-  protected readonly squadId = linkedSignal<string | null>(() => this.squads()[0]?.id ?? null);
-  protected readonly games = computed(() => this.squads().find((s) => s.id === this.squadId())?.games ?? []);
+  protected readonly games = computed(() => this.squad().games);
   protected readonly gameId = linkedSignal<number | null>(() => this.games()[0]?.id ?? null);
   protected readonly title = signal('');
   protected readonly note = signal('');
@@ -94,8 +82,8 @@ export class HubSessionSheet {
   protected readonly error = signal<string | null>(null);
 
   protected submit(): void {
-    const squadId = this.squadId();
-    if (!squadId || !this.title().trim()) {
+    const squadId = this.squad().id;
+    if (!this.title().trim()) {
       return;
     }
     let startsAt: string | undefined;

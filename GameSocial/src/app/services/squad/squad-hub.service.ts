@@ -16,7 +16,7 @@ import {
 
 /**
  * Squad hub (expl.html 2a) + membership flows: discovery, join / join
- * requests, invites, open sessions, weekly stats, friends online, transfer,
+ * requests, invites, squad voice sessions, weekly stats, friends online, transfer,
  * icon upload and the settings game picker. Kept apart from SquadService,
  * which owns the room's chat/channel calls.
  *
@@ -81,12 +81,8 @@ export class SquadHubService {
     return this.http.post<void>(`${this.apiUrl}/${squadId}/join-requests/${userId}/decline`, {});
   }
 
-  // ─── Sessions ───────────────────────────────────────────────────────────
-  /** Live or starting soon, across every squad I'm an active member of. */
-  getOpenSessions(): Observable<SquadSessionModel[]> {
-    return this.http.get<SquadSessionModel[]>(`${this.apiUrl}/sessions/open`);
-  }
-
+  // ─── Sessions (the room sidebar's "Sesli sohbet") ───────────────────────
+  /** Live or starting within a day; active members only. */
   getSquadSessions(squadId: string): Observable<SquadSessionModel[]> {
     return this.http.get<SquadSessionModel[]>(`${this.apiUrl}/${squadId}/sessions`);
   }

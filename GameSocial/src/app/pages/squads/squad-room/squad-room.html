@@ -15,9 +15,18 @@
       [activeChannelId]="activeChannelId()"
       [activity]="activity()"
       [canAddChannel]="isManager()"
+      [canUseVoice]="isVoiceEnabled && isMember()"
+      [sessions]="sessions()"
+      [busySessionId]="busySessionId()"
+      [currentUserId]="currentUserId()"
+      [canManageSessions]="isManager()"
       (channelPicked)="selectChannel($event)"
       (createSquad)="openCreateSquad()"
-      (addChannel)="openAddChannel()" />
+      (addChannel)="openAddChannel()"
+      (startSession)="openSessionSheet()"
+      (sessionToggled)="toggleSession($event)"
+      (sessionStarted)="startSessionNow($event)"
+      (sessionEnded)="endSession($event)" />
 
     <main class="room-main">
       <app-squad-banner
@@ -143,6 +152,10 @@
         [initialTab]="target"
         (posted)="onPosted($event)" />
     </app-sheet-modal>
+  }
+
+  @if (isVoiceEnabled && isSessionSheetOpen()) {
+    <app-hub-session-sheet [squad]="squad" (created)="onSessionCreated()" (closed)="isSessionSheetOpen.set(false)" />
   }
 
   @if (isAddChannelOpen()) {

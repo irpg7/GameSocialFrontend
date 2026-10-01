@@ -36,11 +36,28 @@
             </li>
           }
         </ul>
+      } @else if (followedGames().length > 0) {
+        <p class="follow-empty">No games match. <a routerLink="/games">Browse games</a></p>
       } @else {
-        <p class="follow-empty">
-          {{ followedGames().length ? 'No games match.' : 'You aren\'t following any games yet.' }}
-          <a routerLink="/games">Browse games</a>
-        </p>
+        <p class="follow-empty">You aren't following any games yet — follow one and its posts show up here.</p>
+        @if (suggestedGames().length > 0) {
+          <ul class="follow-list" aria-label="Suggested games">
+            @for (game of suggestedGames(); track game.id) {
+              <li class="follow-row follow-suggest">
+                <span class="follow-icon">
+                  @if (game.coverImageUrl) { <img [src]="game.coverImageUrl" alt="" /> }
+                </span>
+                <span class="follow-name">{{ game.name }}</span>
+                <button
+                  type="button"
+                  class="follow-add"
+                  [disabled]="followBusyId() === game.id"
+                  (click)="followGame(game)">＋<span class="visually-hidden"> Follow {{ game.name }}</span></button>
+              </li>
+            }
+          </ul>
+        }
+        <p class="follow-empty"><a routerLink="/games">Browse all games</a></p>
       }
     } @else {
       @if (filteredPeople().length > 0) {
