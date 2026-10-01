@@ -35,6 +35,8 @@ export class ClipRailComments {
   private notificationService = inject(NotificationService);
 
   postId = input.required<string>();
+  /** The clip's author — they may delete any comment on it. */
+  postOwnerId = input<string | null>(null);
   /** Player position — shown as "@0:12" on the composer and sent as the comment's timestamp. */
   currentTime = input(0);
   /** Emits +1/-1 so the page can keep the hero's comment counter in step. */
@@ -93,6 +95,10 @@ export class ClipRailComments {
 
   protected count(n: number): string {
     return formatCount(n);
+  }
+
+  protected canDelete(comment: CommentModel): boolean {
+    return this.isOwn(comment) || (!!this.postOwnerId() && this.postOwnerId() === this.authService.currentUser()?.id);
   }
 
   protected isOwn(comment: CommentModel): boolean {
@@ -193,6 +199,29 @@ export class ClipRailComments {
 
   protected thread(id: string): ReplyThread | undefined {
     return this.threads()[id];
+  }
+
+  protected readonly editingId = signal<string | null>(null);
+  protected readonly editBody = signal('');
+
+  /** "Düzenle" — own comments only (the server checks too). */
+  protected startEdit(comment: CommentModel): void {
+    this.editingId.set(comment.id);
+    this.editBody.set(comment.body);
+  }
+
+  protected saveEdit(comment: CommentModel): void {
+    const body = this.editBody().trim();
+    if (!body) {
+      return;
+    }
+    this.commentService.update(this.postId(), comment.id, body).subscribe({
+      next: (updated) => {
+        this.patchComment(comment.id, { body: updated.body, editedAt: updated.editedAt });
+        this.editingId.set(null);
+      },
+      error: () => this.notificationService.error('Yorum düzenlenemedi.'),
+    });
   }
 
   private patchThread(id: string, patch: Partial<ReplyThread>): void {

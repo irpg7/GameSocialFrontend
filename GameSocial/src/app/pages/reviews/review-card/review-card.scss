@@ -513,3 +513,25 @@ input.rc-input {
   padding: 3px 6px;
   border-radius: 7px;
 }
+
+:host(.is-removed) {
+  display: none;
+}
+
+.rc-pill-danger {
+  color: $color-accent-light;
+}
+
+.rc-c-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    font-size: 12px;
+  }
+}

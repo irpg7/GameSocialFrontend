@@ -13,6 +13,8 @@ export interface CommentModel {
   authorIsDeveloper: boolean;
   body: string;
   createdAt: string;
+  /** Set when the author edited the comment ("· düzenlendi"). */
+  editedAt?: string;
   /** Clip comments: the "@0:12" stamp in seconds — clicking seeks the player. */
   timestampSeconds?: number;
   /** Set on replies ("↩ Yanıtla"); replies are one level deep. */

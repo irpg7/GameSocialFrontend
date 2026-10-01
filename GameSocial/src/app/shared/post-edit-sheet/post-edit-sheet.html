@@ -1,0 +1,108 @@
+<app-sheet-modal title="Edit post" subtitle="Media, game and type stay as published" (closed)="closed.emit()">
+  <div class="pe-stack">
+    <label class="pe-field">
+      <span class="pe-label">{{ captionLabel() }}</span>
+      <input type="text" maxlength="500" [ngModel]="caption()" (ngModelChange)="caption.set($event)" />
+    </label>
+
+    @if (type() === 'Devlog') {
+      <label class="pe-field">
+        <span class="pe-label">Title</span>
+        <input type="text" maxlength="200" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+      </label>
+    }
+
+    @if (type() === 'Devlog' || type() === 'Review') {
+      <label class="pe-field">
+        <span class="pe-label">{{ type() === 'Review' ? 'Review' : 'Body' }}</span>
+        <textarea rows="6" maxlength="10000" [ngModel]="body()" (ngModelChange)="body.set($event)"></textarea>
+      </label>
+    }
+
+    @if (type() === 'Review') {
+      <div class="pe-row">
+        <label class="pe-field">
+          <span class="pe-label">Score (0–10)</span>
+          <input type="number" min="0" max="10" step="0.1" [ngModel]="score()" (ngModelChange)="score.set(+$event)" />
+        </label>
+        <label class="pe-field">
+          <span class="pe-label">Hours played</span>
+          <input type="number" min="0" step="1" [ngModel]="hoursPlayed()" (ngModelChange)="hoursPlayed.set(+$event)" />
+        </label>
+        <label class="pe-field">
+          <span class="pe-label">Status</span>
+          <select [ngModel]="playStatus()" (ngModelChange)="playStatus.set($event)">
+            <button><selectedcontent></selectedcontent></button>
+            @for (s of playStatuses; track s.key) {
+              <option [ngValue]="s.key">{{ s.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <label class="pe-check">
+        <input type="checkbox" [ngModel]="spoilerFree()" (ngModelChange)="spoilerFree.set($event)" />
+        No spoilers
+      </label>
+    }
+
+    @if (type() === 'Devlog') {
+      <div class="pe-row">
+        <label class="pe-field">
+          <span class="pe-label">Build</span>
+          <input type="text" maxlength="50" [ngModel]="buildTag()" (ngModelChange)="buildTag.set($event)" />
+        </label>
+        <label class="pe-field">
+          <span class="pe-label">Branch</span>
+          <select [ngModel]="branchTag()" (ngModelChange)="branchTag.set($event)">
+            <button><selectedcontent></selectedcontent></button>
+            <option value="">No branch</option>
+            @for (b of branchTags; track b) {
+              <option [value]="b">{{ b }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <label class="pe-field">
+        <span class="pe-label">Test branch link</span>
+        <input type="url" maxlength="500" placeholder="https://" [ngModel]="testBranchUrl()" (ngModelChange)="testBranchUrl.set($event)" />
+      </label>
+
+      <div class="pe-field">
+        <span class="pe-label">Patch notes</span>
+        @for (line of patchLines(); track $index; let i = $index) {
+          <div class="pe-patch">
+            <input type="text" maxlength="200" [attr.aria-label]="'Patch line ' + (i + 1)" [ngModel]="line.text" (ngModelChange)="updatePatchLine(i, { text: $event })" />
+            <select [attr.aria-label]="'Status of patch line ' + (i + 1)" [ngModel]="line.status" (ngModelChange)="updatePatchLine(i, { status: $event })">
+              <button><selectedcontent></selectedcontent></button>
+              @for (s of patchStatuses; track s) {
+                <option [ngValue]="s">{{ s }}</option>
+              }
+            </select>
+            <button type="button" class="pe-remove" [attr.aria-label]="'Remove patch line ' + (i + 1)" (click)="removePatchLine(i)">✕</button>
+          </div>
+        }
+        @if (patchLines().length < maxPatchLines) {
+          <button type="button" class="pe-add" (click)="addPatchLine()">＋ Add a line</button>
+        }
+      </div>
+    }
+
+    @if (type() !== 'Poll') {
+      <label class="pe-field">
+        <span class="pe-label">Tags (comma separated)</span>
+        <input type="text" [ngModel]="tags()" (ngModelChange)="tags.set($event)" />
+      </label>
+    } @else {
+      <p class="pe-note">Poll options can't change once people can vote.</p>
+    }
+
+    @if (errorMessage(); as error) {
+      <p class="pe-error" role="alert">{{ error }}</p>
+    }
+
+    <div class="pe-actions">
+      <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
+      <button type="button" class="btn btn-primary" [disabled]="isSaving()" (click)="save()">{{ isSaving() ? 'Saving…' : 'Save changes' }}</button>
+    </div>
+  </div>
+</app-sheet-modal>

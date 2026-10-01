@@ -12,6 +12,7 @@ import {
   signal,
   untracked,
   viewChild,
+  TemplateRef,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -35,20 +36,20 @@ import { ImgFallback } from '../../shared/img-fallback/img-fallback';
  *  - `hero`: the Clips page player (`onClipsPage`) — fills its column, rank +
  *    game badges, buffered range, #FFB020 hot-moment markers, scrub-hover
  *    time bubble; ⛶ opens the Clip Player page (`/clips/:id?t=`).
- *  - `inline`: Clip Player spec "In-feed inline muted autoplay" — 16:9, 14px
- *    radius, autoplays muted while ≥60% visible, game tag, 🔇 toggle and a
- *    30px pause button + 4px progress + clock. Clicking the picture opens
- *    `/clips/:id`.
+ *  - `inline`: Clip Player spec "In-feed inline" — 16:9, 14px radius, game
+ *    tag, 🔇 / ⛶ (right to left: ⛶ opens `/clips/:id`), 30px pause
+ *    button + 4px progress + clock. Tapping the picture plays/pauses in place
+ *    (no autoplay); it pauses once less than 60% visible.
  *  - `full`: Clip Player spec main player — 16:9, 18px radius, top bar (game
  *    tag, quality tag, ···), full control row (play, ⏮ ⏭, volume slider,
  *    clock, speed, CC, ⚙ quality menu, ▭ theater, ⛶), hover preview frame.
  *  - `vertical`: Clip Player spec "Vertical clip (mobile)" — 9:16, pulsing
  *    dot + `rankLabel`, right action column (▲ ◉ ↗), title/@author/3px bar.
  *
- * Every variant's ⛶ (except `hero`) opens the in-app fullscreen overlay from
+ * The `full` and `vertical` players' ⛶ opens the in-app fullscreen overlay from
  * 06-fullscreen-player.html (not the browser's fullscreen API): title strip,
  * "✕ Tam ekrandan çık", 88px play, control row with the ▲ vote pill. Esc
- * closes it.
+ * closes it. In `feed`, `hero` and `inline` the ⛶ opens the Clip Player page instead.
  *
  * ## Inputs (all optional except `post`)
  * `post`, `variant`, `rankLabel` ('CLIP'), `squadName`, `commentCount`,
@@ -79,7 +80,7 @@ const VIEW_AFTER_SECONDS = 3;
   selector: 'app-clip-stage',
   imports: [ImgFallback, RouterLink, NgTemplateOutlet],
   templateUrl: './clip-stage.html',
-  styleUrl: './clip-stage.scss',
+  styleUrls: ['./clip-stage.scss', './clip-stage.mobile.scss'],
   host: {
     '[class.variant-feed]': "variant() === 'feed'",
     '[class.variant-hero]': "variant() === 'hero'",
@@ -103,6 +104,8 @@ export class ClipStage {
   variant = input<ClipStageVariant>('feed');
   /** Red badge in the top-left corner — the design's ranking chip; each caller passes a label it can honestly fill. */
   rankLabel = input('CLIP');
+  /** feed/hero: extra controls rendered left of the speed button (the post card's ··· menu). */
+  extraActions = input<TemplateRef<unknown> | null>(null);
   /** Squad this clip was cross-posted to, when the viewer can resolve the name — rendered as a second overlay badge. */
   squadName = input<string | undefined>(undefined);
   /** Live comment count when the host keeps its own (the feed card's thread adds to it). */
@@ -476,7 +479,9 @@ export class ClipStage {
     });
   }
 
-  // ─── Inline autoplay ───────────────────────────────────────────────────
+  // ─── Inline: pause when scrolled away ──────────────────────────────────
+  // Feed autoplay is off (user decision): a clip only plays when tapped. A clip the
+  // user started still pauses once it scrolls out of view.
   private observeVisibility(): void {
     if (typeof IntersectionObserver === 'undefined') {
       return;
@@ -486,10 +491,7 @@ export class ClipStage {
         if (this.variant() !== 'inline' || this.overlay()) {
           return;
         }
-        if (entry.intersectionRatio >= 0.6) {
-          this.muted.set(true);
-          this.play();
-        } else {
+        if (entry.intersectionRatio < 0.6) {
           this.pause();
         }
       },

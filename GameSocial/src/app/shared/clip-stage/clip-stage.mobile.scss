@@ -1,0 +1,64 @@
+// Phones (≤ 640px): the full player's control row is wider than the screen. Keep play, mute,
+// clock, speed, quality and fullscreen; the volume slider, ⏮ ⏭ (the queue sits right under the
+// player), CC and theater mode drop out. Kept apart from clip-stage.scss, which is over its budget.
+@media (max-width: 640px) {
+  .fp-controls {
+    gap: 2px;
+  }
+
+  .sc-skip,
+  .sc-volbar,
+  .sc-cc,
+  .sc-theater {
+    display: none;
+  }
+
+  .sc-time {
+    white-space: nowrap;
+  }
+}
+
+// Phones (≤ 600px), feed "clip of the day" and the Clips page hero: the stage is much taller than
+// a 16:9 clip at this width, so `cover` cut away most of the picture and the title/author overlay
+// covered the rest. Letterbox the clip instead and shrink the overlay into the bars.
+@media (max-width: 600px) {
+  :host(.variant-feed) .stage-video,
+  :host(.variant-hero) .stage-video {
+    object-fit: contain;
+    background-color: #000;
+  }
+
+  :host(.variant-feed) .stage {
+    height: 340px;
+  }
+
+  :host(.variant-feed),
+  :host(.variant-hero) {
+    .stage-info {
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+    }
+
+    .stage-title {
+      font-size: 17px;
+      line-height: 22px;
+      letter-spacing: -0.2px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .stage-meta {
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .stage-actions {
+      top: 12px;
+      right: 12px;
+      gap: 6px;
+    }
+  }
+}

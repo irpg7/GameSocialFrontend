@@ -15,15 +15,30 @@
       @if (stamp(comment); as label) {
         <button type="button" class="rail-comment-stamp" [attr.aria-label]="'Klipte ' + label + ' anına git'" (click)="seek.emit(comment.timestampSeconds!)">{{ label }}</button>
       }
-      <span class="rail-comment-ago">{{ ago(comment.createdAt) }}</span>
-      @if (isOwn(comment)) {
+      <span class="rail-comment-ago">{{ ago(comment.createdAt) }}@if (comment.editedAt) { · düzenlendi }</span>
+      @if (canDelete(comment)) {
         <button type="button" class="rail-comment-delete" aria-label="Yorumu sil" (click)="remove(comment)">&times;</button>
       }
     </div>
     @if (comment.isPinned) {
       <span class="rail-comment-pin">◆ YAPIMCI YANITI · en üstte sabit</span>
     }
-    <p class="rail-comment-text">{{ comment.body }}</p>
+    @if (editingId() === comment.id) {
+      <div class="rail-comment-edit">
+        <input
+          type="text"
+          maxlength="1000"
+          aria-label="Yorumu düzenle"
+          [value]="editBody()"
+          (input)="editBody.set($any($event.target).value)"
+          (keydown.enter)="saveEdit(comment)"
+          (keydown.escape)="editingId.set(null)" />
+        <button type="button" class="rail-comment-reply" [disabled]="!editBody().trim()" (click)="saveEdit(comment)">Kaydet</button>
+        <button type="button" class="rail-comment-reply" (click)="editingId.set(null)">Vazgeç</button>
+      </div>
+    } @else {
+      <p class="rail-comment-text">{{ comment.body }}</p>
+    }
     <div class="rail-comment-actions">
       <button
         type="button"
@@ -32,6 +47,9 @@
         [attr.aria-pressed]="comment.isVotedByCurrentUser"
         (click)="toggleVote(comment)">▲ {{ count(comment.voteCount) }}</button>
       <button type="button" class="rail-comment-reply" (click)="startReply(comment)">Yanıtla</button>
+      @if (isOwn(comment) && editingId() !== comment.id) {
+        <button type="button" class="rail-comment-reply" (click)="startEdit(comment)">Düzenle</button>
+      }
       @if (!reply && comment.replyCount > 0) {
         <button type="button" class="rail-comment-reply rail-comment-thread" [attr.aria-expanded]="thread(comment.id)?.open ?? false" (click)="toggleReplies(comment)">
           {{ thread(comment.id)?.open ? 'Yanıtları gizle' : comment.replyCount + ' yanıt' }}

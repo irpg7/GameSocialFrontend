@@ -293,3 +293,11 @@ button:focus-visible {
   outline: 2px solid $color-accent-light;
   outline-offset: 2px;
 }
+
+// Phones: a 16:9 box is too short for the hero's overlay (author, votes, progress were cut off).
+// The stage takes its own min-height and letterboxes the clip (clip-stage.mobile.scss).
+@media (max-width: 600px) {
+  .clips-stage {
+    aspect-ratio: auto;
+  }
+}

@@ -46,6 +46,11 @@ export class CommentService {
     return this.http.delete<void>(`/api/posts/${postId}/comments/${commentId}`);
   }
 
+  /** Author only — edits the text; the server sets editedAt. */
+  update(postId: string, commentId: string, body: string): Observable<CommentModel> {
+    return this.http.put<CommentModel>(`/api/posts/${postId}/comments/${commentId}`, { body });
+  }
+
   /** "▲ n" toggle on a comment. */
   toggleVote(postId: string, commentId: string): Observable<CommentVoteModel> {
     return this.http.post<CommentVoteModel>(`/api/posts/${postId}/comments/${commentId}/vote`, {});

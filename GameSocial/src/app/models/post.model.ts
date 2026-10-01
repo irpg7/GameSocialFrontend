@@ -138,6 +138,8 @@ export interface PostModel {
   /** Tag chips ("#driftchain", "Photo mode", "No spoilers"). */
   tags: string[];
   createdAt: string;
+  /** Set when the author edited the post after publishing ("· edited"). */
+  editedAt?: string;
   media: PostMediaModel[];
   /** Exactly one of devlog/review/poll is set, matching postType; Clip/Screenshots have none. */
   devlog?: PostDevlogModel;

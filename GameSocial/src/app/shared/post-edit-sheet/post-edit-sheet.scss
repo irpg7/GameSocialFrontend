@@ -1,0 +1,96 @@
+@use '../../../styles/variables' as *;
+
+.pe-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pe-label {
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.pe-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pe-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: $color-text-secondary;
+}
+
+.pe-patch {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  input {
+    flex: 1;
+  }
+
+  select {
+    width: 150px;
+    flex: none;
+  }
+}
+
+.pe-remove,
+.pe-add {
+  border: 1px dashed $color-border-dashed;
+  background: none;
+  color: $color-text-secondary;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font: 600 12px/14px $font-family-primary;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+    border-color: $color-text-secondary;
+  }
+}
+
+.pe-remove {
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.pe-add {
+  align-self: flex-start;
+  padding: 8px 12px;
+}
+
+.pe-note {
+  margin: 0;
+  font-size: 12px;
+  color: $color-text-tertiary;
+}
+
+.pe-error {
+  margin: 0;
+  font-size: 13px;
+  color: $color-accent-light;
+}
+
+.pe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

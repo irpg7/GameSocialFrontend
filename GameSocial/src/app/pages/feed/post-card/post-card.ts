@@ -17,6 +17,8 @@ import { ClipStage } from '../../../shared/clip-stage/clip-stage';
 import { PhotoGrid } from '../../../shared/photo-grid/photo-grid';
 import { PhotoViewer } from '../../../shared/photo-viewer/photo-viewer';
 import { RichText } from '../../../shared/rich-text/rich-text';
+import { PostEditSheet } from '../../../shared/post-edit-sheet/post-edit-sheet';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
 import { formatClock, formatCount, formatTimeAgo } from '../../../shared/clip-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
@@ -32,9 +34,9 @@ interface ReplyThread {
 
 /**
  * One post in the feed, drawn per type exactly as Gamer Feed.dc.html does:
- *  - Clip: `featured` → the "CLIP OF THE DAY" stage (clip-stage `feed`) with
- *    the "Öne çıkan yorumlar" top-3 thread; otherwise a compact author row
- *    over the in-feed inline muted-autoplay stage and a glyph action bar.
+ *  - Clip: the clip-stage `feed` stage with the "Öne çıkan yorumlar" top-3
+ *    thread for every clip — `featured` only changes the badge ("CLIP OF THE
+ *    DAY" vs "CLIP"). The ··· menu sits among the stage's buttons.
  *  - Devlog: the accent-bordered developer card (DEVLOG #n, build chip,
  *    IN ENGINE / before / after band, "Next patch", test-branch CTA).
  *  - Review: cover + score gutter, headline, body, "Add your rating".
@@ -43,11 +45,12 @@ interface ReplyThread {
  */
 @Component({
   selector: 'app-post-card',
-  imports: [ImgFallback, NgTemplateOutlet, RouterLink, StarRating, ClipStage, PhotoGrid, PhotoViewer, RichText],
+  imports: [ImgFallback, PostEditSheet, NgTemplateOutlet, RouterLink, StarRating, ClipStage, PhotoGrid, PhotoViewer, RichText],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
   host: {
-    '(document:click)': 'menuOpen.set(false)',
+    '(document:click)': 'menuOpen.set(false); confirmingDelete.set(false)',
+    '[class.is-removed]': 'removed()',
   },
 })
 export class PostCard {
@@ -60,7 +63,16 @@ export class PostCard {
   private meService = inject(MeService);
   private router = inject(Router);
 
-  post = input.required<PostModel>();
+  readonly postInput = input.required<PostModel>({ alias: 'post' });
+  /** Local copy so an edit made from the ··· menu shows without a reload. */
+  protected readonly post = linkedSignal(() => this.postInput());
+  /** Set after "Delete post" — the card hides itself (parents don't need to drop it). */
+  protected readonly removed = signal(false);
+  protected readonly isEditing = signal(false);
+  protected readonly confirmingDelete = signal(false);
+  protected readonly isDeleting = signal(false);
+  protected readonly editingCommentId = signal<string | null>(null);
+  protected readonly editCommentBody = signal('');
   /** Squads the current viewer is a member of — resolved client-side to render a "posted to X" badge, see Feed. */
   mySquads = input<SquadModel[]>([]);
   /** The feed's hero: "CLIP OF THE DAY" stage + featured comment thread. */
@@ -93,7 +105,7 @@ export class PostCard {
   protected readonly replyThreads = signal<Record<string, ReplyThread>>({});
 
   protected readonly isOwnPost = computed(() => this.post().userId === this.authService.currentUser()?.id);
-  protected readonly timeAgo = computed(() => formatTimeAgo(this.post().createdAt));
+  protected readonly timeAgo = computed(() => formatTimeAgo(this.post().createdAt) + (this.post().editedAt ? ' · edited' : ''));
   protected readonly likeLabel = computed(() => formatCount(this.likeCount()));
   protected readonly commentLabel = computed(() => formatCount(this.commentCount()));
 
@@ -142,12 +154,6 @@ export class PostCard {
   protected readonly reviewScore = computed(() => {
     const score = this.post().review?.score ?? 0;
     return Number.isInteger(score) ? score.toFixed(1) : String(score);
-  });
-
-  /** Clip card meta: `clipped in Neon Drift · 12 min ago`. */
-  protected readonly clipMeta = computed(() => {
-    const game = this.post().gameName;
-    return `${game ? `clipped in ${game} · ` : ''}${this.timeAgo()}`;
   });
 
   /** Devlog header meta: `Ashfall — the team behind it · 2 h ago`. */
@@ -206,8 +212,67 @@ export class PostCard {
     this.stage()?.seekTo(comment.timestampSeconds, true);
   }
 
+  /** "✎ Edit post" (author only). */
+  startEdit(): void {
+    this.menuOpen.set(false);
+    this.isEditing.set(true);
+  }
+
+  onEdited(updated: PostModel): void {
+    this.post.set(updated);
+    this.isEditing.set(false);
+  }
+
+  /** "✕ Delete post" — first click arms it, second click deletes. */
+  deletePost(): void {
+    if (!this.confirmingDelete()) {
+      this.confirmingDelete.set(true);
+      return;
+    }
+    if (this.isDeleting()) {
+      return;
+    }
+    this.isDeleting.set(true);
+    this.postService
+      .delete(this.post().id)
+      .pipe(finalize(() => this.isDeleting.set(false)))
+      .subscribe({
+        next: () => {
+          this.menuOpen.set(false);
+          this.removed.set(true);
+          this.notificationService.success('Post deleted.');
+          this.meService.refresh().subscribe({ error: () => void 0 });
+        },
+        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete the post.')),
+      });
+  }
+
+  /** "Düzenle" on your own comment. */
+  startEditComment(comment: CommentModel): void {
+    this.editingCommentId.set(comment.id);
+    this.editCommentBody.set(comment.body);
+  }
+
+  cancelEditComment(): void {
+    this.editingCommentId.set(null);
+  }
+
+  saveEditComment(comment: CommentModel): void {
+    const body = this.editCommentBody().trim();
+    if (!body) {
+      return;
+    }
+    this.commentService.update(this.post().id, comment.id, body).subscribe({
+      next: (updated) => {
+        this.updateComment(comment, (c) => ({ ...c, body: updated.body, editedAt: updated.editedAt }));
+        this.editingCommentId.set(null);
+      },
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to edit the comment.')),
+    });
+  }
+
   toggleLike(): void {
-    if (this.isTogglingLike()) {
+    if (this.isTogglingLike() || this.isOwnPost()) {
       return;
     }
     this.isTogglingLike.set(true);
@@ -431,8 +496,9 @@ export class PostCard {
 
   private loadComments(page: number): void {
     // The featured clip shows its top comments; every other thread reads oldest-first.
-    const sort: CommentSort = this.isFeaturedClip() ? 'top' : 'oldest';
-    const pageSize = this.isFeaturedClip() ? FEATURED_COMMENTS : 20;
+    // Clip cards show their top comments ("Öne çıkan yorumlar"); every other thread reads oldest-first.
+    const sort: CommentSort = this.isClipCard() ? 'top' : 'oldest';
+    const pageSize = this.isClipCard() ? FEATURED_COMMENTS : 20;
     this.isLoadingComments.set(true);
     this.commentService
       .list(this.post().id, page, pageSize, { sort })

@@ -370,3 +370,17 @@ input:focus-visible {
     cursor: default;
   }
 }
+
+.rail-comment-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    font-size: 12px;
+  }
+}

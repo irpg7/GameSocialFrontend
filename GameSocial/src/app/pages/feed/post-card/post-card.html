@@ -14,17 +14,35 @@
         @if (comment.timestampSeconds != null && isClipCard()) {
           <button type="button" class="cm-stamp" [attr.aria-label]="'Klipte ' + clock(comment.timestampSeconds) + ' anına git'" (click)="seekComment(comment)">&#64;{{ clock(comment.timestampSeconds) }}</button>
         }
-        <span class="cm-ago">{{ ago(comment.createdAt) }}</span>
-        @if (isOwnComment(comment)) {
+        <span class="cm-ago">{{ ago(comment.createdAt) }}@if (comment.editedAt) { · düzenlendi }</span>
+        @if (isOwnComment(comment) || isOwnPost()) {
           <button type="button" class="cm-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
         }
       </div>
-      <div class="cm-text">{{ comment.body }}</div>
+      @if (editingCommentId() === comment.id) {
+        <div class="cm-reply-form">
+          <input
+            type="text"
+            maxlength="1000"
+            [value]="editCommentBody()"
+            (input)="editCommentBody.set($any($event.target).value)"
+            (keydown.enter)="saveEditComment(comment)"
+            (keydown.escape)="cancelEditComment()"
+            aria-label="Yorumu düzenle" />
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="!editCommentBody().trim()" (click)="saveEditComment(comment)">Kaydet</button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEditComment()">Vazgeç</button>
+        </div>
+      } @else {
+        <div class="cm-text">{{ comment.body }}</div>
+      }
       <div class="cm-actions">
         <button type="button" class="cm-vote" [class.active]="comment.isVotedByCurrentUser" [attr.aria-pressed]="comment.isVotedByCurrentUser" (click)="voteComment(comment)">▲ {{ count(comment.voteCount) }}</button>
         <button type="button" class="cm-reply" [attr.aria-expanded]="replyingTo() === comment.id" (click)="startReply(comment)">
           Yanıtla
         </button>
+        @if (isOwnComment(comment) && editingCommentId() !== comment.id) {
+          <button type="button" class="cm-reply" (click)="startEditComment(comment)">Düzenle</button>
+        }
         @if (!reply && comment.replyCount > 0) {
           <button type="button" class="cm-reply" [attr.aria-expanded]="replyThreads()[comment.id]?.open ?? false" (click)="toggleReplies(comment)">
             @if (replyThreads()[comment.id]?.open) { Yanıtları gizle } @else { <span class="cm-reply-count">{{ comment.replyCount }}</span> yanıt }
@@ -100,21 +118,28 @@
         <button type="button" role="menuitem" class="more-item" (click)="toggleSave(); menuOpen.set(false)">{{ saved() ? '◆ Saved' : '◇ Save' }}</button>
         <button type="button" role="menuitem" class="more-item" (click)="share()">↗ Copy link</button>
         <a role="menuitem" class="more-item" [routerLink]="['/profile', post().userId]">◉ View profile</a>
+        @if (isOwnPost()) {
+          <button type="button" role="menuitem" class="more-item" (click)="startEdit()">✎ Edit post</button>
+          <button type="button" role="menuitem" class="more-item more-danger" [disabled]="isDeleting()" (click)="deletePost()">
+            {{ confirmingDelete() ? 'Click again to delete' : '✕ Delete post' }}
+          </button>
+        }
       </div>
     }
   </div>
 </ng-template>
 
-@if (isFeaturedClip()) {
-  <!-- ─── CLIP OF THE DAY (D183–245) ─────────────────────────────── -->
+@if (isClipCard()) {
+  <!-- ─── Clip card (D183–245): every feed clip uses the "clip of the day" stage; only the badge differs ─── -->
   <article class="pc pc-hero">
     <app-clip-stage
       [post]="post()"
       variant="feed"
-      rankLabel="CLIP OF THE DAY"
+      [rankLabel]="isFeaturedClip() ? 'CLIP OF THE DAY' : 'CLIP'"
       [squadName]="squadName()"
       [commentCount]="commentCount()"
       [commentsActive]="isCommentsOpen()"
+      [extraActions]="moreMenu"
       (toggleComments)="toggleComments()" />
 
     @if (isCommentsOpen()) {
@@ -133,38 +158,6 @@
           <p class="thread-status">Henüz yorum yok.</p>
         }
       </div>
-    }
-  </article>
-} @else if (isClipCard()) {
-  <!-- ─── In-feed clip: author row + inline muted-autoplay stage ──── -->
-  <article class="pc">
-    <div class="pc-head">
-      <a [routerLink]="['/profile', post().userId]" class="av av-34" [attr.aria-label]="post().username">
-        <img [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
-      </a>
-      <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
-      <span class="lv">LV {{ post().authorLevel }}</span>
-      <span class="meta">{{ clipMeta() }}</span>
-      @if (squadName(); as name) {
-        <a [routerLink]="['/squads', post().squadId]" class="squad-tag">{{ name }}</a>
-      }
-      <ng-container *ngTemplateOutlet="moreMenu" />
-    </div>
-    @if (post().caption) {
-      <div class="pc-clip-title">{{ post().caption }}</div>
-    }
-    <div class="pc-clip-stage">
-      <app-clip-stage [post]="post()" variant="inline" [squadName]="squadName()" />
-    </div>
-    <div class="bar">
-      <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
-      <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
-      <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
-      <span class="bar-views mono">{{ count(post().viewCount) }} views</span>
-      <button type="button" class="outline-btn" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="toggleSave()">{{ saved() ? '◆ Saved' : '◇ Save' }}</button>
-    </div>
-    @if (isCommentsOpen()) {
-      <ng-container *ngTemplateOutlet="thread" />
     }
   </article>
 } @else if (isDevlogCard()) {
@@ -251,7 +244,7 @@
       }
 
       <div class="bar bar-devlog">
-        <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+        <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
         <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
         <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
         <div class="bar-end">
@@ -283,6 +276,7 @@
             <a [routerLink]="['/profile', post().userId]" class="name">{{ post().username }}</a>
             <span class="lv">LV {{ post().authorLevel }}</span>
             <span class="meta">{{ reviewMeta() }}</span>
+            <ng-container *ngTemplateOutlet="moreMenu" />
           </div>
           @if (post().caption) {
             <h3 class="rv-headline">{{ post().caption }}</h3>
@@ -291,7 +285,7 @@
             <div class="rv-text"><app-rich-text [text]="review.body" /></div>
           }
           <div class="rv-actions">
-            <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [attr.aria-label]="'Useful · ' + likeCount()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+            <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [attr.aria-label]="'Useful · ' + likeCount()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
             <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
             <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
             @if (!isOwnPost()) {
@@ -329,7 +323,7 @@
       [badge]="photoBadge()"
       (open)="openViewer($event)" />
     <div class="bar">
-      <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+      <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
       <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
       <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
       <button type="button" class="outline-btn" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="toggleSave()">{{ saved() ? '◆ Saved' : '◇ Save all' }}</button>
@@ -406,7 +400,7 @@
     }
 
     <div class="rv-actions">
-      <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike()" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
+      <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
       <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
       <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
     </div>
@@ -414,4 +408,8 @@
       <ng-container *ngTemplateOutlet="thread" />
     }
   </article>
+}
+
+@if (isEditing()) {
+  <app-post-edit-sheet [post]="post()" (saved)="onEdited($event)" (closed)="isEditing.set(false)" />
 }

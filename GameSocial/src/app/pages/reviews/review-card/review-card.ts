@@ -15,6 +15,8 @@ import { StarRating } from '../../../shared/star-rating/star-rating';
 import { RichText } from '../../../shared/rich-text/rich-text';
 import { formatClock, formatTimeAgo } from '../../../shared/clip-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
+import { PostEditSheet } from '../../../shared/post-edit-sheet/post-edit-sheet';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
 
 const COMMENT_PAGE_SIZE = 3;
 /** Scores at or above this read as the accent red, below as muted grey (design: 8.4/9.2 red, 5.6 grey). */
@@ -43,9 +45,12 @@ interface ThreadComment {
  */
 @Component({
   selector: 'app-review-card',
-  imports: [ImgFallback, FormsModule, NgTemplateOutlet, RouterLink, StarRating, RichText],
+  imports: [ImgFallback, PostEditSheet, FormsModule, NgTemplateOutlet, RouterLink, StarRating, RichText],
   templateUrl: './review-card.html',
   styleUrl: './review-card.scss',
+  host: {
+    '[class.is-removed]': 'removed()',
+  },
 })
 export class ReviewCard implements OnInit {
   private commentService = inject(CommentService);
@@ -55,7 +60,15 @@ export class ReviewCard implements OnInit {
   private meService = inject(MeService);
   private notificationService = inject(NotificationService);
 
-  readonly post = input.required<PostModel>();
+  readonly postInput = input.required<PostModel>({ alias: 'post' });
+  /** Local copy so the author's edit shows without a reload. */
+  protected readonly post = linkedSignal(() => this.postInput());
+  protected readonly isOwnPost = computed(() => this.post().userId === this.authService.currentUser()?.id);
+  protected readonly removed = signal(false);
+  protected readonly isEditing = signal(false);
+  protected readonly confirmingDelete = signal(false);
+  protected readonly editingCommentId = signal<string | null>(null);
+  protected readonly editCommentBody = signal('');
 
   protected readonly formatTimeAgo = formatTimeAgo;
 
@@ -95,7 +108,7 @@ export class ReviewCard implements OnInit {
   });
   protected readonly meta = computed(() => {
     const game = this.post().gameName;
-    const ago = formatTimeAgo(this.post().createdAt);
+    const ago = formatTimeAgo(this.post().createdAt) + (this.post().editedAt ? ' · edited' : '');
     return game ? `${game} · ${ago}` : ago;
   });
   protected readonly authorInitial = computed(() => this.post().username.charAt(0).toUpperCase());
@@ -119,8 +132,76 @@ export class ReviewCard implements OnInit {
     this.loadClips();
   }
 
+  onEdited(updated: PostModel): void {
+    this.post.set(updated);
+    this.isEditing.set(false);
+  }
+
+  /** "✕ Delete" — first click arms it, second click deletes. */
+  deletePost(): void {
+    if (!this.confirmingDelete()) {
+      this.confirmingDelete.set(true);
+      return;
+    }
+    this.postService.delete(this.post().id).subscribe({
+      next: () => {
+        this.removed.set(true);
+        this.notificationService.success('Review deleted.');
+        this.meService.refresh().subscribe({ error: () => void 0 });
+      },
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete the review.')),
+    });
+  }
+
+  canDeleteComment(comment: CommentModel): boolean {
+    return this.isOwn(comment) || this.isOwnPost();
+  }
+
+  deleteComment(comment: CommentModel): void {
+    this.commentService.delete(this.post().id, comment.id).subscribe({
+      next: () => {
+        if (comment.parentCommentId) {
+          this.thread.update((list) =>
+            list.map((t) =>
+              t.comment.id === comment.parentCommentId
+                ? { ...t, comment: { ...t.comment, replyCount: Math.max(0, t.comment.replyCount - 1) }, replies: t.replies.filter((r) => r.id !== comment.id) }
+                : t,
+            ),
+          );
+        } else {
+          this.thread.update((list) => list.filter((t) => t.comment.id !== comment.id));
+          this.threadTotal.update((n) => Math.max(0, n - 1));
+          this.pinnedReply.update((p) => (p?.id === comment.id ? null : p));
+        }
+        this.commentCount.update((n) => Math.max(0, n - 1));
+      },
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete the comment.')),
+    });
+  }
+
+  startEditComment(comment: CommentModel): void {
+    this.editingCommentId.set(comment.id);
+    this.editCommentBody.set(comment.body);
+  }
+
+  saveEditComment(comment: CommentModel): void {
+    const body = this.editCommentBody().trim();
+    if (!body) {
+      return;
+    }
+    this.commentService.update(this.post().id, comment.id, body).subscribe({
+      next: (updated) => {
+        const apply = (c: CommentModel): CommentModel => (c.id === comment.id ? { ...c, body: updated.body, editedAt: updated.editedAt } : c);
+        this.thread.update((list) => list.map((t) => ({ ...t, comment: apply(t.comment), replies: t.replies.map(apply) })));
+        this.pinnedReply.update((p) => (p ? apply(p) : p));
+        this.editingCommentId.set(null);
+      },
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to edit the comment.')),
+    });
+  }
+
   toggleUseful(): void {
-    if (this.isTogglingUseful()) {
+    if (this.isTogglingUseful() || this.isOwnPost()) {
       return;
     }
     this.isTogglingUseful.set(true);

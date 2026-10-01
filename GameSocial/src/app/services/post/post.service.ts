@@ -1,7 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PostModel, PostPollModel, PostTypeName } from '../../models/post.model';
+import { PostModel, PostPollModel, PostTypeName, PlayStatusName, PatchLineStatusName } from '../../models/post.model';
 import { PagedResult } from '../../models/paged-result.model';
 
 /** `GET /api/posts` sort: "hot"/"top" rank by engagement (votes·3 + comments·2 + views). */
@@ -29,6 +29,22 @@ export interface PostListFilters {
   tag?: string;
   /** Leave the currently playing clip out of an "Up next" list. */
   excludePostId?: string;
+}
+
+/** PUT /api/posts/{id} — omitted fields stay as they are. */
+export interface UpdatePostBody {
+  caption?: string;
+  tags?: string[];
+  title?: string;
+  body?: string;
+  score?: number;
+  playStatus?: PlayStatusName;
+  hoursPlayed?: number;
+  spoilerFree?: boolean;
+  buildTag?: string;
+  branchTag?: string;
+  testBranchUrl?: string;
+  patchLines?: { text: string; status: PatchLineStatusName }[];
 }
 
 @Service()
@@ -59,6 +75,16 @@ export class PostService {
   }
 
   /** Single post (deep links, Clip Player). Drafts resolve only for their author. */
+  /** Author only (the server checks). */
+  update(postId: string, body: UpdatePostBody): Observable<PostModel> {
+    return this.http.put<PostModel>(`${this.apiUrl}/${postId}`, body);
+  }
+
+  /** Author only — removes comments, votes and squad shares with it and takes back the post's XP. */
+  delete(postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${postId}`);
+  }
+
   getPost(postId: string): Observable<PostModel> {
     return this.http.get<PostModel>(`${this.apiUrl}/${postId}`);
   }

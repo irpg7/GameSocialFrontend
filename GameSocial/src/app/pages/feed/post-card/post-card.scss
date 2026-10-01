@@ -109,22 +109,11 @@
   font: 700 10px/13px $font-family-primary;
 }
 
-.pc-caption,
-.pc-clip-title {
+.pc-caption {
   margin: 0;
   padding: 0 18px 12px;
   font: 500 14px/21px $font-family-primary;
   color: $color-text-body;
-}
-
-.pc-clip-title {
-  font: 800 17px/23px $font-family-primary;
-  letter-spacing: -0.2px;
-  color: $color-text-primary;
-}
-
-.pc-clip-stage {
-  padding: 0 18px;
 }
 
 // ─── ··· menu ────────────────────────────────────────────────
@@ -223,12 +212,6 @@
   }
 }
 
-.bar-views {
-  margin-left: auto;
-  font: 700 11px/14px $font-family-mono;
-  color: $color-text-hint;
-}
-
 .bar-end {
   margin-left: auto;
   display: flex;
@@ -255,7 +238,6 @@
   }
 }
 
-.bar-views + .outline-btn,
 .bar-end .outline-btn {
   margin-left: 0;
 }
@@ -917,4 +899,33 @@
     display: block;
     background: $color-bg-tertiary;
   }
+}
+
+:host(.is-removed) {
+  display: none;
+}
+
+.more-danger {
+  color: $color-accent-light;
+}
+
+// The ··· menu inside a clip card's stage sits with the stage's own buttons.
+.pc-hero .more-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 11px;
+  background-color: rgba(10, 10, 12, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    background-color: rgba(10, 10, 12, 0.85);
+  }
+}
+
+.pc-hero .more-pop {
+  top: 38px;
 }

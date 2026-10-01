@@ -85,9 +85,12 @@
 
     <!-- ─── Clip Player spec: in-feed inline muted autoplay ───────────── -->
     @case ('inline') {
-      <button type="button" class="in-hit" [attr.aria-label]="'Klibi aç: ' + title()" (click)="openClipPage()"></button>
+      <!-- Tapping the picture plays/pauses in place; ⛶ opens the full Clip Player page. -->
+      <button type="button" class="in-hit" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()"></button>
       <span class="in-tag">{{ gameTag() }}</span>
-      <button type="button" class="in-mute" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" [attr.aria-pressed]="!muted()" (click)="toggleMute()">{{ volGlyph() }}</button>
+      <!-- Right to left, same as the feed card / Clips hero: ⛶ Clip Player, mute. -->
+      <button type="button" class="in-mute" [style.right.px]="42" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" [attr.aria-pressed]="!muted()" (click)="toggleMute()">{{ volGlyph() }}</button>
+      <button type="button" class="in-mute" [attr.aria-label]="'Oynatıcıda aç: ' + title()" (click)="openClipPage()">⛶</button>
       <div class="in-bottom">
         <button type="button" class="in-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
         <span class="in-progress" aria-hidden="true"><span class="in-progress-fill" [style.width.%]="playedPercent()"></span></span>
@@ -150,8 +153,8 @@
         <ng-container *ngTemplateOutlet="scrubBar; context: { withPreview: true, withMarkers: true }" />
         <div class="fp-controls">
           <button type="button" class="sc-btn sc-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
-          <button type="button" class="sc-btn" aria-label="Önceki klip" [disabled]="!hasPrev()" (click)="prev.emit()">⏮</button>
-          <button type="button" class="sc-btn" aria-label="Sonraki klip" [disabled]="!hasNext()" (click)="next.emit()">⏭</button>
+          <button type="button" class="sc-btn sc-skip" aria-label="Önceki klip" [disabled]="!hasPrev()" (click)="prev.emit()">⏮</button>
+          <button type="button" class="sc-btn sc-skip" aria-label="Sonraki klip" [disabled]="!hasNext()" (click)="next.emit()">⏭</button>
           <div class="sc-volume">
             <button type="button" class="sc-btn" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
             <div
@@ -207,7 +210,7 @@
               </div>
             }
           </div>
-          <button type="button" class="sc-btn" [class.active]="theater()" [attr.aria-pressed]="theater()" aria-label="Sinema modu" (click)="theaterToggle.emit()">▭</button>
+          <button type="button" class="sc-btn sc-theater" [class.active]="theater()" [attr.aria-pressed]="theater()" aria-label="Sinema modu" (click)="theaterToggle.emit()">▭</button>
           <button type="button" class="sc-btn" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
         </div>
       </div>
@@ -234,13 +237,15 @@
         @if (isProcessing()) {
           <span class="stage-badge stage-badge-processing">İŞLENİYOR</span>
         }
-        <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
-        <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
-        @if (variant() === 'hero') {
-          <a class="stage-action" [routerLink]="['/clips', post().id]" [queryParams]="resumeParams()" aria-label="Klip oynatıcıda aç">⛶</a>
-        } @else {
-          <button type="button" class="stage-action" aria-label="Tam ekran" (click)="toggleFullscreen()">⛶</button>
+        <!-- Right to left: ⛶ Clip Player, mute, then speed (Clips hero only — the feed card has none), then the host's extras. -->
+        @if (extraActions(); as extras) {
+          <ng-container *ngTemplateOutlet="extras" />
         }
+        @if (variant() === 'hero') {
+          <button type="button" class="stage-action stage-action-text" aria-label="Oynatma hızı" (click)="cycleSpeed()">{{ speed() }}×</button>
+        }
+        <button type="button" class="stage-action" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" (click)="toggleMute()">{{ volGlyph() }}</button>
+        <a class="stage-action" [routerLink]="['/clips', post().id]" [queryParams]="resumeParams()" aria-label="Klip oynatıcıda aç">⛶</a>
       </div>
 
       @if (!playing()) {

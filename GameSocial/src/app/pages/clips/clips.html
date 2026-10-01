@@ -73,6 +73,7 @@
         } @else if (hero(); as heroPost) {
           <app-clip-rail-comments
             [postId]="heroPost.id"
+            [postOwnerId]="heroPost.userId"
             [currentTime]="heroTime()"
             (seek)="onSeek($event)"
             (countChanged)="onCommentCountChanged(heroPost.id, $event)" />

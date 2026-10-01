@@ -63,6 +63,15 @@ export class ClipPlayer implements OnInit {
   protected readonly theater = signal(false);
   protected readonly commentsOpen = signal(false);
   protected readonly isMobile = signal(false);
+  /**
+   * The 9:16 "vertical clip" layout only fits clips that are actually portrait — a 16:9 clip in it
+   * lost half the picture and the control row. Landscape clips keep the full player on phones too.
+   */
+  protected readonly useVerticalStage = computed(() => {
+    const post = this.post();
+    const video = post ? clipVideo(post.media) : undefined;
+    return this.isMobile() && !!video?.width && !!video?.height && video.height > video.width;
+  });
   protected readonly autoplay = this.clipAutoplay.autoplay;
   protected readonly isTogglingFollow = signal(false);
   protected readonly isTogglingLike = signal(false);

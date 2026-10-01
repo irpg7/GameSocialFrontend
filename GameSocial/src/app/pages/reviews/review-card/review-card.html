@@ -27,7 +27,8 @@
         type="button"
         class="rc-pill"
         [class.on]="useful()"
-        [disabled]="isTogglingUseful()"
+        [disabled]="isTogglingUseful() || isOwnPost()"
+        [attr.title]="isOwnPost() ? 'You can\'t mark your own review useful' : null"
         [attr.aria-pressed]="useful()"
         (click)="toggleUseful()">
         ▲ <span class="mono">{{ usefulCount() }}</span> useful
@@ -36,6 +37,12 @@
         💬 <span class="mono">{{ commentCount() }}</span> yorum {{ isThreadOpen() ? '▴' : '▾' }}
       </button>
       <button type="button" class="rc-pill" (click)="share()">↗ Share</button>
+      @if (isOwnPost()) {
+        <button type="button" class="rc-pill" (click)="isEditing.set(true)">✎ Edit</button>
+        <button type="button" class="rc-pill rc-pill-danger" (click)="deletePost()" (blur)="confirmingDelete.set(false)">
+          {{ confirmingDelete() ? 'Click again to delete' : '✕ Delete' }}
+        </button>
+      }
     </div>
 
     @if (isThreadOpen()) {
@@ -141,15 +148,36 @@
       <div class="rc-c-meta">
         <a class="rc-c-author" [class.own]="isOwn(c)" [routerLink]="['/profile', c.userId]">{{ c.username }}</a>
         <span class="rc-c-lv">{{ c.authorIsDeveloper ? 'DEV' : 'LV ' + c.authorLevel }}</span>
-        <span class="rc-c-ago">{{ formatTimeAgo(c.createdAt) }}</span>
+        <span class="rc-c-ago">{{ formatTimeAgo(c.createdAt) }}@if (c.editedAt) { · düzenlendi }</span>
         @if (c.authorIsDeveloper) {
           <span class="rc-c-dev">◆ YAPIMCI</span>
         }
       </div>
-      <div class="rc-c-text">{{ c.body }}</div>
+      @if (editingCommentId() === c.id) {
+        <div class="rc-c-edit">
+          <input
+            type="text"
+            maxlength="1000"
+            aria-label="Yorumu düzenle"
+            [ngModel]="editCommentBody()"
+            (ngModelChange)="editCommentBody.set($event)"
+            (keydown.enter)="saveEditComment(c)"
+            (keydown.escape)="editingCommentId.set(null)" />
+          <button type="button" class="rc-c-action" [disabled]="!editCommentBody().trim()" (click)="saveEditComment(c)">Kaydet</button>
+          <button type="button" class="rc-c-action" (click)="editingCommentId.set(null)">Vazgeç</button>
+        </div>
+      } @else {
+        <div class="rc-c-text">{{ c.body }}</div>
+      }
       <div class="rc-c-actions">
         <button type="button" class="rc-c-action" [class.on]="c.isVotedByCurrentUser" [attr.aria-pressed]="c.isVotedByCurrentUser" (click)="vote(c)">▲ {{ c.voteCount }}</button>
         <button type="button" class="rc-c-action" (click)="startReply(c)">↩ Yanıtla</button>
+        @if (isOwn(c) && editingCommentId() !== c.id) {
+          <button type="button" class="rc-c-action" (click)="startEditComment(c)">✎ Düzenle</button>
+        }
+        @if (canDeleteComment(c)) {
+          <button type="button" class="rc-c-action" [attr.aria-label]="c.username + ' yorumunu sil'" (click)="deleteComment(c)">✕ Sil</button>
+        }
         @if (item && c.replyCount > 0) {
           <button type="button" class="rc-c-action rc-c-replies" [attr.aria-expanded]="item.repliesOpen" (click)="toggleReplies(item)">{{ c.replyCount }} yanıt</button>
         }
@@ -157,3 +185,7 @@
     </div>
   </div>
 </ng-template>
+
+@if (isEditing()) {
+  <app-post-edit-sheet [post]="post()" (saved)="onEdited($event)" (closed)="isEditing.set(false)" />
+}

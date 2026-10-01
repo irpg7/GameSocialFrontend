@@ -3,7 +3,7 @@
     <div class="cp-main">
       <app-clip-stage
         [post]="clip"
-        [variant]="isMobile() ? 'vertical' : 'full'"
+        [variant]="useVerticalStage() ? 'vertical' : 'full'"
         [rankLabel]="rankLabel()"
         [autoplay]="true"
         [startAt]="startAt()"
@@ -66,7 +66,7 @@
 
       @if (commentsOpen()) {
         <section class="cp-comments" aria-label="Yorumlar">
-          <app-clip-rail-comments [postId]="clip.id" [currentTime]="time()" (seek)="seek($event)" (countChanged)="commentDelta.set(commentDelta() + $event)" />
+          <app-clip-rail-comments [postId]="clip.id" [postOwnerId]="clip.userId" [currentTime]="time()" (seek)="seek($event)" (countChanged)="commentDelta.set(commentDelta() + $event)" />
         </section>
       }
     </div>
