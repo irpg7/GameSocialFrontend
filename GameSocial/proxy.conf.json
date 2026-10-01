@@ -9,10 +9,5 @@
     "target": "http://localhost:5234",
     "secure": false,
     "changeOrigin": true
-  },
-  "/images": {
-    "target": "http://localhost:5234",
-    "secure": false,
-    "changeOrigin": true
   }
 }

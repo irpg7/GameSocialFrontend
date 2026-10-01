@@ -10,6 +10,8 @@ export interface AdminUserModel {
   username: string;
   email: string;
   isDeveloper: boolean;
+  /** Asked for a developer account at sign-up; waiting for an admin. */
+  developerRequested: boolean;
   isPremium: boolean;
   createdAt: string;
   permissions: string[];

@@ -106,7 +106,7 @@ const PATCH_STATUS_CYCLE = [PatchLineStatus.Shipped, PatchLineStatus.Fixed, Patc
   selector: 'app-post-composer',
   imports: [ImgFallback, FormsModule, SheetModal, ReviewSheet, RichTextToolbar],
   templateUrl: './post-composer.html',
-  styleUrl: './post-composer.scss',
+  styleUrls: ['./post-composer.scss', './post-composer.mobile.scss'],
 })
 export class PostComposer implements OnInit, OnDestroy {
   private postService = inject(PostService);
@@ -218,12 +218,12 @@ export class PostComposer implements OnInit, OnDestroy {
   protected readonly devlogBody = signal('');
   protected readonly devlogGameId = signal<number | null>(null);
   /**
-   * DevLogs can only go to games this account may post for: games whose owner is
-   * the current user, or unowned games (the server enforces the same rule).
+   * DevLogs only go to games this account is the verified developer of (an admin
+   * assigns the owner in Backoffice → Games; the server enforces the same rule).
    */
   protected readonly devlogGames = computed(() => {
     const myId = this.meService.me()?.id;
-    return this.games().filter((g) => !g.developerUserId || g.developerUserId === myId);
+    return myId ? this.games().filter((g) => g.developerUserId === myId) : [];
   });
   protected readonly buildTag = signal('');
   protected readonly branchTag = signal<BranchTag>('TEST BRANCH');

@@ -13,6 +13,10 @@
       <input id="new-game-studio" type="text" maxlength="150" [ngModel]="newStudio()" (ngModelChange)="newStudio.set($event)" placeholder="e.g. Kuytu Studio">
     </div>
     <div class="form-group">
+      <label for="new-game-release">Release date <span class="text-muted">(optional — caps "hours played" on reviews)</span></label>
+      <input id="new-game-release" type="date" [ngModel]="newReleaseDate()" (ngModelChange)="newReleaseDate.set($event)">
+    </div>
+    <div class="form-group">
       <label for="new-game-developer">Developer username <span class="text-muted">(optional — their replies pin as ◆ YAPIMCI)</span></label>
       <input id="new-game-developer" type="text" [ngModel]="newDeveloper()" (ngModelChange)="newDeveloper.set($event)" placeholder="username">
     </div>
@@ -71,6 +75,7 @@
                 <td>
                   <input type="text" maxlength="150" aria-label="Studio" [ngModel]="editStudio()" (ngModelChange)="editStudio.set($event)" placeholder="Studio">
                   <input type="text" aria-label="Developer username" [ngModel]="editDeveloper()" (ngModelChange)="editDeveloper.set($event)" placeholder="Developer username">
+                  <input type="date" aria-label="Release date" [ngModel]="editReleaseDate()" (ngModelChange)="editReleaseDate.set($event)">
                 </td>
                 <td colspan="2">
                   <div class="genre-checkbox-grid">
@@ -100,6 +105,9 @@
                   {{ game.studio || '—' }}
                   @if (game.developerUsername) {
                     · &#64;{{ game.developerUsername }}
+                  }
+                  @if (game.releaseDate) {
+                    · {{ game.releaseDate }}
                   }
                 </td>
                 <td class="text-muted">{{ game.slug }}</td>

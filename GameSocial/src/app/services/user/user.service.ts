@@ -17,6 +17,11 @@ export class UserService {
     return this.http.post<AdminUserModel>(`${this.apiUrl}/${userId}/permissions`, { permissionKey });
   }
 
+  /** Approve (true) or revoke/decline (false) a developer account. The user's open sessions end. */
+  setDeveloper(userId: string, isDeveloper: boolean): Observable<AdminUserModel> {
+    return this.http.put<AdminUserModel>(`${this.apiUrl}/${userId}/developer`, { isDeveloper });
+  }
+
   revokePermission(userId: string, permissionKey: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${userId}/permissions/${encodeURIComponent(permissionKey)}`);
   }

@@ -37,6 +37,8 @@ export interface GameModel {
   genres: GameGenreName[];
   /** "Kuytu Studio · souls-like, co-op" on the Reviews game summary. */
   studio?: string;
+  /** "2023-08-03" — caps "hours played" on reviews to the time since release. */
+  releaseDate?: string;
   /** The game's developer account — their comments pin as "◆ YAPIMCI YANITI". */
   developerUserId?: string;
   developerUsername?: string;

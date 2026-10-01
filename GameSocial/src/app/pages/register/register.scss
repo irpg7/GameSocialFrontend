@@ -88,3 +88,10 @@
   margin-top: $spacing-xl;
   font-size: 0.9rem;
 }
+
+.field-hint {
+  display: block;
+  margin-top: $spacing-xs;
+  font-size: 0.8rem;
+  color: $color-text-tertiary;
+}

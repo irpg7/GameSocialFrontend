@@ -16,3 +16,18 @@
 .current-user-row {
   opacity: 0.6;
 }
+
+.developer-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-request {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: $color-accent-tint;
+  color: $color-accent-light;
+  font-size: 11px;
+  font-weight: 700;
+}

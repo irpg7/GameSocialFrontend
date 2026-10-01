@@ -38,6 +38,7 @@ export class GamesAdmin implements OnInit {
   protected readonly newGenres = signal<Set<GameGenreName>>(new Set());
   protected readonly newStudio = signal('');
   protected readonly newDeveloper = signal('');
+  protected readonly newReleaseDate = signal('');
   private newPosterFile = signal<File | null>(null);
   protected readonly isCreating = signal(false);
   protected readonly createError = signal<string | null>(null);
@@ -47,6 +48,7 @@ export class GamesAdmin implements OnInit {
   protected readonly editGenres = signal<Set<GameGenreName>>(new Set());
   protected readonly editStudio = signal('');
   protected readonly editDeveloper = signal('');
+  protected readonly editReleaseDate = signal('');
   private editPosterFile = signal<File | null>(null);
   protected readonly isSaving = signal(false);
   protected readonly editError = signal<string | null>(null);
@@ -84,6 +86,10 @@ export class GamesAdmin implements OnInit {
     }
     formData.append('Studio', this.newStudio().trim());
     formData.append('DeveloperUsername', this.newDeveloper().trim());
+    // Sent only when set — an empty value would not bind as a date.
+    if (this.newReleaseDate()) {
+      formData.append('ReleaseDate', this.newReleaseDate());
+    }
     if (file) {
       formData.append('Poster', file);
     }
@@ -98,6 +104,7 @@ export class GamesAdmin implements OnInit {
           this.newGenres.set(new Set());
           this.newStudio.set('');
           this.newDeveloper.set('');
+          this.newReleaseDate.set('');
           this.newPosterFile.set(null);
         },
         error: (err) => this.createError.set(extractApiErrorMessage(err, 'Failed to create game.')),
@@ -126,6 +133,7 @@ export class GamesAdmin implements OnInit {
     this.editGenres.set(new Set(game.genres));
     this.editStudio.set(game.studio ?? '');
     this.editDeveloper.set(game.developerUsername ?? '');
+    this.editReleaseDate.set(game.releaseDate ?? '');
     this.editPosterFile.set(null);
     this.editError.set(null);
   }
@@ -161,6 +169,10 @@ export class GamesAdmin implements OnInit {
     }
     formData.append('Studio', this.editStudio().trim());
     formData.append('DeveloperUsername', this.editDeveloper().trim());
+    // Omitted = cleared (the server sets whatever the form sends).
+    if (this.editReleaseDate()) {
+      formData.append('ReleaseDate', this.editReleaseDate());
+    }
     if (file) {
       formData.append('Poster', file);
     }

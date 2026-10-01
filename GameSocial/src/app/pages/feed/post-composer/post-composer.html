@@ -392,6 +392,9 @@
           }
         </select>
       </div>
+      @if (devlogGames().length === 0) {
+        <p class="text-muted">No game is linked to your developer account yet. Ask an admin to assign your studio's game.</p>
+      }
 
       @if (branchTag() === 'TEST BRANCH') {
         <input

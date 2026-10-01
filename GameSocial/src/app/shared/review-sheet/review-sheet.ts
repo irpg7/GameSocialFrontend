@@ -51,6 +51,9 @@ interface ReviewFormState {
  * publishDraft when nothing changed since, otherwise creates a published post
  * and removes the stale draft.
  */
+/** Absolute cap on self-reported hours (mirrors ReviewHoursRules.AbsoluteMaxHours). */
+const MAX_HOURS = 10_000;
+
 @Component({
   selector: 'app-review-sheet',
   imports: [ImgFallback, FormsModule, SheetModal, StarRating, RichTextToolbar],
@@ -76,7 +79,15 @@ export class ReviewSheet implements OnInit {
   protected readonly formatClock = formatClock;
   protected readonly formatTimeAgo = formatTimeAgo;
 
-  protected readonly gameId = linkedSignal(() => this.preselectedGameId());
+  /** One review per game: games you already reviewed are left out of the picker (the server enforces it too). */
+  protected readonly reviewableGames = computed(() => {
+    const reviewed = this.meService.me()?.reviewedGameIds ?? [];
+    return this.games().filter((g) => !reviewed.includes(g.id));
+  });
+  protected readonly gameId = linkedSignal(() => {
+    const preselected = this.preselectedGameId();
+    return preselected !== null && (this.meService.me()?.reviewedGameIds ?? []).includes(preselected) ? null : preselected;
+  });
   protected readonly headline = signal('');
   protected readonly body = signal('');
   protected readonly score = signal(7);
@@ -101,9 +112,18 @@ export class ReviewSheet implements OnInit {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly draftSavedAt = signal<string | null>(null);
 
-  protected readonly selectedGame = computed(() => this.games().find((g) => g.id === this.gameId()) ?? null);
+  protected readonly selectedGame = computed(() => this.reviewableGames().find((g) => g.id === this.gameId()) ?? null);
   protected readonly reviewXp = computed(() => this.xpAwards.amount('review'));
   protected readonly hoursLabel = computed(() => (this.hoursPlayed() ?? 0).toString());
+  /** Same cap as the server (ReviewHoursRules): hours since release for released games, 10,000 at most. */
+  protected readonly maxHours = computed(() => {
+    const release = this.selectedGame()?.releaseDate;
+    const released = release ? Date.parse(release + 'T00:00:00Z') : NaN;
+    if (Number.isNaN(released) || released > Date.now()) {
+      return MAX_HOURS;
+    }
+    return Math.min(MAX_HOURS, Math.ceil((Date.now() - released) / 3_600_000));
+  });
   protected readonly scoreLabel = computed(() => this.score().toFixed(1));
   protected readonly embeddedClips = computed(() => {
     const ids = this.embeddedClipIds();
@@ -312,6 +332,9 @@ export class ReviewSheet implements OnInit {
     }
     if (this.hoursPlayed() === null || this.hoursPlayed()! < 0) {
       return 'Please enter your hours played.';
+    }
+    if (this.hoursPlayed()! > this.maxHours()) {
+      return `Hours played can be at most ${this.maxHours()} for this game (time since its release).`;
     }
     return null;
   }

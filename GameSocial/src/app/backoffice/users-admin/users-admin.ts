@@ -35,7 +35,28 @@ export class UsersAdmin implements OnInit {
     return user.permissions.includes(permission);
   }
 
-  isPending(user: AdminUserModel, permission: PermissionKey): boolean {
+  /** Developer approval — checking the box approves (and clears the request), unchecking revokes. */
+  toggleDeveloper(user: AdminUserModel): void {
+    this.setDeveloper(user, !user.isDeveloper);
+  }
+
+  declineDeveloper(user: AdminUserModel): void {
+    this.setDeveloper(user, false);
+  }
+
+  private setDeveloper(user: AdminUserModel, isDeveloper: boolean): void {
+    const key = this.pendingKeyFor(user.id, 'developer');
+    this.pendingKey.set(key);
+    this.userService
+      .setDeveloper(user.id, isDeveloper)
+      .pipe(finalize(() => this.pendingKey.set(null)))
+      .subscribe({
+        next: (updated) => this.users.update((existing) => existing.map((u) => (u.id === updated.id ? updated : u))),
+        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update developer status.')),
+      });
+  }
+
+  isPending(user: AdminUserModel, permission: PermissionKey | 'developer'): boolean {
     return this.pendingKey() === this.pendingKeyFor(user.id, permission);
   }
 
@@ -74,7 +95,7 @@ export class UsersAdmin implements OnInit {
     );
   }
 
-  private pendingKeyFor(userId: string, permission: PermissionKey): string {
+  private pendingKeyFor(userId: string, permission: PermissionKey | 'developer'): string {
     return `${userId}:${permission}`;
   }
 

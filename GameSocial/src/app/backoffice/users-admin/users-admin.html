@@ -1,6 +1,6 @@
 <div class="admin-page">
   <h1>Users</h1>
-  <p class="text-muted mb-lg">Grant or revoke backoffice permissions.</p>
+  <p class="text-muted mb-lg">Approve developer accounts and grant or revoke backoffice permissions. Changing either signs the user out so their new access applies.</p>
 
   @if (isLoading()) {
     <p class="text-muted">Loading users...</p>
@@ -22,7 +22,18 @@
             <tr [class.current-user-row]="isCurrentUser(user)">
               <td>{{ user.username }}</td>
               <td class="text-muted">{{ user.email }}</td>
-              <td>{{ user.isDeveloper ? 'Yes' : 'No' }}</td>
+              <td class="developer-cell">
+                <input
+                  type="checkbox"
+                  [checked]="user.isDeveloper"
+                  [disabled]="isCurrentUser(user) || isPending(user, 'developer')"
+                  [attr.aria-label]="'Developer account for ' + user.username"
+                  (change)="toggleDeveloper(user)">
+                @if (user.developerRequested) {
+                  <span class="dev-request">Requested</span>
+                  <button type="button" class="btn btn-sm btn-secondary" [disabled]="isPending(user, 'developer')" (click)="declineDeveloper(user)">Decline</button>
+                }
+              </td>
               @for (permission of permissionKeys; track permission) {
                 <td>
                   <input

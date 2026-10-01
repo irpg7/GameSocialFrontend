@@ -1,6 +1,6 @@
 <app-sheet-modal
   title="Write a review"
-  subtitle="Your tracked playtime is attached — that is what makes it count"
+  subtitle="Your hours played are shown next to your rating — one review per game"
   (closed)="closed.emit()">
   <div class="rs-body">
     @if (resumableDraft(); as draft) {
@@ -28,13 +28,14 @@
             <input
               type="number"
               min="0"
+              [attr.max]="maxHours()"
               inputmode="numeric"
               class="rs-hours-input"
               [ngModel]="hoursPlayed()"
               (ngModelChange)="onHoursInput($event)"
               placeholder="0"
               aria-label="Hours played">
-            h tracked
+            h played
           </label>
           ·
           <button type="button" class="rs-link" [attr.aria-expanded]="isPickingGame()" (click)="isPickingGame.set(!isPickingGame())">
@@ -53,10 +54,13 @@
       <select id="review-game" class="rs-select" [ngModel]="gameId()" (ngModelChange)="selectGame($event)">
         <button><selectedcontent></selectedcontent></button>
         <option [ngValue]="null">— Select a game —</option>
-        @for (game of games(); track game.id) {
+        @for (game of reviewableGames(); track game.id) {
           <option [ngValue]="game.id">{{ game.name }}</option>
         }
       </select>
+      @if (reviewableGames().length === 0) {
+        <p class="rs-hint">You've reviewed every game in the catalogue. Edit an existing review from its ··· menu.</p>
+      }
     }
 
     <div class="rs-chips" role="radiogroup" aria-label="Play status">

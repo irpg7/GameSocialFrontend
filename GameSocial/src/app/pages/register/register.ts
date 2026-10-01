@@ -19,7 +19,7 @@ export class Register {
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    isDeveloper: [false],
+    requestDeveloper: [false],
   });
 
   protected readonly isSubmitting = signal(false);
@@ -33,10 +33,10 @@ export class Register {
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
-    const { username, email, password, isDeveloper } = this.form.getRawValue();
+    const { username, email, password, requestDeveloper } = this.form.getRawValue();
 
     this.authService
-      .register(username, email, password, isDeveloper)
+      .register(username, email, password, requestDeveloper)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => this.router.navigateByUrl('/onboarding'),

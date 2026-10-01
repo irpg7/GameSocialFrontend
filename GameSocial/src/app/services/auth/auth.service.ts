@@ -80,9 +80,10 @@ export class AuthService {
   }
 
   /** Register does not return a token — chain straight into login on success. */
-  register(username: string, email: string, password: string, isDeveloper: boolean): Observable<void> {
+  /** `requestDeveloper` only files a request — an admin approves it in Backoffice → Users. */
+  register(username: string, email: string, password: string, requestDeveloper: boolean): Observable<void> {
     return this.http
-      .post<number>('/api/auth/register', { username, email, password, isDeveloper })
+      .post<number>('/api/auth/register', { username, email, password, requestDeveloper })
       .pipe(switchMap(() => this.login(email, password)));
   }
 

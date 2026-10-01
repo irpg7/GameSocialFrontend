@@ -1,0 +1,9 @@
+// Narrow phones: the post-type buttons (+ DevLog, ···, Post) were a no-shrink row, so below ~340px
+// they overflowed and the feed scrolled sideways. Let the group shrink and wrap onto a second line.
+// Kept apart from post-composer.scss, which is over its style budget.
+@media (max-width: 420px) {
+  .toggle-group {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}

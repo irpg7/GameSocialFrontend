@@ -28,6 +28,10 @@ export interface MeModel {
   savedCount: number;
   reviewCount: number;
   draftCount: number;
+  /** Games this user already reviewed — "Write a review" hides them (one review per game). */
+  reviewedGameIds: number[];
+  /** Developer account requested at sign-up, waiting for an admin. */
+  developerRequested: boolean;
 }
 
 /** Domain.Enums.PresenceStatus. */

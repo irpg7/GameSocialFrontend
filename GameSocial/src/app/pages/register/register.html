@@ -28,10 +28,11 @@
         }
       </div>
       <div class="form-group form-group-checkbox">
-        <label for="isDeveloper">
-          <input type="checkbox" id="isDeveloper" formControlName="isDeveloper">
-          I'm a developer (unlocks devlog posts)
+        <label for="requestDeveloper">
+          <input type="checkbox" id="requestDeveloper" formControlName="requestDeveloper">
+          I'm a game developer — request a developer account
         </label>
+        <span class="field-hint">An admin verifies the studio before devlogs and the developer badge unlock.</span>
       </div>
 
       @if (errorMessage()) {
