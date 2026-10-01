@@ -18,6 +18,7 @@ import { GameModel } from '../../../../models/game.model';
 import { extractApiErrorMessage } from '../../../../shared/api-error.util';
 import { SquadSheetFrame } from '../../../../shared/squad-create-sheet/squad-sheet-frame';
 import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
+import { SquadBanModel } from '../../../../models/squad-ban.model';
 
 type SettingsTab = 'general' | 'content' | 'members';
 type RuleKey = 'allowMemberUploads' | 'requireSpoilerTag' | 'requireMemberApproval' | 'weeklyDigest';
@@ -133,6 +134,8 @@ export class SquadSettingsSheet implements OnInit {
   // ─── Members ────────────────────────────────────────────────────────────
   protected readonly activeMembers = computed(() => this.members().filter((m) => m.status !== 'Pending'));
   protected readonly joinRequests = signal<SquadJoinRequestModel[]>([]);
+  /** Kara liste — yasaklılar katılamaz, istek gönderemez, davet edilemez. */
+  protected readonly bans = signal<SquadBanModel[]>([]);
   protected readonly menuUserId = signal<string | null>(null);
   protected readonly busyUserId = signal<string | null>(null);
   protected readonly isInviteOpen = signal(false);
@@ -189,6 +192,7 @@ export class SquadSettingsSheet implements OnInit {
   ngOnInit(): void {
     if (this.canManage()) {
       this.loadJoinRequests();
+      this.loadBans();
     }
   }
 
@@ -326,6 +330,41 @@ export class SquadSettingsSheet implements OnInit {
       .subscribe({
         next: () => this.membersChanged.emit(),
         error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Üye çıkarılamadı.')),
+      });
+  }
+
+  /** "Yasakla" — üyeyi ya da bekleyen isteği kara listeye alır; tekrar katılamaz. */
+  protected banUser(userId: string, username: string): void {
+    this.menuUserId.set(null);
+    if (this.busyUserId()) {
+      return;
+    }
+    this.busyUserId.set(userId);
+    this.hubService
+      .banUser(this.squad().id, userId)
+      .pipe(finalize(() => this.busyUserId.set(null)))
+      .subscribe({
+        next: (ban) => {
+          this.bans.update((list) => [ban, ...list.filter((b) => b.userId !== ban.userId)]);
+          this.joinRequests.update((list) => list.filter((r) => r.userId !== userId));
+          this.notificationService.success(`${username} yasaklandı.`);
+          this.membersChanged.emit();
+        },
+        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Kullanıcı yasaklanamadı.')),
+      });
+  }
+
+  protected unban(ban: SquadBanModel): void {
+    if (this.busyUserId()) {
+      return;
+    }
+    this.busyUserId.set(ban.userId);
+    this.hubService
+      .unbanUser(this.squad().id, ban.userId)
+      .pipe(finalize(() => this.busyUserId.set(null)))
+      .subscribe({
+        next: () => this.bans.update((list) => list.filter((b) => b.userId !== ban.userId)),
+        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Yasak kaldırılamadı.')),
       });
   }
 
@@ -474,6 +513,13 @@ export class SquadSettingsSheet implements OnInit {
     } else {
       leave();
     }
+  }
+
+  private loadBans(): void {
+    this.hubService.listBans(this.squad().id).subscribe({
+      next: (bans) => this.bans.set(bans),
+      error: () => void 0,
+    });
   }
 
   private loadJoinRequests(): void {

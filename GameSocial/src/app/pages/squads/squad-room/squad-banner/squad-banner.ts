@@ -27,11 +27,7 @@ export class SquadBanner {
   openSettings = output<void>();
 
   /** Backend returns '' (not null) when a game has no cover — treat both as absent. */
-  /** The backend's default poster is a portrait "no cover" card — stretched into the band it reads as broken. */
-  protected readonly bannerUrl = computed(() => {
-    const cover = this.squad().primaryGameCoverImageUrl;
-    return this.squad().bannerUrl || (cover && !cover.includes('placeholder-game-poster') ? cover : null);
-  });
+  protected readonly bannerUrl = computed(() => this.squad().bannerUrl || this.squad().primaryGameCoverImageUrl || null);
 
   protected readonly meta = computed(() => {
     const squad = this.squad();

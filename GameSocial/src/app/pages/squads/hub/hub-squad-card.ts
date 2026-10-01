@@ -2,7 +2,8 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadWeeklyStatsModel } from '../../../models/squad-hub.model';
-import { formatNumber, initialOf, levelPercent, plural, squadMeta } from './hub-format';
+import { formatNumber, levelPercent, plural, squadMeta } from './hub-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 /**
  * "Your squads" row (expl.html 2a): 72px icon, name + role badge + meta,
@@ -12,15 +13,11 @@ import { formatNumber, initialOf, levelPercent, plural, squadMeta } from './hub-
  */
 @Component({
   selector: 'app-hub-squad-card',
-  imports: [RouterLink],
+  imports: [ImgFallback, RouterLink],
   template: `
     <article class="squad">
       <span class="squad-icon" aria-hidden="true">
-        @if (squad().iconUrl; as icon) {
-          <img [src]="icon" alt="" />
-        } @else {
-          {{ initial() }}
-        }
+        <img [appImg]="squad().iconUrl" fallback="squad" alt="" />
       </span>
 
       <div class="squad-body">
@@ -75,7 +72,6 @@ export class HubSquadCard {
   stats = input<SquadWeeklyStatsModel | undefined>(undefined);
   invite = output<void>();
 
-  protected readonly initial = computed(() => initialOf(this.squad().name));
   protected readonly meta = computed(() => squadMeta(this.squad()));
   protected readonly percent = computed(() => levelPercent(this.squad()));
   protected readonly xpLabel = computed(

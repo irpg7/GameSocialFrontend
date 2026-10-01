@@ -23,7 +23,6 @@ import { HubPeekSheet } from './hub/hub-peek-sheet';
 import { friendStatus, initialOf, isInVoice } from './hub/hub-format';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 
-const DISCOVER_PREVIEW = 3;
 const BROWSE_PAGE = 12;
 
 /**
@@ -110,26 +109,19 @@ export class Squads implements OnInit {
     );
   });
 
-  protected readonly discoverLabel = computed(() => {
-    if (this.searchTerm()) return `Results for “${this.searchTerm()}”`;
-    return this.isBrowsingAll() ? 'All squads' : 'Squads looking for you';
-  });
+  /** Squad discovery only on demand — a search or "Browse all" (the "Squads looking for you" picks were dropped). */
+  protected readonly showDiscover = computed(() => this.isBrowsingAll() || !!this.searchTerm());
+
+  protected readonly discoverLabel = computed(() => (this.searchTerm() ? `Results for “${this.searchTerm()}”` : 'All squads'));
 
   protected readonly discoverNote = computed(() => {
     const result = this.discover();
-    if (!result) return '';
-    if (this.searchTerm() || this.isBrowsingAll()) {
-      return `${result.totalCount} ${result.totalCount === 1 ? 'squad' : 'squads'}`;
-    }
-    if (result.basedOnGameName) {
-      return result.basedOnHours ? `Based on ${result.basedOnGameName} · ${result.basedOnHours} h` : `Based on ${result.basedOnGameName}`;
-    }
-    return 'Popular right now';
+    return result ? `${result.totalCount} ${result.totalCount === 1 ? 'squad' : 'squads'}` : '';
   });
 
   protected readonly canLoadMore = computed(() => {
     const result = this.discover();
-    return !!result && (this.isBrowsingAll() || !!this.searchTerm()) && result.items.length < result.totalCount;
+    return !!result && result.items.length < result.totalCount;
   });
 
   constructor() {
@@ -165,14 +157,20 @@ export class Squads implements OnInit {
         error: (err) => this.loadError.set(extractApiErrorMessage(err, 'Could not load your squads.')),
       });
 
-    this.loadDiscover(true);
+    if (this.showDiscover()) {
+      this.loadDiscover(true);
+    }
   }
 
   protected loadDiscover(reset: boolean): void {
     const term = this.searchTerm();
-    const all = this.isBrowsingAll() || !!term;
     const page = reset ? 1 : this.discoverPage() + 1;
     this.discoverRequest?.unsubscribe();
+    if (!this.showDiscover()) {
+      this.discover.set(null);
+      this.isDiscoverLoading.set(false);
+      return;
+    }
     if (reset) {
       // Don't leave the previous list under the new "Results for …" heading while this loads.
       this.discover.set(null);
@@ -183,7 +181,7 @@ export class Squads implements OnInit {
       .discover({
         q: term || undefined,
         page,
-        pageSize: all ? BROWSE_PAGE : DISCOVER_PREVIEW,
+        pageSize: BROWSE_PAGE,
       })
       .pipe(finalize(() => this.isDiscoverLoading.set(false)))
       .subscribe({

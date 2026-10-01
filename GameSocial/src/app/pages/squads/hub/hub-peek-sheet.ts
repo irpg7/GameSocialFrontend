@@ -1,20 +1,17 @@
 import { Component, computed, input, output } from '@angular/core';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-frame';
-import { discoverMeta, formatNumber, initialOf, levelPercent } from './hub-format';
+import { discoverMeta, formatNumber, levelPercent } from './hub-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 /** "Peek" — a non-member-safe preview of a discoverable squad (GET squads/{id}). */
 @Component({
   selector: 'app-hub-peek-sheet',
-  imports: [SquadSheetFrame],
+  imports: [ImgFallback, SquadSheetFrame],
   template: `
     <app-squad-sheet-frame [title]="squad().name" [subtitle]="meta()" [width]="520" (closed)="closed.emit()">
       <span sheet-icon class="hs-icon" aria-hidden="true">
-        @if (squad().iconUrl; as icon) {
-          <img [src]="icon" alt="" />
-        } @else {
-          {{ initial() }}
-        }
+        <img [appImg]="squad().iconUrl" fallback="squad" alt="" />
       </span>
       <div class="hs-body">
         @if (squad().description) {
@@ -53,7 +50,6 @@ export class HubPeekSheet {
   join = output<void>();
   closed = output<void>();
 
-  protected readonly initial = computed(() => initialOf(this.squad().name));
   protected readonly meta = computed(() => discoverMeta(this.squad()));
   protected readonly percent = computed(() => levelPercent(this.squad()));
   protected readonly xpLabel = computed(

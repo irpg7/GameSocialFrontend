@@ -551,6 +551,14 @@ export class SquadRoom {
       );
     });
 
+    // Çıkarıldın / yasaklandın (ya da başka sekmeden ayrıldın): sunucu seni oda grubundan zaten attı.
+    this.realtime.removedFromSquad$.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event.squadId === this.squadId()) {
+        this.notificationService.info("Artık bu squad'ın üyesi değilsin.");
+        void this.router.navigate(['/squads']);
+      }
+    });
+
     this.realtime.guidesChanged$.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event.squadId === this.squadId()) {
         this.loadGuides();

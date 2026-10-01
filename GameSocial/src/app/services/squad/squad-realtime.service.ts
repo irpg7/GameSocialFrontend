@@ -61,6 +61,7 @@ export class SquadRealtimeService {
   private readonly guidesChangedSubject = new Subject<{ squadId: string }>();
   private readonly typingSubject = new Subject<SquadTypingEvent>();
   private readonly presenceSubject = new Subject<SquadPresenceEvent>();
+  private readonly removedSubject = new Subject<{ squadId: string }>();
 
   readonly messageCreated$: Observable<SquadMessageModel> = this.messageCreatedSubject.asObservable();
   readonly reactionChanged$: Observable<SquadReactionChangedEvent> = this.reactionChangedSubject.asObservable();
@@ -68,6 +69,8 @@ export class SquadRealtimeService {
   readonly guidesChanged$: Observable<{ squadId: string }> = this.guidesChangedSubject.asObservable();
   readonly typing$: Observable<SquadTypingEvent> = this.typingSubject.asObservable();
   readonly presence$: Observable<SquadPresenceEvent> = this.presenceSubject.asObservable();
+  /** You were removed, banned or left from another tab — the server already dropped you from the room group. */
+  readonly removedFromSquad$: Observable<{ squadId: string }> = this.removedSubject.asObservable();
 
   /** Joins the squad's group (leaving any previous one). Never throws — realtime is best-effort. */
   async enter(squadId: string): Promise<void> {
@@ -134,6 +137,7 @@ export class SquadRealtimeService {
       this.connection.on('guidesChanged', (event: { squadId: string }) => this.guidesChangedSubject.next(event));
       this.connection.on('typing', (event: SquadTypingEvent) => this.typingSubject.next(event));
       this.connection.on('presence', (event: SquadPresenceEvent) => this.presenceSubject.next(event));
+      this.connection.on('removedFromSquad', (event: { squadId: string }) => this.removedSubject.next(event));
 
       this.connection.onreconnecting(() => this.isConnected.set(false));
       this.connection.onreconnected(() => {

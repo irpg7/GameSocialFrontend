@@ -169,6 +169,7 @@
               </span>
               <button type="button" class="request-approve" [disabled]="busyUserId() !== null" (click)="decideRequest(request, true)">Onayla</button>
               <button type="button" class="request-decline" [disabled]="busyUserId() !== null" (click)="decideRequest(request, false)">Reddet</button>
+              <button type="button" class="request-decline" [disabled]="busyUserId() !== null" [attr.aria-label]="request.username + ' kullanıcısını yasakla'" (click)="banUser(request.userId, request.username)">Yasakla</button>
             </div>
           }
           <div class="settings-label settings-label-gap">Üyeler</div>
@@ -212,6 +213,7 @@
                     }
                     @if (canRemove(member)) {
                       <button type="button" role="menuitem" class="danger" (click)="removeMember(member)">Squad’dan çıkar</button>
+                      <button type="button" role="menuitem" class="danger" (click)="banUser(member.userId, member.username)">Yasakla</button>
                     }
                   </span>
                 }
@@ -220,6 +222,22 @@
               <span class="member-more member-more-placeholder" aria-hidden="true"></span>
             }
           </div>
+        }
+
+        @if (canManage() && bans().length > 0) {
+          <div class="settings-label settings-label-gap">Yasaklılar</div>
+          @for (ban of bans(); track ban.userId) {
+            <div class="member-row">
+              <span class="member-avatar" aria-hidden="true">
+                <img [appImg]="ban.avatarUrl" fallback="avatar" alt="" />
+              </span>
+              <span class="member-identity">
+                <span class="member-name">{{ ban.username }}</span>
+                <span class="member-meta">Yasaklı</span>
+              </span>
+              <button type="button" class="request-approve" [disabled]="busyUserId() !== null" (click)="unban(ban)">Yasağı kaldır</button>
+            </div>
+          }
         }
 
         @if (canManage()) {

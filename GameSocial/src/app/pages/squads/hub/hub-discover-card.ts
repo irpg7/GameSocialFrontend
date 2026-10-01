@@ -1,22 +1,20 @@
 import { Component, computed, input, output } from '@angular/core';
 import { SquadModel } from '../../../models/squad.model';
-import { discoverMeta, initialOf } from './hub-format';
+import { discoverMeta } from './hub-format';
+import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 
 /**
  * "Squads looking for you" card (expl.html 2a): 42px icon, name, members +
  * open slots, description, and a wide "Join" / "Ask to join" next to "Peek".
  */
 @Component({
+  imports: [ImgFallback],
   selector: 'app-hub-discover-card',
   template: `
     <article class="discover">
       <div class="discover-head">
         <span class="discover-icon" aria-hidden="true">
-          @if (squad().iconUrl; as icon) {
-            <img [src]="icon" alt="" />
-          } @else {
-            {{ initial() }}
-          }
+          <img [appImg]="squad().iconUrl" fallback="squad" alt="" />
         </span>
         <div class="discover-id">
           <h3 class="discover-name">{{ squad().name }}</h3>
@@ -43,7 +41,6 @@ export class HubDiscoverCard {
   join = output<void>();
   peek = output<void>();
 
-  protected readonly initial = computed(() => initialOf(this.squad().name));
   protected readonly meta = computed(() => discoverMeta(this.squad()));
   protected readonly full = computed(() => this.squad().openSlots <= 0);
   protected readonly joinLabel = computed(() => {

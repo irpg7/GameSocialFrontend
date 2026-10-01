@@ -13,6 +13,7 @@ import {
   SquadSessionRsvpModel,
   SquadWeeklyStatsModel,
 } from '../../models/squad-hub.model';
+import { SquadBanModel } from '../../models/squad-ban.model';
 
 /**
  * Squad hub (expl.html 2a) + membership flows: discovery, join / join
@@ -75,6 +76,19 @@ export class SquadHubService {
 
   approveJoinRequest(squadId: string, userId: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${squadId}/join-requests/${userId}/approve`, {});
+  }
+
+  /** Blacklist: removes the member (or pending request), cancels invites, blocks re-joining. */
+  banUser(squadId: string, userId: string): Observable<SquadBanModel> {
+    return this.http.post<SquadBanModel>(`${this.apiUrl}/${squadId}/bans`, { userId });
+  }
+
+  unbanUser(squadId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${squadId}/bans/${userId}`);
+  }
+
+  listBans(squadId: string): Observable<SquadBanModel[]> {
+    return this.http.get<SquadBanModel[]>(`${this.apiUrl}/${squadId}/bans`);
   }
 
   declineJoinRequest(squadId: string, userId: string): Observable<void> {

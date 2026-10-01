@@ -18,7 +18,7 @@
         </div>
         <button type="button" class="hub-btn hub-btn-primary" (click)="isCreateSheetOpen.set(true)">＋ Create a squad</button>
         <button type="button" class="hub-btn hub-btn-outline" [attr.aria-pressed]="isBrowsingAll()" (click)="toggleBrowseAll()">
-          {{ isBrowsingAll() ? 'Show picks' : 'Browse all' }}
+          {{ isBrowsingAll() ? 'Hide all squads' : 'Browse all' }}
         </button>
       </div>
     </header>
@@ -47,13 +47,14 @@
           <p class="hub-empty">None of your squads match “{{ searchTerm() }}”.</p>
         } @else {
           <button type="button" class="hub-dashed" (click)="isCreateSheetOpen.set(true)">
-            You're not in a squad yet — ＋ create one, or join one below
+            You're not in a squad yet — ＋ create one, or search / browse all to join one
           </button>
         }
       </section>
     }
 
-    <!-- Squads looking for you / search / browse all -->
+    <!-- Search results / browse all -->
+    @if (showDiscover()) {
     <section aria-labelledby="hub-discover">
       <div class="section-head hub-section-head">
         <h2 class="section-head-label" id="hub-discover">{{ discoverLabel() }}</h2>
@@ -89,6 +90,7 @@
         </div>
       }
     </section>
+    }
   </div>
 
   <aside class="hub-aside">
