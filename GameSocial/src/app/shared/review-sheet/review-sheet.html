@@ -27,12 +27,9 @@
             <span class="visually-hidden">Hours played</span>
             <input
               type="number"
-              min="0"
-              [attr.max]="maxHours()"
               inputmode="numeric"
               class="rs-hours-input"
-              [ngModel]="hoursPlayed()"
-              (ngModelChange)="onHoursInput($event)"
+              [formField]="reviewForm.hoursPlayed"
               placeholder="0"
               aria-label="Hours played">
             h played
@@ -44,18 +41,18 @@
         </div>
       </div>
       <div class="rs-score">
-        <app-star-rating [(score)]="score" [interactive]="true" [size]="22" />
+        <app-star-rating [score]="score()" (scoreChange)="setScore($event)" [interactive]="true" [size]="22" />
         <span class="rs-score-value">{{ scoreLabel() }}</span>
       </div>
     </div>
 
     @if (isPickingGame() || !selectedGame()) {
       <label class="visually-hidden" for="review-game">Game</label>
-      <select id="review-game" class="rs-select" [ngModel]="gameId()" (ngModelChange)="selectGame($event)">
+      <select id="review-game" class="rs-select" [formField]="gameField" (change)="onGameChanged()">
         <button><selectedcontent></selectedcontent></button>
-        <option [ngValue]="null">— Select a game —</option>
+        <option value="">— Select a game —</option>
         @for (game of reviewableGames(); track game.id) {
-          <option [ngValue]="game.id">{{ game.name }}</option>
+          <option [value]="'' + game.id">{{ game.name }}</option>
         }
       </select>
       @if (reviewableGames().length === 0) {
@@ -64,9 +61,9 @@
     }
 
     <div class="rs-chips" role="radiogroup" aria-label="Play status">
-      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.Finished" [attr.aria-checked]="playStatus() === PlayStatus.Finished" (click)="playStatus.set(PlayStatus.Finished)">Finished it</button>
-      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.StillPlaying" [attr.aria-checked]="playStatus() === PlayStatus.StillPlaying" (click)="playStatus.set(PlayStatus.StillPlaying)">Still playing</button>
-      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.Dropped" [attr.aria-checked]="playStatus() === PlayStatus.Dropped" (click)="playStatus.set(PlayStatus.Dropped)">Dropped</button>
+      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.Finished" [attr.aria-checked]="playStatus() === PlayStatus.Finished" (click)="setPlayStatus(PlayStatus.Finished)">Finished it</button>
+      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.StillPlaying" [attr.aria-checked]="playStatus() === PlayStatus.StillPlaying" (click)="setPlayStatus(PlayStatus.StillPlaying)">Still playing</button>
+      <button type="button" role="radio" class="rs-chip" [class.active]="playStatus() === PlayStatus.Dropped" [attr.aria-checked]="playStatus() === PlayStatus.Dropped" (click)="setPlayStatus(PlayStatus.Dropped)">Dropped</button>
       <button type="button" class="rs-chip rs-chip-spoiler" [class.off]="!spoilerFree()" [attr.aria-pressed]="spoilerFree()" (click)="toggleSpoilerFree()">
         {{ spoilerFree() ? 'Spoiler-free ✓' : 'Has spoilers' }}
       </button>
@@ -76,12 +73,10 @@
       class="rs-headline"
       type="text"
       aria-label="Headline"
-      [ngModel]="headline()"
-      (ngModelChange)="headline.set($event)"
-      [maxlength]="maxTitleLength"
+      [formField]="reviewForm.headline"
       placeholder="Headline — the one line people remember">
 
-    <app-rich-text-toolbar [target]="bodyEl" (changed)="body.set($event)" hint="Bold, italic, quotes, spoiler blocks">
+    <app-rich-text-toolbar [target]="bodyEl" (changed)="setBody($event)" hint="Bold, italic, quotes, spoiler blocks">
       <button type="button" class="rt-tool rt-tool-wide" [attr.aria-expanded]="isPickingClip()" [disabled]="!selectedGame()" (click)="toggleClipPicker()">▶ Embed clip</button>
     </app-rich-text-toolbar>
 
@@ -117,9 +112,7 @@
       #bodyEl
       class="rs-text"
       aria-label="Review"
-      [ngModel]="body()"
-      (ngModelChange)="body.set($event)"
-      [maxlength]="maxBodyLength"
+      [formField]="reviewForm.body"
       placeholder="What held up after all those hours — and what didn't?"></textarea>
 
     <div class="rs-info">

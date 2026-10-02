@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, applyEach, form, max, maxLength, min } from '@angular/forms/signals';
+import { SelectControl } from '../select-control';
 import { finalize } from 'rxjs';
 import { PatchLineStatusName, PlayStatusName, PostModel } from '../../models/post.model';
 import { PostService, UpdatePostBody } from '../../services/post/post.service';
@@ -29,7 +30,7 @@ interface PatchLineDraft {
  */
 @Component({
   selector: 'app-post-edit-sheet',
-  imports: [FormsModule, SheetModal],
+  imports: [FormField, SelectControl, SheetModal],
   templateUrl: './post-edit-sheet.html',
   styleUrl: './post-edit-sheet.scss',
 })
@@ -51,52 +52,72 @@ export class PostEditSheet implements OnInit {
     this.type() === 'Review' ? 'Headline' : this.type() === 'Poll' ? 'Question' : 'Caption',
   );
 
-  protected readonly caption = signal('');
-  protected readonly tags = signal('');
-  protected readonly title = signal('');
-  protected readonly body = signal('');
-  protected readonly score = signal(0);
-  protected readonly playStatus = signal<PlayStatusName>('Finished');
-  protected readonly hoursPlayed = signal(0);
-  protected readonly spoilerFree = signal(false);
-  protected readonly buildTag = signal('');
-  protected readonly branchTag = signal('');
-  protected readonly testBranchUrl = signal('');
-  protected readonly patchLines = signal<PatchLineDraft[]>([]);
+  // Every editable field in one Signal Forms model, filled from the post in ngOnInit. The length and
+  // range rules only drive the native maxlength / min / max (save() still clamps), as before.
+  private readonly model = signal({
+    caption: '',
+    tags: '',
+    title: '',
+    body: '',
+    score: 0,
+    playStatus: 'Finished' as PlayStatusName,
+    hoursPlayed: 0,
+    spoilerFree: false,
+    buildTag: '',
+    branchTag: '',
+    testBranchUrl: '',
+    patchLines: [] as PatchLineDraft[],
+  });
+
+  protected readonly editForm = form(this.model, (path) => {
+    maxLength(path.caption, 500);
+    maxLength(path.title, 200);
+    maxLength(path.body, 10000);
+    min(path.score, 0);
+    max(path.score, 10);
+    min(path.hoursPlayed, 0);
+    maxLength(path.buildTag, 50);
+    maxLength(path.testBranchUrl, 500);
+    applyEach(path.patchLines, (line) => {
+      maxLength(line.text, 200);
+    });
+  });
+
+  protected readonly patchLineCount = computed(() => this.model().patchLines.length);
   protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
     const post = this.post();
-    this.caption.set(post.caption ?? '');
-    this.tags.set(post.tags.join(', '));
-    if (post.devlog) {
-      this.title.set(post.devlog.title);
-      this.body.set(post.devlog.body);
-      this.buildTag.set(post.devlog.buildTag ?? '');
-      this.branchTag.set(post.devlog.branchTag ?? '');
-      this.testBranchUrl.set(post.devlog.testBranchUrl ?? '');
-      this.patchLines.set(post.devlog.patchLines.map((l) => ({ text: l.text, status: l.status })));
-    }
-    if (post.review) {
-      this.body.set(post.review.body);
-      this.score.set(post.review.score);
-      this.playStatus.set(post.review.playStatus);
-      this.hoursPlayed.set(post.review.hoursPlayed);
-      this.spoilerFree.set(post.review.spoilerFree);
-    }
-  }
-
-  protected updatePatchLine(index: number, patch: Partial<PatchLineDraft>): void {
-    this.patchLines.update((lines) => lines.map((line, i) => (i === index ? { ...line, ...patch } : line)));
+    this.model.update((m) => {
+      const next = { ...m, caption: post.caption ?? '', tags: post.tags.join(', ') };
+      if (post.devlog) {
+        next.title = post.devlog.title;
+        next.body = post.devlog.body;
+        next.buildTag = post.devlog.buildTag ?? '';
+        next.branchTag = post.devlog.branchTag ?? '';
+        next.testBranchUrl = post.devlog.testBranchUrl ?? '';
+        next.patchLines = post.devlog.patchLines.map((l) => ({ text: l.text, status: l.status }));
+      }
+      if (post.review) {
+        next.body = post.review.body;
+        next.score = post.review.score;
+        next.playStatus = post.review.playStatus;
+        next.hoursPlayed = post.review.hoursPlayed;
+        next.spoilerFree = post.review.spoilerFree;
+      }
+      return next;
+    });
   }
 
   protected addPatchLine(): void {
-    this.patchLines.update((lines) => (lines.length < MAX_PATCH_LINES ? [...lines, { text: '', status: 'Shipped' }] : lines));
+    this.model.update((m) =>
+      m.patchLines.length < MAX_PATCH_LINES ? { ...m, patchLines: [...m.patchLines, { text: '', status: 'Shipped' }] } : m,
+    );
   }
 
   protected removePatchLine(index: number): void {
-    this.patchLines.update((lines) => lines.filter((_, i) => i !== index));
+    this.model.update((m) => ({ ...m, patchLines: m.patchLines.filter((_, i) => i !== index) }));
   }
 
   protected save(): void {
@@ -104,27 +125,28 @@ export class PostEditSheet implements OnInit {
       return;
     }
     const type = this.type();
+    const draft = this.model();
     const body: UpdatePostBody = {
-      caption: this.caption(),
-      tags: this.tags()
+      caption: draft.caption,
+      tags: draft.tags
         .split(',')
         .map((t) => t.trim())
         .filter((t) => t.length > 0),
     };
     if (type === 'Devlog') {
-      body.title = this.title();
-      body.body = this.body();
-      body.buildTag = this.buildTag();
-      body.branchTag = this.branchTag();
-      body.testBranchUrl = this.testBranchUrl();
-      body.patchLines = this.patchLines().filter((l) => l.text.trim().length > 0);
+      body.title = draft.title;
+      body.body = draft.body;
+      body.buildTag = draft.buildTag;
+      body.branchTag = draft.branchTag;
+      body.testBranchUrl = draft.testBranchUrl;
+      body.patchLines = draft.patchLines.filter((l) => l.text.trim().length > 0);
     }
     if (type === 'Review') {
-      body.body = this.body();
-      body.score = Math.round(Math.min(10, Math.max(0, this.score())) * 10) / 10;
-      body.playStatus = this.playStatus();
-      body.hoursPlayed = Math.max(0, Math.floor(this.hoursPlayed()));
-      body.spoilerFree = this.spoilerFree();
+      body.body = draft.body;
+      body.score = Math.round(Math.min(10, Math.max(0, draft.score)) * 10) / 10;
+      body.playStatus = draft.playStatus;
+      body.hoursPlayed = Math.max(0, Math.floor(draft.hoursPlayed));
+      body.spoilerFree = draft.spoilerFree;
     }
 
     this.errorMessage.set(null);

@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { FormField, form, submit, validate } from '@angular/forms/signals';
+import { finalize, firstValueFrom } from 'rxjs';
 import { LanguageService } from '../../services/language/language.service';
 import { TranslationService } from '../../services/translation/translation.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { LanguageModel } from '../../models/language.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
+import { fieldError, serverError, submitError } from '../../shared/form-errors';
 
 interface TranslationRow {
   key: string;
@@ -14,9 +15,11 @@ interface TranslationRow {
   isSaving: boolean;
 }
 
+const LANGUAGE_REQUIRED = 'Code and name are required.';
+
 @Component({
   selector: 'app-translations-admin',
-  imports: [FormsModule],
+  imports: [FormField],
   templateUrl: './translations-admin.html',
   styleUrl: './translations-admin.scss',
 })
@@ -29,18 +32,82 @@ export class TranslationsAdmin implements OnInit {
   protected readonly isLoadingLanguages = signal(true);
   protected readonly selectedLanguageCode = signal<string | null>(null);
 
-  protected readonly newLanguageCode = signal('');
-  protected readonly newLanguageName = signal('');
-  protected readonly isCreatingLanguage = signal(false);
-  protected readonly languageError = signal<string | null>(null);
+  // ─── Add a language ────────────────────────────────────────────
+  private readonly languageModel = signal({ code: '', name: '' });
+  protected readonly languageForm = form(
+    this.languageModel,
+    (path) => {
+      validate(path.code, ({ value }) => (value().trim() ? undefined : { kind: 'required', message: LANGUAGE_REQUIRED }));
+      validate(path.name, ({ value }) => (value().trim() ? undefined : { kind: 'required', message: LANGUAGE_REQUIRED }));
+    },
+    {
+      submission: {
+        action: async () => {
+          const { code, name } = this.languageModel();
+          try {
+            const language = await firstValueFrom(this.languageService.create(code.trim(), name.trim()));
+            this.languages.update((existing) => [...existing, language]);
+            this.languageModel.set({ code: '', name: '' });
+            this.languageForm().reset();
+            return undefined;
+          } catch (err) {
+            return serverError(err, 'Failed to add language.');
+          }
+        },
+      },
+    },
+  );
 
+  protected readonly languageError = () =>
+    fieldError(this.languageForm.code()) ?? fieldError(this.languageForm.name()) ?? submitError(this.languageForm());
+
+  // ─── Translation rows (the table is the form, saved per row) ───
   protected readonly rows = signal<TranslationRow[]>([]);
+  protected readonly rowsForm = form(this.rows);
   protected readonly isLoadingTranslations = signal(false);
 
-  protected readonly newKey = signal('');
-  protected readonly newValue = signal('');
-  protected readonly isAddingKey = signal(false);
-  protected readonly newKeyError = signal<string | null>(null);
+  // ─── Add a key ─────────────────────────────────────────────────
+  private readonly keyModel = signal({ key: '', value: '' });
+  protected readonly keyForm = form(
+    this.keyModel,
+    (path) => {
+      validate(path.key, ({ value }) => {
+        const key = value().trim();
+        if (!key) {
+          return { kind: 'required', message: 'Key is required.' };
+        }
+        if (this.rows().some((row) => row.key === key)) {
+          return { kind: 'duplicate', message: 'This key already exists below — edit it there instead.' };
+        }
+        return undefined;
+      });
+    },
+    {
+      submission: {
+        action: async () => {
+          const languageCode = this.selectedLanguageCode();
+          if (!languageCode) {
+            return undefined;
+          }
+          const key = this.keyModel().key.trim();
+          const value = this.keyModel().value.trim();
+          try {
+            await firstValueFrom(this.translationService.upsert(key, languageCode, value));
+            this.rows.update((existing) =>
+              [...existing, { key, value, savedValue: value, isSaving: false }].sort((a, b) => a.key.localeCompare(b.key)),
+            );
+            this.keyModel.set({ key: '', value: '' });
+            this.keyForm().reset();
+            return undefined;
+          } catch (err) {
+            return serverError(err, 'Failed to add translation.');
+          }
+        },
+      },
+    },
+  );
+
+  protected readonly newKeyError = () => fieldError(this.keyForm.key()) ?? submitError(this.keyForm());
 
   ngOnInit(): void {
     this.loadLanguages();
@@ -48,92 +115,37 @@ export class TranslationsAdmin implements OnInit {
 
   selectLanguage(code: string): void {
     this.selectedLanguageCode.set(code);
-    this.newKeyError.set(null);
+    this.keyForm().reset();
     this.loadTranslations(code);
   }
 
   createLanguage(): void {
-    const code = this.newLanguageCode().trim();
-    const name = this.newLanguageName().trim();
-    if (!code || !name) {
-      this.languageError.set('Code and name are required.');
-      return;
-    }
-    this.languageError.set(null);
-    this.isCreatingLanguage.set(true);
-    this.languageService
-      .create(code, name)
-      .pipe(finalize(() => this.isCreatingLanguage.set(false)))
-      .subscribe({
-        next: (language) => {
-          this.languages.update((existing) => [...existing, language]);
-          this.newLanguageCode.set('');
-          this.newLanguageName.set('');
-        },
-        error: (err) => this.languageError.set(extractApiErrorMessage(err, 'Failed to add language.')),
-      });
+    void submit(this.languageForm);
   }
 
-  updateRowValue(row: TranslationRow, value: string): void {
-    row.value = value;
-    this.rows.update((existing) => [...existing]);
+  addKey(): void {
+    void submit(this.keyForm);
   }
 
-  saveTranslation(row: TranslationRow): void {
+  saveTranslation(key: string): void {
     const languageCode = this.selectedLanguageCode();
-    if (!languageCode) {
+    const row = this.rows().find((candidate) => candidate.key === key);
+    if (!languageCode || !row) {
       return;
     }
-    row.isSaving = true;
-    this.rows.update((existing) => [...existing]);
+    const value = row.value;
+    this.patchRow(key, { isSaving: true });
     this.translationService
-      .upsert(row.key, languageCode, row.value)
-      .pipe(
-        finalize(() => {
-          row.isSaving = false;
-          this.rows.update((existing) => [...existing]);
-        }),
-      )
+      .upsert(key, languageCode, value)
+      .pipe(finalize(() => this.patchRow(key, { isSaving: false })))
       .subscribe({
-        next: () => {
-          row.savedValue = row.value;
-          this.rows.update((existing) => [...existing]);
-        },
+        next: () => this.patchRow(key, { savedValue: value }),
         error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to save translation.')),
       });
   }
 
-  addKey(): void {
-    const languageCode = this.selectedLanguageCode();
-    const key = this.newKey().trim();
-    const value = this.newValue().trim();
-    if (!languageCode) {
-      return;
-    }
-    if (!key) {
-      this.newKeyError.set('Key is required.');
-      return;
-    }
-    if (this.rows().some((row) => row.key === key)) {
-      this.newKeyError.set('This key already exists below — edit it there instead.');
-      return;
-    }
-
-    this.newKeyError.set(null);
-    this.isAddingKey.set(true);
-    this.translationService
-      .upsert(key, languageCode, value)
-      .pipe(finalize(() => this.isAddingKey.set(false)))
-      .subscribe({
-        next: () => {
-          this.rows.update((existing) =>
-            [...existing, { key, value, savedValue: value, isSaving: false }].sort((a, b) => a.key.localeCompare(b.key)),
-          );
-          this.newKey.set('');
-          this.newValue.set('');
-        },
-        error: (err) => this.newKeyError.set(extractApiErrorMessage(err, 'Failed to add translation.')),
-      });
+  private patchRow(key: string, patch: Partial<TranslationRow>): void {
+    this.rows.update((rows) => rows.map((row) => (row.key === key ? { ...row, ...patch } : row)));
   }
 
   private loadLanguages(): void {

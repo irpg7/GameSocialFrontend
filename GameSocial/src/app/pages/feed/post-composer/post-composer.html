@@ -114,18 +114,16 @@
             class="field-box"
             id="composer-caption"
             type="text"
-            [ngModel]="caption()"
-            (ngModelChange)="caption.set($event)"
-            [maxlength]="maxCaptionLength"
+            [formField]="composerForm.caption"
             placeholder="Title — what happens in it?"
             aria-label="Title">
 
           <div class="field-row">
-            <select class="field-box field-select" id="composer-game" aria-label="Game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+            <select class="field-box field-select" id="composer-game" aria-label="Game" [formField]="composerForm.gameId">
               <button><selectedcontent></selectedcontent></button>
-              <option [ngValue]="null">Pick a game</option>
+              <option value="">Pick a game</option>
               @for (game of games(); track game.id) {
-                <option [ngValue]="game.id">{{ game.name }}</option>
+                <option [value]="game.id">{{ game.name }}</option>
               }
             </select>
 
@@ -137,12 +135,11 @@
                 [class.is-placeholder]="squadId() === null"
                 id="composer-squad"
                 aria-label="Tag a squad (optional)"
-                [ngModel]="squadId()"
-                (ngModelChange)="squadId.set($event)">
+                [formField]="composerForm.squadId">
                 <button><selectedcontent></selectedcontent></button>
-                <option [ngValue]="null">＋ Tag squad</option>
+                <option value="">＋ Tag squad</option>
                 @for (squad of mySquads(); track squad.id) {
-                  <option [ngValue]="squad.id">{{ squad.name }}</option>
+                  <option [value]="squad.id">{{ squad.name }}</option>
                 }
               </select>
             }
@@ -194,9 +191,7 @@
         class="field-box"
         id="composer-ss-caption"
         type="text"
-        [ngModel]="caption()"
-        (ngModelChange)="caption.set($event)"
-        [maxlength]="maxCaptionLength"
+        [formField]="composerForm.caption"
         placeholder="Caption — where is this, any filters?"
         aria-label="Caption">
 
@@ -214,9 +209,7 @@
             type="text"
             aria-label="New tag"
             placeholder="tag"
-            [maxlength]="maxPostTagLength"
-            [ngModel]="newTag()"
-            (ngModelChange)="newTag.set($event)"
+            [formField]="composerForm.newTag"
             (keydown.enter)="$event.preventDefault(); commitTag()"
             (keydown.escape)="cancelTag()"
             (blur)="commitTag()">
@@ -253,13 +246,11 @@
         id="poll-question"
         type="text"
         aria-label="Question"
-        [ngModel]="pollQuestion()"
-        (ngModelChange)="pollQuestion.set($event)"
-        [maxlength]="maxCaptionLength"
+        [formField]="composerForm.pollQuestion"
         placeholder="Ask the feed something…">
 
       <div class="option-list">
-        @for (option of pollOptions(); track $index; let i = $index) {
+        @for (option of composerForm.pollOptions; track $index; let i = $index) {
           <div class="option-row">
             <span class="option-index" aria-hidden="true">{{ i + 1 }}</span>
             <input
@@ -267,9 +258,7 @@
               class="option-input"
               type="text"
               [attr.aria-label]="'Option ' + (i + 1)"
-              [ngModel]="option"
-              (ngModelChange)="updatePollOption(i, $event)"
-              [maxlength]="maxPollOptionLength"
+              [formField]="option"
               [placeholder]="'Option ' + (i + 1)">
             <button type="button" class="option-remove" [attr.aria-label]="'Remove option ' + (i + 1)" (click)="removePollOption(i)">✕</button>
           </div>
@@ -305,11 +294,11 @@
       </div>
 
       <div class="split-row">
-        <select class="sheet-field field-select" id="poll-game" aria-label="Game (optional)" [ngModel]="pollGameId()" (ngModelChange)="pollGameId.set($event)">
+        <select class="sheet-field field-select" id="poll-game" aria-label="Game (optional)" [formField]="composerForm.pollGameId">
           <button><selectedcontent></selectedcontent></button>
-          <option [ngValue]="null">Any game</option>
+          <option value="">Any game</option>
           @for (game of games(); track game.id) {
-            <option [ngValue]="game.id">{{ game.name }}</option>
+            <option [value]="game.id">{{ game.name }}</option>
           }
         </select>
 
@@ -373,22 +362,20 @@
         <input
           class="mono-field"
           type="text"
-          [ngModel]="buildTag()"
-          (ngModelChange)="buildTag.set($event)"
-          [maxlength]="maxTagLength"
+          [formField]="composerForm.buildTag"
           aria-label="Build tag"
           placeholder="BUILD 0.9.5">
-        <select class="mono-field mono-field-muted field-select" aria-label="Branch" [ngModel]="branchTag()" (ngModelChange)="branchTag.set($event)">
+        <select class="mono-field mono-field-muted field-select" aria-label="Branch" [formField]="composerForm.branchTag">
           <button><selectedcontent></selectedcontent></button>
           @for (branch of branchTags; track branch) {
-            <option [ngValue]="branch">{{ branch }}</option>
+            <option [value]="branch">{{ branch }}</option>
           }
         </select>
-        <select class="game-field field-select" id="devlog-game" aria-label="Game" [ngModel]="devlogGameId()" (ngModelChange)="devlogGameId.set($event)">
+        <select class="game-field field-select" id="devlog-game" aria-label="Game" [formField]="composerForm.devlogGameId">
           <button><selectedcontent></selectedcontent></button>
-          <option [ngValue]="null">Pick a game</option>
+          <option value="">Pick a game</option>
           @for (game of devlogGames(); track game.id) {
-            <option [ngValue]="game.id">{{ game.name }}</option>
+            <option [value]="game.id">{{ game.name }}</option>
           }
         </select>
       </div>
@@ -401,9 +388,7 @@
           class="sheet-field"
           type="url"
           aria-label="Test branch link (optional)"
-          [ngModel]="testBranchUrl()"
-          (ngModelChange)="testBranchUrl.set($event)"
-          maxlength="500"
+          [formField]="composerForm.testBranchUrl"
           placeholder="Test branch link for “Join the test branch” (optional)">
       }
 
@@ -412,20 +397,16 @@
         id="devlog-title"
         type="text"
         aria-label="Headline"
-        [ngModel]="devlogTitle()"
-        (ngModelChange)="devlogTitle.set($event)"
-        [maxlength]="maxTitleLength"
+        [formField]="composerForm.devlogTitle"
         placeholder="Headline — what changed this week?">
 
-      <app-rich-text-toolbar [target]="devlogBodyEl" (changed)="devlogBody.set($event)" />
+      <app-rich-text-toolbar [target]="devlogBodyEl" (changed)="setDevlogBody($event)" />
       <textarea
         #devlogBodyEl
         class="sheet-body-field"
         id="devlog-body"
         aria-label="Body"
-        [ngModel]="devlogBody()"
-        (ngModelChange)="devlogBody.set($event)"
-        [maxlength]="maxBodyLength"
+        [formField]="composerForm.devlogBody"
         placeholder="Tell people what you did and what you are still stuck on. Short is fine."></textarea>
 
       <div>
@@ -445,10 +426,8 @@
                 class="patch-input"
                 type="text"
                 [attr.aria-label]="'Patch line ' + (i + 1)"
-                [ngModel]="line.text"
-                (ngModelChange)="updatePatchLineText(i, $event)"
+                [formField]="composerForm.patchLines[i].text"
                 (keydown)="onPatchKeydown($event, i)"
-                maxlength="300"
                 [placeholder]="line.status === PatchLineStatus.Investigating ? 'What are you still investigating?' : 'What shipped or got fixed?'">
             </div>
           }

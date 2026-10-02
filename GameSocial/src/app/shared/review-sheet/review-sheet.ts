@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, effect, inject, input, linkedSignal, output, signal, untracked } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, max, maxLength, min } from '@angular/forms/signals';
+import { SelectControl } from '../select-control';
 import { finalize } from 'rxjs';
 import { GameModel } from '../../models/game.model';
 import { PlayStatusName, PostModel } from '../../models/post.model';
@@ -56,7 +57,7 @@ const MAX_HOURS = 10_000;
 
 @Component({
   selector: 'app-review-sheet',
-  imports: [ImgFallback, FormsModule, SheetModal, StarRating, RichTextToolbar],
+  imports: [ImgFallback, FormField, SelectControl, SheetModal, StarRating, RichTextToolbar],
   templateUrl: './review-sheet.html',
   styleUrl: './review-sheet.scss',
 })
@@ -74,8 +75,6 @@ export class ReviewSheet implements OnInit {
   posted = output<PostModel>();
 
   protected readonly PlayStatus = PlayStatus;
-  protected readonly maxTitleLength = MAX_TITLE_LENGTH;
-  protected readonly maxBodyLength = MAX_BODY_LENGTH;
   protected readonly formatClock = formatClock;
   protected readonly formatTimeAgo = formatTimeAgo;
 
@@ -84,16 +83,40 @@ export class ReviewSheet implements OnInit {
     const reviewed = this.meService.me()?.reviewedGameIds ?? [];
     return this.games().filter((g) => !reviewed.includes(g.id));
   });
-  protected readonly gameId = linkedSignal(() => {
+  /**
+   * The game select's value (Signal Forms): the game id as text, '' = none. Kept apart from the
+   * rest of the form so the preselect input resets only the game, as before.
+   */
+  private readonly gameIdValue = linkedSignal(() => {
     const preselected = this.preselectedGameId();
-    return preselected !== null && (this.meService.me()?.reviewedGameIds ?? []).includes(preselected) ? null : preselected;
+    const reviewed = (this.meService.me()?.reviewedGameIds ?? []).includes(preselected ?? -1);
+    return preselected === null || reviewed ? '' : String(preselected);
   });
-  protected readonly headline = signal('');
-  protected readonly body = signal('');
-  protected readonly score = signal(7);
-  protected readonly hoursPlayed = signal<number | null>(null);
-  protected readonly playStatus = signal<PlayStatus>(PlayStatus.Finished);
-  protected readonly spoilerFree = signal(true);
+  protected readonly gameField = form(this.gameIdValue);
+  protected readonly gameId = computed(() => (this.gameIdValue() ? Number(this.gameIdValue()) : null));
+
+  /**
+   * Headline, body, hours, score, status, spoiler flag (Signal Forms). `hoursPlayed` is NaN until the
+   * user enters a number — the number input shows NaN as empty (placeholder "0").
+   */
+  private readonly model = signal({
+    headline: '',
+    body: '',
+    hoursPlayed: NaN,
+    score: 7,
+    playStatus: PlayStatus.Finished,
+    spoilerFree: true,
+  });
+  protected readonly headline = computed(() => this.model().headline);
+  protected readonly body = computed(() => this.model().body);
+  protected readonly score = computed(() => this.model().score);
+  /** Whole, non-negative hours; null while the field is empty. */
+  protected readonly hoursPlayed = computed(() => {
+    const hours = this.model().hoursPlayed;
+    return Number.isNaN(hours) ? null : Math.max(0, Math.floor(hours));
+  });
+  protected readonly playStatus = computed(() => this.model().playStatus);
+  protected readonly spoilerFree = computed(() => this.model().spoilerFree);
   protected readonly embeddedClipIds = signal<string[]>([]);
 
   protected readonly isPickingGame = signal(false);
@@ -124,6 +147,14 @@ export class ReviewSheet implements OnInit {
     }
     return Math.min(MAX_HOURS, Math.ceil((Date.now() - released) / 3_600_000));
   });
+
+  /** Limits become the inputs' native min / max / maxlength; submit() still reports the messages. */
+  protected readonly reviewForm = form(this.model, (path) => {
+    maxLength(path.headline, MAX_TITLE_LENGTH);
+    maxLength(path.body, MAX_BODY_LENGTH);
+    min(path.hoursPlayed, 0);
+    max(path.hoursPlayed, () => this.maxHours());
+  });
   protected readonly scoreLabel = computed(() => this.score().toFixed(1));
   protected readonly embeddedClips = computed(() => {
     const ids = this.embeddedClipIds();
@@ -153,8 +184,8 @@ export class ReviewSheet implements OnInit {
     });
   }
 
-  selectGame(id: number | null): void {
-    this.gameId.set(id);
+  /** The game select changed (the value itself is already in `gameIdValue`). */
+  onGameChanged(): void {
     this.isPickingGame.set(false);
     this.embeddedClipIds.set([]);
     this.myClips.set([]);
@@ -162,12 +193,20 @@ export class ReviewSheet implements OnInit {
   }
 
   toggleSpoilerFree(): void {
-    this.spoilerFree.update((v) => !v);
+    this.model.update((m) => ({ ...m, spoilerFree: !m.spoilerFree }));
   }
 
-  onHoursInput(value: string | number | null): void {
-    const n = value === null || value === '' ? null : Math.max(0, Math.floor(Number(value)));
-    this.hoursPlayed.set(n === null || Number.isNaN(n) ? null : n);
+  setScore(score: number): void {
+    this.model.update((m) => ({ ...m, score }));
+  }
+
+  setPlayStatus(playStatus: PlayStatus): void {
+    this.model.update((m) => ({ ...m, playStatus }));
+  }
+
+  /** The rich-text toolbar rewrote the textarea (bold, quote, spoiler…). */
+  setBody(body: string): void {
+    this.model.update((m) => ({ ...m, body }));
   }
 
   toggleClipPicker(): void {
@@ -197,13 +236,15 @@ export class ReviewSheet implements OnInit {
     if (!draft?.review) {
       return;
     }
-    this.gameId.set(draft.gameId ?? null);
-    this.headline.set(draft.caption ?? '');
-    this.body.set(draft.review.body ?? '');
-    this.score.set(draft.review.score);
-    this.hoursPlayed.set(draft.review.hoursPlayed);
-    this.playStatus.set(STATUS_BY_NAME[draft.review.playStatus] ?? PlayStatus.Finished);
-    this.spoilerFree.set(draft.review.spoilerFree);
+    this.gameIdValue.set(draft.gameId != null ? String(draft.gameId) : '');
+    this.model.set({
+      headline: draft.caption ?? '',
+      body: draft.review.body ?? '',
+      hoursPlayed: draft.review.hoursPlayed ?? NaN,
+      score: draft.review.score,
+      playStatus: STATUS_BY_NAME[draft.review.playStatus] ?? PlayStatus.Finished,
+      spoilerFree: draft.review.spoilerFree,
+    });
     this.embeddedClipIds.set(draft.review.embeddedClipPostIds ?? []);
     if ((draft.review.embeddedClipPostIds ?? []).length > 0) {
       this.loadMyClips();
@@ -272,7 +313,7 @@ export class ReviewSheet implements OnInit {
       next: (result) => {
         const latest = result.items[0]?.review;
         if (latest && this.gameId() === gameId && this.hoursPlayed() === null) {
-          this.hoursPlayed.set(latest.hoursPlayed);
+          this.model.update((m) => ({ ...m, hoursPlayed: latest.hoursPlayed }));
         }
       },
       error: () => void 0,

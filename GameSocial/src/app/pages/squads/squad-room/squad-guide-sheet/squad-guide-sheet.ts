@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
+import { SelectControl } from '../../../../shared/select-control';
 import { forkJoin, finalize } from 'rxjs';
 import { PostModel } from '../../../../models/post.model';
 import { SquadGameModel, SquadGuideItemModel, SquadGuideModel } from '../../../../models/squad.model';
@@ -21,7 +22,7 @@ const MAX_ITEMS = 20;
  */
 @Component({
   selector: 'app-squad-guide-sheet',
-  imports: [FormsModule, SheetModal],
+  imports: [FormField, SelectControl, SheetModal],
   templateUrl: './squad-guide-sheet.html',
   styleUrl: './squad-guide-sheet.scss',
 })
@@ -41,13 +42,22 @@ export class SquadGuideSheet implements OnInit {
   openItem = output<SquadGuideItemModel>();
   closed = output<void>();
 
-  protected readonly maxTitle = MAX_TITLE;
-  protected readonly maxDescription = MAX_DESCRIPTION;
 
   protected readonly editing = linkedSignal(() => this.guide() === null);
-  protected readonly title = linkedSignal(() => this.guide()?.title ?? '');
-  protected readonly description = linkedSignal(() => this.guide()?.description ?? '');
-  protected readonly gameId = linkedSignal<number | null>(() => this.guide()?.gameId ?? null);
+  /** Title / description / game fields; gameId is the select's string value ('' = no game). */
+  private readonly model = linkedSignal(() => {
+    const guide = this.guide();
+    return {
+      title: guide?.title ?? '',
+      description: guide?.description ?? '',
+      gameId: guide?.gameId != null ? String(guide.gameId) : '',
+    };
+  });
+
+  protected readonly guideForm = form(this.model, (path) => {
+    maxLength(path.title, MAX_TITLE);
+    maxLength(path.description, MAX_DESCRIPTION);
+  });
   protected readonly selectedPostIds = linkedSignal<string[]>(() => this.guide()?.items.map((item) => item.postId) ?? []);
 
   protected readonly candidates = signal<PostModel[]>([]);
@@ -100,7 +110,8 @@ export class SquadGuideSheet implements OnInit {
 
   protected save(): void {
     this.errorMessage.set(null);
-    const title = this.title().trim();
+    const value = this.model();
+    const title = value.title.trim();
     if (!title) {
       this.errorMessage.set('Başlık zorunlu.');
       return;
@@ -111,8 +122,8 @@ export class SquadGuideSheet implements OnInit {
     }
     const request = {
       title,
-      description: this.description().trim() || undefined,
-      gameId: this.gameId() ?? undefined,
+      description: value.description.trim() || undefined,
+      gameId: value.gameId ? Number(value.gameId) : undefined,
       postIds: this.selectedPostIds(),
     };
     const guide = this.guide();

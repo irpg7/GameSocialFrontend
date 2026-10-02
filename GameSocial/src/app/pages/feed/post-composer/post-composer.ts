@@ -16,7 +16,8 @@ import {
   viewChildren,
   WritableSignal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, applyEach, form, maxLength } from '@angular/forms/signals';
+import { SelectControl } from '../../../shared/select-control';
 import { finalize } from 'rxjs';
 import { GameModel } from '../../../models/game.model';
 import { PostModel } from '../../../models/post.model';
@@ -76,6 +77,48 @@ interface PatchLineEntry {
   status: PatchLineStatus;
 }
 
+/** Signal Forms model of the composer (no nulls: '' means "not picked" for the selects). */
+interface ComposerModel {
+  caption: string;
+  gameId: string;
+  squadId: string;
+  newTag: string;
+  devlogTitle: string;
+  devlogBody: string;
+  devlogGameId: string;
+  buildTag: string;
+  branchTag: BranchTag;
+  testBranchUrl: string;
+  patchLines: PatchLineEntry[];
+  pollQuestion: string;
+  pollOptions: string[];
+  pollGameId: string;
+}
+
+function emptyComposerModel(): ComposerModel {
+  return {
+    caption: '',
+    gameId: '',
+    squadId: '',
+    newTag: '',
+    devlogTitle: '',
+    devlogBody: '',
+    devlogGameId: '',
+    buildTag: '',
+    branchTag: 'TEST BRANCH',
+    testBranchUrl: '',
+    patchLines: [],
+    pollQuestion: '',
+    pollOptions: ['', ''],
+    pollGameId: '',
+  };
+}
+
+/** A game select's value ('' = none) as the numeric id the API wants. */
+function idOrNull(value: string): number | null {
+  return value === '' ? null : Number(value);
+}
+
 interface DevlogMediaEntry {
   file: File;
   previewUrl: string;
@@ -104,7 +147,7 @@ const PATCH_STATUS_CYCLE = [PatchLineStatus.Shipped, PatchLineStatus.Fixed, Patc
  */
 @Component({
   selector: 'app-post-composer',
-  imports: [ImgFallback, FormsModule, SheetModal, ReviewSheet, RichTextToolbar],
+  imports: [ImgFallback, FormField, SelectControl, SheetModal, ReviewSheet, RichTextToolbar],
   templateUrl: './post-composer.html',
   styleUrls: ['./post-composer.scss', './post-composer.mobile.scss'],
 })
@@ -135,14 +178,11 @@ export class PostComposer implements OnInit, OnDestroy {
   protected readonly pollDurations = POLL_DURATIONS;
   protected readonly presetScreenshotTags = PRESET_SCREENSHOT_TAGS;
 
-  protected readonly maxCaptionLength = MAX_CAPTION_LENGTH;
-  protected readonly maxTitleLength = MAX_TITLE_LENGTH;
-  protected readonly maxBodyLength = MAX_BODY_LENGTH;
-  protected readonly maxTagLength = MAX_TAG_LENGTH;
+  // Field length limits live in the form schema (`composerForm`); the ghost "Add an option" input isn't a
+  // form field, so it still reads this one directly.
   protected readonly maxPollOptionLength = MAX_POLL_OPTION_LENGTH;
   protected readonly maxPollOptions = MAX_POLL_OPTIONS;
   protected readonly maxScreenshots = MAX_SCREENSHOTS;
-  protected readonly maxPostTagLength = MAX_POST_TAG_LENGTH;
 
   protected readonly isDevlogAllowed = computed(() => this.authService.currentUser()?.isDeveloper ?? false);
 
@@ -186,10 +226,39 @@ export class PostComposer implements OnInit, OnDestroy {
   /** Real XP for a clip ("Posting a clip is worth +120 XP") — from GET config/xp-awards. */
   protected readonly clipXp = computed(() => this.xpAwards.amount('clip'));
 
+  // ─── Form model (Signal Forms) ─────────────────────────────────
+  // Every typed / picked field of the four flows. Selects hold strings ('' = none) and are read back
+  // as ids below. The length rules only drive the native maxlength (the submit checks below still
+  // produce the messages), and squadId follows the locked squad like the old linkedSignal did.
+  private readonly model = linkedSignal<string | null, ComposerModel>({
+    source: () => this.preselectedSquadId(),
+    computation: (preselected, previous) => ({ ...(previous?.value ?? emptyComposerModel()), squadId: preselected ?? '' }),
+  });
+
+  protected readonly composerForm = form(this.model, (path) => {
+    maxLength(path.caption, MAX_CAPTION_LENGTH);
+    maxLength(path.newTag, MAX_POST_TAG_LENGTH);
+    maxLength(path.buildTag, MAX_TAG_LENGTH);
+    maxLength(path.testBranchUrl, 500);
+    maxLength(path.devlogTitle, MAX_TITLE_LENGTH);
+    maxLength(path.devlogBody, MAX_BODY_LENGTH);
+    applyEach(path.patchLines, (line) => {
+      maxLength(line.text, 300);
+    });
+    maxLength(path.pollQuestion, MAX_CAPTION_LENGTH);
+    applyEach(path.pollOptions, (option) => {
+      maxLength(option, MAX_POLL_OPTION_LENGTH);
+    });
+  });
+
+  private patchModel(patch: Partial<ComposerModel>): void {
+    this.model.update((m) => ({ ...m, ...patch }));
+  }
+
   // ─── Clip / Screenshots (shared inline panel fields) ─────────
-  protected readonly gameId = signal<number | null>(null);
-  protected readonly caption = signal('');
-  protected readonly squadId = linkedSignal<string | null>(() => this.preselectedSquadId());
+  protected readonly gameId = computed(() => idOrNull(this.model().gameId));
+  protected readonly caption = computed(() => this.model().caption);
+  protected readonly squadId = computed(() => this.model().squadId || null);
 
   // ─── Clip ──────────────────────────────────────────────────────
   private fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInput');
@@ -204,7 +273,7 @@ export class PostComposer implements OnInit, OnDestroy {
   protected readonly isDraggingScreenshots = signal(false);
   protected readonly screenshotTags = signal<string[]>([]);
   protected readonly isAddingTag = signal(false);
-  protected readonly newTag = signal('');
+  protected readonly newTag = computed(() => this.model().newTag);
   /** Custom tags (everything that isn't one of the preset chips), rendered after them. */
   protected readonly customScreenshotTags = computed(() =>
     this.screenshotTags().filter((t) => !PRESET_SCREENSHOT_TAGS.includes(t)),
@@ -214,9 +283,9 @@ export class PostComposer implements OnInit, OnDestroy {
   private devlogVideoInputRef = viewChild<ElementRef<HTMLInputElement>>('devlogVideoInput');
   private devlogPhotoInputRef = viewChild<ElementRef<HTMLInputElement>>('devlogPhotoInput');
   private patchInputs = viewChildren<ElementRef<HTMLInputElement>>('patchInput');
-  protected readonly devlogTitle = signal('');
-  protected readonly devlogBody = signal('');
-  protected readonly devlogGameId = signal<number | null>(null);
+  protected readonly devlogTitle = computed(() => this.model().devlogTitle);
+  protected readonly devlogBody = computed(() => this.model().devlogBody);
+  protected readonly devlogGameId = computed(() => idOrNull(this.model().devlogGameId));
   /**
    * DevLogs only go to games this account is the verified developer of (an admin
    * assigns the owner in Backoffice → Games; the server enforces the same rule).
@@ -225,13 +294,13 @@ export class PostComposer implements OnInit, OnDestroy {
     const myId = this.meService.me()?.id;
     return myId ? this.games().filter((g) => g.developerUserId === myId) : [];
   });
-  protected readonly buildTag = signal('');
-  protected readonly branchTag = signal<BranchTag>('TEST BRANCH');
-  protected readonly testBranchUrl = signal('');
+  protected readonly buildTag = computed(() => this.model().buildTag);
+  protected readonly branchTag = computed(() => this.model().branchTag);
+  protected readonly testBranchUrl = computed(() => this.model().testBranchUrl);
   protected readonly devlogClip = signal<DevlogMediaEntry | null>(null);
   protected readonly devlogBefore = signal<DevlogMediaEntry | null>(null);
   protected readonly devlogAfter = signal<DevlogMediaEntry | null>(null);
-  protected readonly patchLines = signal<PatchLineEntry[]>([]);
+  protected readonly patchLines = computed(() => this.model().patchLines);
   protected readonly devlogSequence = signal<DevlogNextSequenceModel | null>(null);
   protected readonly devlogFollowerCount = signal<number | null>(null);
 
@@ -252,10 +321,10 @@ export class PostComposer implements OnInit, OnDestroy {
 
   // ─── Poll sheet ────────────────────────────────────────────────
   private pollOptionInputs = viewChildren<ElementRef<HTMLInputElement>>('pollOptionInput');
-  protected readonly pollQuestion = signal('');
-  protected readonly pollOptions = signal<string[]>(['', '']);
+  protected readonly pollQuestion = computed(() => this.model().pollQuestion);
+  protected readonly pollOptions = computed(() => this.model().pollOptions);
   protected readonly pollDuration = signal<PollDuration>('24h');
-  protected readonly pollGameId = signal<number | null>(null);
+  protected readonly pollGameId = computed(() => idOrNull(this.model().pollGameId));
   /** The design draws the switch on by default. */
   protected readonly pollHideResults = signal(true);
 
@@ -512,12 +581,12 @@ export class PostComposer implements OnInit, OnDestroy {
     if (tag && !this.screenshotTags().some((t) => t.toLowerCase() === tag.toLowerCase())) {
       this.screenshotTags.update((tags) => [...tags, tag.slice(0, MAX_POST_TAG_LENGTH)].slice(0, MAX_POST_TAGS));
     }
-    this.newTag.set('');
+    this.patchModel({ newTag: '' });
     this.isAddingTag.set(false);
   }
 
   cancelTag(): void {
-    this.newTag.set('');
+    this.patchModel({ newTag: '' });
     this.isAddingTag.set(false);
   }
 
@@ -565,7 +634,7 @@ export class PostComposer implements OnInit, OnDestroy {
 
   // ─── Devlog patch lines ─────────────────────────────────────────
   addPatchLine(status: PatchLineStatus = PatchLineStatus.Shipped): void {
-    this.patchLines.update((lines) => [...lines, { text: '', status }]);
+    this.patchModel({ patchLines: [...this.patchLines(), { text: '', status }] });
     afterNextRender(() => this.patchInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
   }
 
@@ -575,28 +644,24 @@ export class PostComposer implements OnInit, OnDestroy {
   }
 
   cyclePatchStatus(index: number): void {
-    this.patchLines.update((lines) =>
-      lines.map((line, i) => {
+    this.patchModel({
+      patchLines: this.patchLines().map((line, i) => {
         if (i !== index) return line;
         const next = PATCH_STATUS_CYCLE[(PATCH_STATUS_CYCLE.indexOf(line.status) + 1) % PATCH_STATUS_CYCLE.length];
         return { ...line, status: next };
       }),
-    );
+    });
   }
 
   patchStatusLabel(status: PatchLineStatus): string {
     return status === PatchLineStatus.Shipped ? 'Shipped' : status === PatchLineStatus.Fixed ? 'Fixed' : 'Investigating';
   }
 
-  updatePatchLineText(index: number, text: string): void {
-    this.patchLines.update((lines) => lines.map((line, i) => (i === index ? { ...line, text } : line)));
-  }
-
   /** Backspace in an empty line removes it (the design draws no per-line remove button). */
   onPatchKeydown(event: KeyboardEvent, index: number): void {
     if (event.key === 'Backspace' && !this.patchLines()[index]?.text) {
       event.preventDefault();
-      this.patchLines.update((lines) => lines.filter((_, i) => i !== index));
+      this.patchModel({ patchLines: this.patchLines().filter((_, i) => i !== index) });
       afterNextRender(() => this.patchInputs().at(Math.max(index - 1, 0))?.nativeElement.focus(), {
         injector: this.injector,
       });
@@ -609,7 +674,7 @@ export class PostComposer implements OnInit, OnDestroy {
   // ─── Poll options ────────────────────────────────────────────────
   addPollOption(): void {
     if (this.pollOptions().length < MAX_POLL_OPTIONS) {
-      this.pollOptions.update((options) => [...options, '']);
+      this.patchModel({ pollOptions: [...this.pollOptions(), ''] });
       afterNextRender(() => this.pollOptionInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
     }
   }
@@ -622,7 +687,7 @@ export class PostComposer implements OnInit, OnDestroy {
     if (!value || this.pollOptions().length >= MAX_POLL_OPTIONS) {
       return;
     }
-    this.pollOptions.update((options) => [...options, value]);
+    this.patchModel({ pollOptions: [...this.pollOptions(), value] });
     afterNextRender(
       () => {
         const el = this.pollOptionInputs().at(-1)?.nativeElement;
@@ -634,11 +699,12 @@ export class PostComposer implements OnInit, OnDestroy {
   }
 
   removePollOption(index: number): void {
-    this.pollOptions.update((options) => options.filter((_, i) => i !== index));
+    this.patchModel({ pollOptions: this.pollOptions().filter((_, i) => i !== index) });
   }
 
-  updatePollOption(index: number, value: string): void {
-    this.pollOptions.update((options) => options.map((option, i) => (i === index ? value : option)));
+  /** The rich-text toolbar rewrites the devlog body (bold / list markup around the selection). */
+  setDevlogBody(body: string): void {
+    this.patchModel({ devlogBody: body });
   }
 
   // ─── Submit ─────────────────────────────────────────────────────
@@ -919,14 +985,11 @@ export class PostComposer implements OnInit, OnDestroy {
   private resetTypeForm(type: PostType): void {
     switch (type) {
       case PostType.Clip:
-        this.gameId.set(null);
-        this.caption.set('');
-        this.squadId.set(this.preselectedSquadId());
+        this.patchModel({ gameId: '', caption: '', squadId: this.preselectedSquadId() ?? '' });
         this.setFile(null);
         break;
       case PostType.Screenshots:
-        this.caption.set('');
-        this.squadId.set(this.preselectedSquadId());
+        this.patchModel({ caption: '', squadId: this.preselectedSquadId() ?? '' });
         this.screenshotTags.set([]);
         for (const entry of this.screenshotFiles()) {
           this.revoke(entry.previewUrl);
@@ -934,22 +997,22 @@ export class PostComposer implements OnInit, OnDestroy {
         this.screenshotFiles.set([]);
         break;
       case PostType.Devlog:
-        this.devlogTitle.set('');
-        this.devlogBody.set('');
-        this.devlogGameId.set(null);
-        this.buildTag.set('');
-        this.branchTag.set('TEST BRANCH');
-        this.testBranchUrl.set('');
-        this.patchLines.set([]);
+        this.patchModel({
+          devlogTitle: '',
+          devlogBody: '',
+          devlogGameId: '',
+          buildTag: '',
+          branchTag: 'TEST BRANCH',
+          testBranchUrl: '',
+          patchLines: [],
+        });
         this.removeDevlogMedia('clip');
         this.removeDevlogMedia('before');
         this.removeDevlogMedia('after');
         break;
       case PostType.Poll:
-        this.pollQuestion.set('');
-        this.pollOptions.set(['', '']);
+        this.patchModel({ pollQuestion: '', pollOptions: ['', ''], pollGameId: '' });
         this.pollDuration.set('24h');
-        this.pollGameId.set(null);
         this.pollHideResults.set(true);
         break;
     }

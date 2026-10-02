@@ -33,10 +33,7 @@
             id="settings-name"
             class="settings-input"
             type="text"
-            maxlength="100"
-            [disabled]="!canManage()"
-            [ngModel]="name()"
-            (ngModelChange)="name.set($event)" />
+            [formField]="generalForm.name" />
         </div>
 
         <div>
@@ -72,8 +69,7 @@
                 <input
                   id="settings-game-search"
                   type="text"
-                  [ngModel]="gameQuery()"
-                  (ngModelChange)="gameQuery.set($event)"
+                  [formField]="gameQueryField"
                   [placeholder]="'Kütüphanede ara — ' + gameTotal() + ' oyun'" />
                 <button type="button" aria-label="Oyun seçiciyi kapat" (click)="toggleGamePicker()">✕</button>
               </div>
@@ -117,11 +113,8 @@
                 <input
                   type="radio"
                   class="visually-hidden"
-                  name="settingsJoinPolicy"
                   [value]="option.value"
-                  [disabled]="!canManage()"
-                  [checked]="joinPolicy() === option.value"
-                  (change)="joinPolicy.set(option.value)" />
+                  [formField]="generalForm.joinPolicy" />
                 <span class="privacy-ring" aria-hidden="true"></span>
                 <span class="privacy-text">
                   <span class="privacy-label">{{ option.label }}</span>
@@ -247,8 +240,7 @@
               <input
                 id="settings-invite"
                 type="text"
-                [ngModel]="inviteUsername()"
-                (ngModelChange)="inviteUsername.set($event)"
+                [formField]="inviteField"
                 (keydown.enter)="$event.preventDefault(); invite()"
                 placeholder="Kullanıcı adı ile davet et" />
               <button type="button" class="invite-send" [disabled]="isInviting()" (click)="invite()">
@@ -275,10 +267,10 @@
       <div class="leave-confirm">
         @if (isFounder() && otherActiveMembers().length > 0) {
           <label for="transfer-target">Yeni kurucu</label>
-          <select id="transfer-target" [ngModel]="transferTargetId()" (ngModelChange)="transferTargetId.set($event)">
+          <select id="transfer-target" [formField]="transferField">
             <button><selectedcontent></selectedcontent></button>
             @for (member of otherActiveMembers(); track member.userId) {
-              <option [ngValue]="member.userId">{{ member.username }}</option>
+              <option [value]="member.userId">{{ member.username }}</option>
             }
           </select>
           <button type="button" class="leave-yes" [disabled]="isLeaving()" (click)="confirmLeave()">

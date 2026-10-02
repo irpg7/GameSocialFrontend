@@ -1,28 +1,36 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { FormField, form, maxLength, submit, validate } from '@angular/forms/signals';
+import { finalize, firstValueFrom } from 'rxjs';
 import { GameService } from '../../services/game/game.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { GAME_GENRES, GameGenreName, GameModel } from '../../models/game.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { SERVER_ERROR, fieldError, serverError, submitError } from '../../shared/form-errors';
 
 const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 const POSTER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_STUDIO_LENGTH = 150;
 
-function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
-  const next = new Set(set);
-  if (next.has(value)) {
-    next.delete(value);
-  } else {
-    next.add(value);
-  }
-  return next;
+/** Create and edit share one shape. Genres stay a list toggled by the checkboxes (not form fields). */
+interface GameFormModel {
+  name: string;
+  studio: string;
+  developer: string;
+  /** yyyy-mm-dd from the date input; '' = not set. */
+  releaseDate: string;
+  genres: GameGenreName[];
+}
+
+const EMPTY_GAME: GameFormModel = { name: '', studio: '', developer: '', releaseDate: '', genres: [] };
+
+function toggleIn<T>(list: T[], value: T): T[] {
+  return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
 @Component({
   selector: 'app-games-admin',
-  imports: [ImgFallback, FormsModule],
+  imports: [ImgFallback, FormField],
   templateUrl: './games-admin.html',
   styleUrl: './games-admin.scss',
 })
@@ -34,26 +42,82 @@ export class GamesAdmin implements OnInit {
   protected readonly isLoading = signal(true);
   protected readonly genres = GAME_GENRES;
 
-  protected readonly newName = signal('');
-  protected readonly newGenres = signal<Set<GameGenreName>>(new Set());
-  protected readonly newStudio = signal('');
-  protected readonly newDeveloper = signal('');
-  protected readonly newReleaseDate = signal('');
+  // ─── New game ──────────────────────────────────────────────────
+  private readonly newModel = signal<GameFormModel>({ ...EMPTY_GAME });
+  /** File inputs are not form fields: the picked poster lives next to the model. */
   private newPosterFile = signal<File | null>(null);
-  protected readonly isCreating = signal(false);
-  protected readonly createError = signal<string | null>(null);
 
+  protected readonly newForm = form(
+    this.newModel,
+    (path) => {
+      validate(path.name, ({ value }) => (value().trim() ? undefined : { kind: 'required', message: 'Name is required.' }));
+      maxLength(path.studio, MAX_STUDIO_LENGTH);
+    },
+    {
+      submission: {
+        action: async () => {
+          const posterError = this.validatePoster(this.newPosterFile());
+          if (posterError) {
+            return { kind: SERVER_ERROR, message: posterError };
+          }
+          try {
+            const game = await firstValueFrom(this.gameService.create(this.toFormData(this.newModel(), this.newPosterFile())));
+            this.games.update((existing) => [...existing, game].sort((a, b) => a.name.localeCompare(b.name)));
+            this.newModel.set({ ...EMPTY_GAME });
+            this.newPosterFile.set(null);
+            this.newForm().reset();
+            return undefined;
+          } catch (err) {
+            return serverError(err, 'Failed to create game.');
+          }
+        },
+      },
+    },
+  );
+
+  // ─── Edit (one row at a time) ──────────────────────────────────
   protected readonly editingId = signal<number | null>(null);
-  protected readonly editName = signal('');
-  protected readonly editGenres = signal<Set<GameGenreName>>(new Set());
-  protected readonly editStudio = signal('');
-  protected readonly editDeveloper = signal('');
-  protected readonly editReleaseDate = signal('');
+  private readonly editModel = signal<GameFormModel>({ ...EMPTY_GAME });
   private editPosterFile = signal<File | null>(null);
-  protected readonly isSaving = signal(false);
-  protected readonly editError = signal<string | null>(null);
+
+  protected readonly editForm = form(
+    this.editModel,
+    (path) => {
+      validate(path.name, ({ value }) => (value().trim() ? undefined : { kind: 'required', message: 'Name is required.' }));
+      maxLength(path.studio, MAX_STUDIO_LENGTH);
+    },
+    {
+      submission: {
+        action: async () => {
+          const id = this.editingId();
+          if (id === null) {
+            return undefined;
+          }
+          const posterError = this.validatePoster(this.editPosterFile());
+          if (posterError) {
+            return { kind: SERVER_ERROR, message: posterError };
+          }
+          try {
+            // Omitted release date = cleared (the server sets whatever the form sends).
+            const updated = await firstValueFrom(this.gameService.update(id, this.toFormData(this.editModel(), this.editPosterFile())));
+            this.games.update((existing) =>
+              existing.map((g) => (g.id === updated.id ? updated : g)).sort((a, b) => a.name.localeCompare(b.name)),
+            );
+            this.editingId.set(null);
+            return undefined;
+          } catch (err) {
+            return serverError(err, 'Failed to update game.');
+          }
+        },
+      },
+    },
+  );
 
   protected readonly deletingId = signal<number | null>(null);
+
+  /** The single error line under each form: "Name is required." first, then poster / server errors. */
+  protected readonly createError = () => fieldError(this.newForm.name()) ?? submitError(this.newForm());
+  protected readonly editError = () => fieldError(this.editForm.name()) ?? submitError(this.editForm());
 
   ngOnInit(): void {
     this.loadGames();
@@ -65,77 +129,36 @@ export class GamesAdmin implements OnInit {
   }
 
   createGame(): void {
-    const name = this.newName().trim();
-    if (!name) {
-      this.createError.set('Name is required.');
-      return;
-    }
-    const file = this.newPosterFile();
-    const fileError = this.validatePoster(file);
-    if (fileError) {
-      this.createError.set(fileError);
-      return;
-    }
-
-    this.createError.set(null);
-    this.isCreating.set(true);
-    const formData = new FormData();
-    formData.append('Name', name);
-    for (const genre of this.newGenres()) {
-      formData.append('Genres', genre);
-    }
-    formData.append('Studio', this.newStudio().trim());
-    formData.append('DeveloperUsername', this.newDeveloper().trim());
-    // Sent only when set — an empty value would not bind as a date.
-    if (this.newReleaseDate()) {
-      formData.append('ReleaseDate', this.newReleaseDate());
-    }
-    if (file) {
-      formData.append('Poster', file);
-    }
-
-    this.gameService
-      .create(formData)
-      .pipe(finalize(() => this.isCreating.set(false)))
-      .subscribe({
-        next: (game) => {
-          this.games.update((existing) => [...existing, game].sort((a, b) => a.name.localeCompare(b.name)));
-          this.newName.set('');
-          this.newGenres.set(new Set());
-          this.newStudio.set('');
-          this.newDeveloper.set('');
-          this.newReleaseDate.set('');
-          this.newPosterFile.set(null);
-        },
-        error: (err) => this.createError.set(extractApiErrorMessage(err, 'Failed to create game.')),
-      });
+    void submit(this.newForm);
   }
 
   toggleNewGenre(genre: GameGenreName): void {
-    this.newGenres.update((current) => toggleInSet(current, genre));
+    this.newModel.update((model) => ({ ...model, genres: toggleIn(model.genres, genre) }));
   }
 
   isNewGenreSelected(genre: GameGenreName): boolean {
-    return this.newGenres().has(genre);
+    return this.newModel().genres.includes(genre);
   }
 
   toggleEditGenre(genre: GameGenreName): void {
-    this.editGenres.update((current) => toggleInSet(current, genre));
+    this.editModel.update((model) => ({ ...model, genres: toggleIn(model.genres, genre) }));
   }
 
   isEditGenreSelected(genre: GameGenreName): boolean {
-    return this.editGenres().has(genre);
+    return this.editModel().genres.includes(genre);
   }
 
   startEdit(game: GameModel): void {
     this.editingId.set(game.id);
-    this.editName.set(game.name);
-    this.editGenres.set(new Set(game.genres));
-    this.editStudio.set(game.studio ?? '');
-    this.editDeveloper.set(game.developerUsername ?? '');
-    this.editReleaseDate.set(game.releaseDate ?? '');
+    this.editModel.set({
+      name: game.name,
+      studio: game.studio ?? '',
+      developer: game.developerUsername ?? '',
+      releaseDate: game.releaseDate ?? '',
+      genres: [...game.genres],
+    });
     this.editPosterFile.set(null);
-    this.editError.set(null);
+    this.editForm().reset();
   }
 
   cancelEdit(): void {
@@ -147,48 +170,8 @@ export class GamesAdmin implements OnInit {
     this.editPosterFile.set(input.files?.[0] ?? null);
   }
 
-  saveEdit(game: GameModel): void {
-    const name = this.editName().trim();
-    if (!name) {
-      this.editError.set('Name is required.');
-      return;
-    }
-    const file = this.editPosterFile();
-    const fileError = this.validatePoster(file);
-    if (fileError) {
-      this.editError.set(fileError);
-      return;
-    }
-
-    this.editError.set(null);
-    this.isSaving.set(true);
-    const formData = new FormData();
-    formData.append('Name', name);
-    for (const genre of this.editGenres()) {
-      formData.append('Genres', genre);
-    }
-    formData.append('Studio', this.editStudio().trim());
-    formData.append('DeveloperUsername', this.editDeveloper().trim());
-    // Omitted = cleared (the server sets whatever the form sends).
-    if (this.editReleaseDate()) {
-      formData.append('ReleaseDate', this.editReleaseDate());
-    }
-    if (file) {
-      formData.append('Poster', file);
-    }
-
-    this.gameService
-      .update(game.id, formData)
-      .pipe(finalize(() => this.isSaving.set(false)))
-      .subscribe({
-        next: (updated) => {
-          this.games.update((existing) =>
-            existing.map((g) => (g.id === updated.id ? updated : g)).sort((a, b) => a.name.localeCompare(b.name)),
-          );
-          this.editingId.set(null);
-        },
-        error: (err) => this.editError.set(extractApiErrorMessage(err, 'Failed to update game.')),
-      });
+  saveEdit(): void {
+    void submit(this.editForm);
   }
 
   deleteGame(game: GameModel): void {
@@ -203,6 +186,24 @@ export class GamesAdmin implements OnInit {
         next: () => this.games.update((existing) => existing.filter((g) => g.id !== game.id)),
         error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete game.')),
       });
+  }
+
+  private toFormData(model: GameFormModel, poster: File | null): FormData {
+    const formData = new FormData();
+    formData.append('Name', model.name.trim());
+    for (const genre of model.genres) {
+      formData.append('Genres', genre);
+    }
+    formData.append('Studio', model.studio.trim());
+    formData.append('DeveloperUsername', model.developer.trim());
+    // Sent only when set — an empty value would not bind as a date.
+    if (model.releaseDate) {
+      formData.append('ReleaseDate', model.releaseDate);
+    }
+    if (poster) {
+      formData.append('Poster', poster);
+    }
+    return formData;
   }
 
   private validatePoster(file: File | null): string | null {

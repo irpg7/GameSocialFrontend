@@ -16,11 +16,12 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of rows(); track row.key) {
+          @for (rowField of rowsForm; track $index) {
+            @let row = rowField().value();
             <tr>
               <td>{{ row.key }}</td>
               <td>
-                <input type="text" [ngModel]="row.value" (ngModelChange)="updateValue(row, $event)">
+                <input type="text" [attr.aria-label]="row.key" [formField]="rowField.value">
               </td>
               <td class="text-muted">{{ row.description }}</td>
               <td class="admin-table-actions">
@@ -28,7 +29,7 @@
                   type="button"
                   class="btn btn-primary btn-sm"
                   [disabled]="row.isSaving || row.value === row.savedValue"
-                  (click)="save(row)">
+                  (click)="save(row.key)">
                   {{ row.isSaving ? 'Saving...' : 'Save' }}
                 </button>
               </td>

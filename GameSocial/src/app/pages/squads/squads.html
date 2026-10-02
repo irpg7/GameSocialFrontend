@@ -12,8 +12,7 @@
           <input
             id="hub-search"
             type="search"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
+            [formField]="searchField"
             placeholder="Search squads by game or vibe" />
         </div>
         <button type="button" class="hub-btn hub-btn-primary" (click)="isCreateSheetOpen.set(true)">＋ Create a squad</button>

@@ -1,5 +1,6 @@
 import { Component, Injector, OnDestroy, OnInit, afterNextRender, computed, inject, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
+import { SelectControl } from '../select-control';
 import { Observable, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
 import { SquadHubService } from '../../services/squad/squad-hub.service';
@@ -54,7 +55,7 @@ interface SquadDraft {
  */
 @Component({
   selector: 'app-squad-create-sheet',
-  imports: [FormsModule, SquadSheetFrame, PlayerPicker],
+  imports: [FormField, SelectControl, SquadSheetFrame, PlayerPicker],
   templateUrl: './squad-create-sheet.html',
   styleUrl: './squad-create-sheet.scss',
 })
@@ -68,21 +69,31 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
   created = output<SquadModel>();
   closed = output<void>();
 
-  protected readonly maxNameLength = MAX_NAME_LENGTH;
-  protected readonly maxDescriptionLength = MAX_DESCRIPTION_LENGTH;
-  protected readonly maxChannelNameLength = MAX_CHANNEL_NAME_LENGTH;
-
   protected readonly games = signal<GameModel[]>([]);
-  protected readonly name = signal('');
-  protected readonly description = signal('');
-  protected readonly primaryGameId = signal<number | null>(null);
-  protected readonly joinPolicy = signal<JoinPolicyName>('InviteOnly');
+
+  /**
+   * Name, purpose, main game and join policy (Signal Forms). `primaryGameId` is the select's
+   * string value — '' = "Main game — none" — and becomes a number only when the squad is created.
+   */
+  private readonly model = signal({
+    name: '',
+    description: '',
+    primaryGameId: '',
+    joinPolicy: 'InviteOnly' as JoinPolicyName,
+  });
+  protected readonly squadForm = form(this.model, (path) => {
+    maxLength(path.name, MAX_NAME_LENGTH);
+    maxLength(path.description, MAX_DESCRIPTION_LENGTH);
+  });
+  protected readonly joinPolicy = computed(() => this.model().joinPolicy);
 
   /** Every chip shown, in order — presets first, then "＋ channel" additions. */
   protected readonly channels = signal<string[]>([...PRESET_CHANNELS]);
   protected readonly selectedChannels = signal<string[]>([...DEFAULT_SELECTED]);
   protected readonly isAddingChannel = signal(false);
+  /** The "＋ channel" chip input — its own one-field form, committed into `channels`. */
   protected readonly newChannelName = signal('');
+  protected readonly newChannelField = form(this.newChannelName, (path) => maxLength(path, MAX_CHANNEL_NAME_LENGTH));
 
   protected readonly invitees = signal<string[]>([]);
   protected readonly isInviting = signal(false);
@@ -197,11 +208,12 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
   }
 
   protected saveDraft(): void {
+    const { name, description, primaryGameId, joinPolicy } = this.model();
     const draft: SquadDraft = {
-      name: this.name(),
-      description: this.description(),
-      primaryGameId: this.primaryGameId(),
-      joinPolicy: this.joinPolicy(),
+      name,
+      description,
+      primaryGameId: primaryGameId ? Number(primaryGameId) : null,
+      joinPolicy,
       channels: this.channels(),
       selectedChannels: this.selectedChannels(),
       invitees: this.invitees(),
@@ -216,12 +228,13 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
 
   submit(): void {
     this.errorMessage.set(null);
-    const name = this.name().trim();
+    const { description, primaryGameId, joinPolicy } = this.model();
+    const name = this.model().name.trim();
     if (!name) {
       this.errorMessage.set('Squad name is required.');
       return;
     }
-    if (this.description().length > MAX_DESCRIPTION_LENGTH) {
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
       this.errorMessage.set(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.`);
       return;
     }
@@ -234,9 +247,9 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
     this.squadService
       .create({
         name,
-        description: this.description().trim() || undefined,
-        joinPolicy: this.joinPolicy(),
-        primaryGameId: this.primaryGameId() ?? undefined,
+        description: description.trim() || undefined,
+        joinPolicy,
+        primaryGameId: primaryGameId ? Number(primaryGameId) : undefined,
         channelNames: channelNames.length > 0 ? channelNames : undefined,
         inviteUsernames: this.invitees().length > 0 ? this.invitees() : undefined,
       })
@@ -271,10 +284,12 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
         return;
       }
       const draft = JSON.parse(raw) as Partial<SquadDraft>;
-      this.name.set(draft.name ?? '');
-      this.description.set(draft.description ?? '');
-      this.primaryGameId.set(draft.primaryGameId ?? null);
-      this.joinPolicy.set(draft.joinPolicy ?? 'InviteOnly');
+      this.model.set({
+        name: draft.name ?? '',
+        description: draft.description ?? '',
+        primaryGameId: draft.primaryGameId != null ? String(draft.primaryGameId) : '',
+        joinPolicy: draft.joinPolicy ?? 'InviteOnly',
+      });
       if (draft.channels?.length) {
         this.channels.set(draft.channels);
       }

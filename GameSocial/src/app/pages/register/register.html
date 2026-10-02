@@ -5,42 +5,42 @@
       <p class="text-muted">Create your account.</p>
     </div>
 
-    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="auth-form" [formRoot]="registerForm">
       <div class="form-group">
         <label for="username">Username</label>
-        <input type="text" id="username" formControlName="username" placeholder="Choose a username">
-        @if (form.controls.username.invalid && form.controls.username.touched) {
-          <span class="field-error">Username must be at least 3 characters.</span>
+        <input type="text" id="username" [formField]="registerForm.username" placeholder="Choose a username">
+        @if (fieldError(registerForm.username()); as message) {
+          <span class="field-error">{{ message }}</span>
         }
       </div>
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" id="email" formControlName="email" placeholder="Enter your email">
-        @if (form.controls.email.invalid && form.controls.email.touched) {
-          <span class="field-error">Enter a valid email address.</span>
+        <input type="email" id="email" [formField]="registerForm.email" placeholder="Enter your email">
+        @if (fieldError(registerForm.email()); as message) {
+          <span class="field-error">{{ message }}</span>
         }
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" formControlName="password" placeholder="Create a password">
-        @if (form.controls.password.invalid && form.controls.password.touched) {
-          <span class="field-error">Password must be at least 8 characters.</span>
+        <input type="password" id="password" [formField]="registerForm.password" placeholder="Create a password">
+        @if (fieldError(registerForm.password()); as message) {
+          <span class="field-error">{{ message }}</span>
         }
       </div>
       <div class="form-group form-group-checkbox">
         <label for="requestDeveloper">
-          <input type="checkbox" id="requestDeveloper" formControlName="requestDeveloper">
+          <input type="checkbox" id="requestDeveloper" [formField]="registerForm.requestDeveloper">
           I'm a game developer — request a developer account
         </label>
         <span class="field-hint">An admin verifies the studio before devlogs and the developer badge unlock.</span>
       </div>
 
-      @if (errorMessage()) {
-        <p class="form-error">{{ errorMessage() }}</p>
+      @if (submitError(registerForm()); as message) {
+        <p class="form-error">{{ message }}</p>
       }
 
-      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isSubmitting()">
-        {{ isSubmitting() ? 'Creating account...' : 'Register' }}
+      <button type="submit" class="btn btn-primary auth-submit" [disabled]="registerForm().submitting()">
+        {{ registerForm().submitting() ? 'Creating account...' : 'Register' }}
       </button>
     </form>
 

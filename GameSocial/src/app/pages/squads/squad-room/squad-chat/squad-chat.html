@@ -140,10 +140,9 @@
         id="squad-chat-input"
         type="text"
         class="composer-input"
-        maxlength="1000"
         autocomplete="off"
-        [ngModel]="draft()"
-        (ngModelChange)="onDraft($event)"
+        [formField]="draftField"
+        (input)="onDraftInput($event)"
         [placeholder]="placeholder()"
         (keydown.enter)="$event.preventDefault(); submit()">
       <!-- Telefon: ▶ ▣ tek ＋ menüsüne toplanır (squad-chat.mobile.scss); menü input'un üstünde açılır. -->

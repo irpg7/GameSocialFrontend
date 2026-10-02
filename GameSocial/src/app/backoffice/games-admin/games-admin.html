@@ -6,19 +6,19 @@
     <h2>New game</h2>
     <div class="form-group">
       <label for="new-game-name">Name</label>
-      <input id="new-game-name" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Game name">
+      <input id="new-game-name" type="text" [formField]="newForm.name" placeholder="Game name">
     </div>
     <div class="form-group">
       <label for="new-game-studio">Studio <span class="text-muted">(optional)</span></label>
-      <input id="new-game-studio" type="text" maxlength="150" [ngModel]="newStudio()" (ngModelChange)="newStudio.set($event)" placeholder="e.g. Kuytu Studio">
+      <input id="new-game-studio" type="text" [formField]="newForm.studio" placeholder="e.g. Kuytu Studio">
     </div>
     <div class="form-group">
       <label for="new-game-release">Release date <span class="text-muted">(optional — caps "hours played" on reviews)</span></label>
-      <input id="new-game-release" type="date" [ngModel]="newReleaseDate()" (ngModelChange)="newReleaseDate.set($event)">
+      <input id="new-game-release" type="date" [formField]="newForm.releaseDate">
     </div>
     <div class="form-group">
       <label for="new-game-developer">Developer username <span class="text-muted">(optional — their replies pin as ◆ YAPIMCI)</span></label>
-      <input id="new-game-developer" type="text" [ngModel]="newDeveloper()" (ngModelChange)="newDeveloper.set($event)" placeholder="username">
+      <input id="new-game-developer" type="text" [formField]="newForm.developer" placeholder="username">
     </div>
     <div class="form-group">
       <label>Genres</label>
@@ -35,11 +35,11 @@
       <label for="new-game-poster">Poster <span class="text-muted">(optional, jpg/png/webp, max 5MB)</span></label>
       <input id="new-game-poster" type="file" accept="image/jpeg,image/png,image/webp" (change)="onNewPosterSelected($event)">
     </div>
-    @if (createError()) {
-      <p class="form-error">{{ createError() }}</p>
+    @if (createError(); as message) {
+      <p class="form-error">{{ message }}</p>
     }
-    <button type="button" class="btn btn-primary" [disabled]="isCreating()" (click)="createGame()">
-      {{ isCreating() ? 'Creating...' : 'Add game' }}
+    <button type="button" class="btn btn-primary" [disabled]="newForm().submitting()" (click)="createGame()">
+      {{ newForm().submitting() ? 'Creating...' : 'Add game' }}
     </button>
   </div>
 
@@ -67,15 +67,15 @@
                   <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onEditPosterSelected($event)">
                 </td>
                 <td>
-                  <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)">
-                  @if (editError()) {
-                    <p class="form-error">{{ editError() }}</p>
+                  <input type="text" aria-label="Name" [formField]="editForm.name">
+                  @if (editError(); as message) {
+                    <p class="form-error">{{ message }}</p>
                   }
                 </td>
                 <td>
-                  <input type="text" maxlength="150" aria-label="Studio" [ngModel]="editStudio()" (ngModelChange)="editStudio.set($event)" placeholder="Studio">
-                  <input type="text" aria-label="Developer username" [ngModel]="editDeveloper()" (ngModelChange)="editDeveloper.set($event)" placeholder="Developer username">
-                  <input type="date" aria-label="Release date" [ngModel]="editReleaseDate()" (ngModelChange)="editReleaseDate.set($event)">
+                  <input type="text" aria-label="Studio" [formField]="editForm.studio" placeholder="Studio">
+                  <input type="text" aria-label="Developer username" [formField]="editForm.developer" placeholder="Developer username">
+                  <input type="date" aria-label="Release date" [formField]="editForm.releaseDate">
                 </td>
                 <td colspan="2">
                   <div class="genre-checkbox-grid">
@@ -88,8 +88,8 @@
                   </div>
                 </td>
                 <td class="admin-table-actions">
-                  <button type="button" class="btn btn-primary btn-sm" [disabled]="isSaving()" (click)="saveEdit(game)">
-                    {{ isSaving() ? 'Saving...' : 'Save' }}
+                  <button type="button" class="btn btn-primary btn-sm" [disabled]="editForm().submitting()" (click)="saveEdit()">
+                    {{ editForm().submitting() ? 'Saving...' : 'Save' }}
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
                 </td>

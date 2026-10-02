@@ -107,9 +107,7 @@
       class="rail-input"
       placeholder="Yorum yaz…"
       aria-label="Yorum yaz"
-      maxlength="1000"
-      [ngModel]="draft()"
-      (ngModelChange)="draft.set($event)"
+      [formField]="draftField"
       (keydown.enter)="submit()" />
     <button type="button" class="rail-send" [class.ready]="draft().trim().length > 0" [disabled]="!canSend()" (click)="submit()">
       {{ isSubmitting() ? '…' : 'Gönder' }}

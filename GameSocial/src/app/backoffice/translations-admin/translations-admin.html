@@ -7,18 +7,18 @@
     <div class="inline-form-row">
       <div class="form-group">
         <label for="new-lang-code">Code</label>
-        <input id="new-lang-code" type="text" [ngModel]="newLanguageCode()" (ngModelChange)="newLanguageCode.set($event)" placeholder="e.g. tr, en">
+        <input id="new-lang-code" type="text" [formField]="languageForm.code" placeholder="e.g. tr, en">
       </div>
       <div class="form-group">
         <label for="new-lang-name">Name</label>
-        <input id="new-lang-name" type="text" [ngModel]="newLanguageName()" (ngModelChange)="newLanguageName.set($event)" placeholder="e.g. Türkçe">
+        <input id="new-lang-name" type="text" [formField]="languageForm.name" placeholder="e.g. Türkçe">
       </div>
-      <button type="button" class="btn btn-primary" [disabled]="isCreatingLanguage()" (click)="createLanguage()">
-        {{ isCreatingLanguage() ? 'Adding...' : 'Add language' }}
+      <button type="button" class="btn btn-primary" [disabled]="languageForm().submitting()" (click)="createLanguage()">
+        {{ languageForm().submitting() ? 'Adding...' : 'Add language' }}
       </button>
     </div>
-    @if (languageError()) {
-      <p class="form-error">{{ languageError() }}</p>
+    @if (languageError(); as message) {
+      <p class="form-error">{{ message }}</p>
     }
   </div>
 
@@ -46,18 +46,18 @@
         <div class="inline-form-row">
           <div class="form-group">
             <label for="new-key">Key</label>
-            <input id="new-key" type="text" [ngModel]="newKey()" (ngModelChange)="newKey.set($event)" placeholder="e.g. Validation.BodyRequired">
+            <input id="new-key" type="text" [formField]="keyForm.key" placeholder="e.g. Validation.BodyRequired">
           </div>
           <div class="form-group">
             <label for="new-value">Value</label>
-            <input id="new-value" type="text" [ngModel]="newValue()" (ngModelChange)="newValue.set($event)">
+            <input id="new-value" type="text" [formField]="keyForm.value">
           </div>
-          <button type="button" class="btn btn-primary" [disabled]="isAddingKey()" (click)="addKey()">
-            {{ isAddingKey() ? 'Adding...' : 'Add key' }}
+          <button type="button" class="btn btn-primary" [disabled]="keyForm().submitting()" (click)="addKey()">
+            {{ keyForm().submitting() ? 'Adding...' : 'Add key' }}
           </button>
         </div>
-        @if (newKeyError()) {
-          <p class="form-error">{{ newKeyError() }}</p>
+        @if (newKeyError(); as message) {
+          <p class="form-error">{{ message }}</p>
         }
       </div>
 
@@ -74,18 +74,19 @@
               </tr>
             </thead>
             <tbody>
-              @for (row of rows(); track row.key) {
+              @for (rowField of rowsForm; track $index) {
+                @let row = rowField().value();
                 <tr>
                   <td>{{ row.key }}</td>
                   <td>
-                    <input type="text" [ngModel]="row.value" (ngModelChange)="updateRowValue(row, $event)">
+                    <input type="text" [attr.aria-label]="row.key" [formField]="rowField.value">
                   </td>
                   <td class="admin-table-actions">
                     <button
                       type="button"
                       class="btn btn-primary btn-sm"
                       [disabled]="row.isSaving || row.value === row.savedValue"
-                      (click)="saveTranslation(row)">
+                      (click)="saveTranslation(row.key)">
                       {{ row.isSaving ? 'Saving...' : 'Save' }}
                     </button>
                   </td>

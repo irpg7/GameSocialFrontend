@@ -1,5 +1,5 @@
 import { Component, ElementRef, afterRenderEffect, computed, input, output, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 import { SharedPostPreviewModel, SquadMessageModel } from '../../../../models/squad.model';
 import { clock, clockTime } from '../squad-format';
 import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
@@ -34,7 +34,7 @@ export interface ReactRequest {
  */
 @Component({
   selector: 'app-squad-chat',
-  imports: [ImgFallback, FormsModule],
+  imports: [ImgFallback, FormField],
   templateUrl: './squad-chat.html',
   styleUrls: ['./squad-chat.scss', './squad-chat.mobile.scss'],
   host: {
@@ -66,6 +66,8 @@ export class SquadChat {
 
   protected readonly quickReactions = ['▲', '🔥', '😂', '👍'];
   protected readonly draft = signal('');
+  /** Composer: single-field Signal Form; `draft` stays the model. */
+  protected readonly draftField = form(this.draft, (path) => maxLength(path, 1000));
   protected readonly clock = clock;
   protected readonly isAttachOpen = signal(false);
 
@@ -131,9 +133,9 @@ export class SquadChat {
     return postType === 'Clip' ? 'clip' : postType === 'Screenshots' ? 'screenshot' : 'post';
   }
 
-  protected onDraft(value: string): void {
-    this.draft.set(value);
-    if (value.trim()) {
+  /** User keystrokes only (the field binding already wrote the model) — clearing after send doesn't count as typing. */
+  protected onDraftInput(event: Event): void {
+    if ((event.target as HTMLInputElement).value.trim()) {
       this.typing.emit();
     }
   }

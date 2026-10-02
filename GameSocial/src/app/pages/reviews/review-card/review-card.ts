@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { finalize, forkJoin, of, catchError } from 'rxjs';
 import { PostModel } from '../../../models/post.model';
@@ -45,7 +45,7 @@ interface ThreadComment {
  */
 @Component({
   selector: 'app-review-card',
-  imports: [ImgFallback, PostEditSheet, FormsModule, NgTemplateOutlet, RouterLink, StarRating, RichText],
+  imports: [ImgFallback, PostEditSheet, FormField, NgTemplateOutlet, RouterLink, StarRating, RichText],
   templateUrl: './review-card.html',
   styleUrl: './review-card.scss',
   host: {
@@ -69,6 +69,8 @@ export class ReviewCard implements OnInit {
   protected readonly confirmingDelete = signal(false);
   protected readonly editingCommentId = signal<string | null>(null);
   protected readonly editCommentBody = signal('');
+  /** Inline comment edit input (Signal Forms); the model is `editCommentBody`. */
+  protected readonly editCommentField = form(this.editCommentBody, (path) => maxLength(path, 1000));
 
   protected readonly formatTimeAgo = formatTimeAgo;
 
@@ -84,6 +86,8 @@ export class ReviewCard implements OnInit {
   protected readonly threadPage = signal(1);
   protected readonly isLoadingThread = signal(false);
   protected readonly draft = signal('');
+  /** Comment composer input (Signal Forms); the model is `draft`, which send() reads and clears. */
+  protected readonly draftField = form(this.draft);
   protected readonly replyTo = signal<CommentModel | null>(null);
   protected readonly isPosting = signal(false);
 

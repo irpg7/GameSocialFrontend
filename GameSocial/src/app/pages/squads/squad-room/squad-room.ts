@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Observable, finalize, map } from 'rxjs';
 import { SquadService } from '../../../services/squad/squad.service';
@@ -75,7 +75,7 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
   selector: 'app-squad-room',
   imports: [
     RouterLink,
-    FormsModule,
+    FormField,
     SquadSidebar,
     SquadBanner,
     SquadRoomHeader,
@@ -195,6 +195,8 @@ export class SquadRoom {
   protected readonly composerTarget = signal<ComposerTarget | null>(null);
   protected readonly isAddChannelOpen = signal(false);
   protected readonly newChannelName = signal('');
+  /** "Kanal ekle" sheet: single-field Signal Form; `newChannelName` stays the model. */
+  protected readonly channelNameField = form(this.newChannelName, (path) => maxLength(path, 50));
   protected readonly isAddingChannel = signal(false);
   protected readonly addChannelError = signal<string | null>(null);
 

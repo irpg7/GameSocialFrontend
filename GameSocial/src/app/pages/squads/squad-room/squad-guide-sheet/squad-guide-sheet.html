@@ -41,9 +41,7 @@
       <input
         id="guide-title"
         type="text"
-        [maxlength]="maxTitle"
-        [ngModel]="title()"
-        (ngModelChange)="title.set($event)"
+        [formField]="guideForm.title"
         placeholder="Boss 7 — sağ platform rotası">
     </div>
 
@@ -52,20 +50,18 @@
       <textarea
         id="guide-description"
         rows="2"
-        [maxlength]="maxDescription"
-        [ngModel]="description()"
-        (ngModelChange)="description.set($event)"
+        [formField]="guideForm.description"
         placeholder="Hitbox bug'ından kaçmanın tek yolu. 2 klip + 4 görsel, adım adım."></textarea>
     </div>
 
     @if (games().length > 0) {
       <div class="form-group">
         <label for="guide-game">Oyun</label>
-        <select id="guide-game" [ngModel]="gameId()" (ngModelChange)="gameId.set($event)">
+        <select id="guide-game" [formField]="guideForm.gameId">
           <button><selectedcontent></selectedcontent></button>
-          <option [ngValue]="null">— Oyun yok —</option>
+          <option value="">— Oyun yok —</option>
           @for (game of games(); track game.id) {
-            <option [ngValue]="game.id">{{ game.name }}</option>
+            <option [value]="'' + game.id">{{ game.name }}</option>
           }
         </select>
       </div>

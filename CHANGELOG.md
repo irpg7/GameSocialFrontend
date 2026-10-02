@@ -4,6 +4,13 @@ Newest first. One or two lines per change: what + why, with the key file/area. M
 date when it's committed. Paths are relative to `GameSocial/src/app`.
 
 ## Unreleased
+- All forms moved to Signal Forms (`@angular/forms/signals`); FormsModule / ReactiveFormsModule / ngModel are gone. Login and
+  register submit through `[formRoot]` + `submission.action` (server errors come back as form errors). Shared helpers in
+  `shared/form-errors.ts` (`fieldError`, `submitError`, `serverError`). Length/min/max limits moved from attributes to schema rules.
+- New `shared/select-control.ts` (`select[formField]`). Signal Forms' built-in select handling loops forever against Chrome's
+  customizable `<select>` (`<selectedcontent>`) and crashed the tab when a sheet opened; this directive takes over as a
+  custom control. Import it wherever a `<select [formField]>` is used.
+- Session sheet: capacity outside 2–32 now shows "Spots must be between 2 and 32." (before, the button did nothing).
 - Squads on phones (≤ 768px, from the "Tavern Squads — Mobile" prototype). The room route is `immersive` (no topbar /
   tab bar). `squad-room-header` replaces the banner, the sidebar becomes the ☰ drawer, the rail moves to
   `squad-members-sheet`, and a long press opens `squad-message-sheet` (7 reactions, pin, copy, profile). The composer's

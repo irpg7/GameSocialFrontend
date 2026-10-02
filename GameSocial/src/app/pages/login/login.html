@@ -6,28 +6,28 @@
       <p class="text-muted">Pull up a stool — your party's waiting.</p>
     </div>
 
-    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="auth-form" [formRoot]="loginForm">
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" id="email" formControlName="email" placeholder="Enter your email">
-        @if (form.controls.email.invalid && form.controls.email.touched) {
-          <span class="field-error">Enter a valid email address.</span>
+        <input type="email" id="email" [formField]="loginForm.email" placeholder="Enter your email">
+        @if (fieldError(loginForm.email()); as message) {
+          <span class="field-error">{{ message }}</span>
         }
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" formControlName="password" placeholder="Enter your password">
-        @if (form.controls.password.invalid && form.controls.password.touched) {
-          <span class="field-error">Password is required.</span>
+        <input type="password" id="password" [formField]="loginForm.password" placeholder="Enter your password">
+        @if (fieldError(loginForm.password()); as message) {
+          <span class="field-error">{{ message }}</span>
         }
       </div>
 
-      @if (errorMessage()) {
-        <p class="form-error">{{ errorMessage() }}</p>
+      @if (submitError(loginForm()); as message) {
+        <p class="form-error">{{ message }}</p>
       }
 
-      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isSubmitting()">
-        {{ isSubmitting() ? 'Logging in...' : 'Login' }}
+      <button type="submit" class="btn btn-primary auth-submit" [disabled]="loginForm().submitting()">
+        {{ loginForm().submitting() ? 'Logging in...' : 'Login' }}
       </button>
     </form>
 

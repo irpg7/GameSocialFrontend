@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormField, form } from '@angular/forms/signals';
 import { Observable, Subscription, catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, of, skip } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
 import { SquadHubService } from '../../services/squad/squad-hub.service';
@@ -40,7 +40,7 @@ const BROWSE_PAGE = 12;
 @Component({
   selector: 'app-squads',
   imports: [ImgFallback, NgTemplateOutlet,
-    FormsModule,
+    FormField,
     RouterLink,
     SquadCreateSheet,
     HubSquadCard,
@@ -74,6 +74,8 @@ export class Squads implements OnInit {
   protected readonly discoverError = signal(false);
   protected readonly requestedIds = signal<string[]>([]);
   protected readonly searchQuery = signal('');
+  /** Single-field Signal Form over the hub search box; `searchQuery` stays the model. */
+  protected readonly searchField = form(this.searchQuery);
   protected readonly searchTerm = computed(() => this.searchQuery().trim());
   protected readonly isBrowsingAll = signal(false);
   protected readonly discoverPage = signal(1);

@@ -212,9 +212,7 @@
         <input
           id="new-channel-name"
           type="text"
-          maxlength="50"
-          [ngModel]="newChannelName()"
-          (ngModelChange)="newChannelName.set($event)"
+          [formField]="channelNameField"
           placeholder="builds"
           (keydown.enter)="$event.preventDefault(); addChannel()">
       </div>

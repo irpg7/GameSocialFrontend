@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CommentModel, CommentSort } from '../../../models/comment.model';
@@ -24,7 +24,7 @@ interface ReplyThread {
  */
 @Component({
   selector: 'app-clip-rail-comments',
-  imports: [ImgFallback, FormsModule, RouterLink, NgTemplateOutlet],
+  imports: [ImgFallback, FormField, RouterLink, NgTemplateOutlet],
   templateUrl: './clip-rail-comments.html',
   styleUrl: './clip-rail-comments.scss',
   host: { class: 'clip-rail-comments' },
@@ -50,6 +50,8 @@ export class ClipRailComments {
   protected readonly page = signal(1);
   protected readonly hasMore = signal(false);
   protected readonly draft = signal('');
+  /** Composer input (Signal Forms); its model is `draft`, which submit() reads and clears. */
+  protected readonly draftField = form(this.draft, (path) => maxLength(path, 1000));
   protected readonly isSubmitting = signal(false);
   protected readonly replyTo = signal<CommentModel | null>(null);
   protected readonly threads = signal<Record<string, ReplyThread>>({});

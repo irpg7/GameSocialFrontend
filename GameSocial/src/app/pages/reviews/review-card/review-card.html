@@ -80,8 +80,7 @@
             class="rc-input"
             [attr.aria-label]="placeholder()"
             [placeholder]="placeholder()"
-            [ngModel]="draft()"
-            (ngModelChange)="draft.set($event)"
+            [formField]="draftField"
             (keydown.enter)="send()" />
           <button type="button" class="rc-send" [class.ready]="hasDraft()" [disabled]="!hasDraft() || isPosting()" (click)="send()">Gönder</button>
         </div>
@@ -157,10 +156,8 @@
         <div class="rc-c-edit">
           <input
             type="text"
-            maxlength="1000"
             aria-label="Yorumu düzenle"
-            [ngModel]="editCommentBody()"
-            (ngModelChange)="editCommentBody.set($event)"
+            [formField]="editCommentField"
             (keydown.enter)="saveEditComment(c)"
             (keydown.escape)="editingCommentId.set(null)" />
           <button type="button" class="rc-c-action" [disabled]="!editCommentBody().trim()" (click)="saveEditComment(c)">Kaydet</button>

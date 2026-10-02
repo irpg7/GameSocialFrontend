@@ -44,6 +44,10 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
   `media-query.ts` (`mediaQuery(PHONE_QUERY)` signal — only for markup that differs on phones; styling stays in
   `@media`). Phone styles go in a sibling `*.mobile.scss` (styleUrls) to stay under the CSS budget.
 - Route data: `flush` (no content inset) and `immersive` (phones hide topbar + tab bar; the squad room).
+- Forms: Signal Forms only (`form()` + `[formField]`, `[formRoot]` + `submission.action` for real forms); no FormsModule/ngModel.
+  Messages via `shared/form-errors.ts`. **Every `<select [formField]>` needs `SelectControl` (`shared/select-control.ts`) in the
+  component's imports** — without it Chrome's customizable select loops with Signal Forms and crashes the tab.
+  Limits go in the schema (`maxLength`, `min`, `max`), not as `maxlength`/`min`/`max` attributes (NG8022).
 - `layout/` — `main-layout`, `topbar` (brand: `assets/tavern-logo.png` + "Tavern"), `toast-list`.
 - Toasts: `NotificationService.success()/error()`. Current user: `AuthService.currentUser()` (from JWT claims);
   full profile: `MeService.me()`.

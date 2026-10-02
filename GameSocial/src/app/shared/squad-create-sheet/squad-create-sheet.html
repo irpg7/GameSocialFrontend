@@ -22,17 +22,15 @@
           id="squad-name"
           class="create-box create-name"
           type="text"
-          [ngModel]="name()"
-          (ngModelChange)="name.set($event)"
-          [maxlength]="maxNameLength"
+          [formField]="squadForm.name"
           placeholder="Squad name" />
 
         <label class="visually-hidden" for="squad-game">Main game</label>
-        <select id="squad-game" class="create-box create-game" [ngModel]="primaryGameId()" (ngModelChange)="primaryGameId.set($event)">
+        <select id="squad-game" class="create-box create-game" [formField]="squadForm.primaryGameId">
           <button><selectedcontent></selectedcontent></button>
-          <option [ngValue]="null">Main game — none</option>
+          <option value="">Main game — none</option>
           @for (game of games(); track game.id) {
-            <option [ngValue]="game.id">Main game — {{ game.name }}</option>
+            <option [value]="'' + game.id">Main game — {{ game.name }}</option>
           }
         </select>
       </div>
@@ -43,9 +41,7 @@
       id="squad-description"
       class="create-purpose"
       rows="2"
-      [ngModel]="description()"
-      (ngModelChange)="description.set($event)"
-      [maxlength]="maxDescriptionLength"
+      [formField]="squadForm.description"
       placeholder="What is this squad for? Weeknight raids, no mic shaming…"></textarea>
 
     <fieldset class="create-group">
@@ -56,10 +52,8 @@
             <input
               type="radio"
               class="visually-hidden"
-              name="createJoinPolicy"
               [value]="policy.value"
-              [checked]="joinPolicy() === policy.value"
-              (change)="joinPolicy.set(policy.value)" />
+              [formField]="squadForm.joinPolicy" />
             <span class="policy-card-label">{{ policy.label }}</span>
             <span class="policy-card-desc">{{ policy.description }}</span>
           </label>
@@ -84,9 +78,7 @@
             <input
               id="new-channel"
               type="text"
-              [maxlength]="maxChannelNameLength"
-              [ngModel]="newChannelName()"
-              (ngModelChange)="newChannelName.set($event)"
+              [formField]="newChannelField"
               (keydown.enter)="$event.preventDefault(); commitChannel()"
               (keydown.escape)="$event.stopPropagation(); cancelChannel()"
               (blur)="commitChannel()"

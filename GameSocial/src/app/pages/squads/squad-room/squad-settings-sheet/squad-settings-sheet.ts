@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
+import { FormField, disabled, form, maxLength } from '@angular/forms/signals';
+import { SelectControl } from '../../../../shared/select-control';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs';
 import { SquadService } from '../../../../services/squad/squad.service';
 import { SquadHubService } from '../../../../services/squad/squad-hub.service';
@@ -53,7 +54,7 @@ const numberFormat = new Intl.NumberFormat('en-US');
  */
 @Component({
   selector: 'app-squad-settings-sheet',
-  imports: [ImgFallback, FormsModule, SquadSheetFrame],
+  imports: [ImgFallback, FormField, SelectControl, SquadSheetFrame],
   templateUrl: './squad-settings-sheet.html',
   styleUrl: './squad-settings-sheet.scss',
 })
@@ -93,8 +94,18 @@ export class SquadSettingsSheet implements OnInit {
   protected readonly isFounder = computed(() => this.myRole() === 'Captain');
 
   // Form state seeded from the squad, re-seeded when a different squad loads.
-  protected readonly name = linkedSignal(() => this.squad().name);
-  protected readonly joinPolicy = linkedSignal<JoinPolicyName>(() => this.squad().joinPolicy);
+  // "Genel" tab: name + join policy as one Signal Form; only founders/admins may edit them.
+  private readonly generalModel = linkedSignal(() => ({
+    name: this.squad().name,
+    joinPolicy: this.squad().joinPolicy as JoinPolicyName,
+  }));
+  protected readonly generalForm = form(this.generalModel, (path) => {
+    maxLength(path.name, 100);
+    disabled(path.name, { when: () => !this.canManage() });
+    disabled(path.joinPolicy, { when: () => !this.canManage() });
+  });
+  protected readonly name = computed(() => this.generalModel().name);
+  protected readonly joinPolicy = computed(() => this.generalModel().joinPolicy);
   protected readonly selectedGames = linkedSignal<SquadGameModel[]>(() => this.squad().games);
   protected readonly rules = linkedSignal<Record<RuleKey, boolean>>(() => ({
     allowMemberUploads: this.squad().allowMemberUploads,
@@ -125,6 +136,7 @@ export class SquadSettingsSheet implements OnInit {
   // ─── Game picker ────────────────────────────────────────────────────────
   protected readonly isGamePickerOpen = signal(false);
   protected readonly gameQuery = signal('');
+  protected readonly gameQueryField = form(this.gameQuery);
   protected readonly gameOptions = signal<SquadGameOptionModel[]>([]);
   protected readonly gameTotal = signal(0);
   protected readonly isLoadingGames = signal(false);
@@ -140,6 +152,7 @@ export class SquadSettingsSheet implements OnInit {
   protected readonly busyUserId = signal<string | null>(null);
   protected readonly isInviteOpen = signal(false);
   protected readonly inviteUsername = signal('');
+  protected readonly inviteField = form(this.inviteUsername);
   protected readonly isInviting = signal(false);
   protected readonly inviteError = signal<string | null>(null);
 
@@ -148,7 +161,9 @@ export class SquadSettingsSheet implements OnInit {
   protected readonly isUploadingIcon = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly leaveStep = signal<'idle' | 'confirm'>('idle');
-  protected readonly transferTargetId = signal<string | null>(null);
+  /** New founder when the captain leaves; '' = none picked. */
+  protected readonly transferTargetId = signal('');
+  protected readonly transferField = form(this.transferTargetId);
   protected readonly isLeaving = signal(false);
 
   protected readonly otherActiveMembers = computed(() =>
@@ -471,7 +486,7 @@ export class SquadSettingsSheet implements OnInit {
 
   protected startLeave(): void {
     this.leaveStep.set('confirm');
-    this.transferTargetId.set(this.otherActiveMembers()[0]?.userId ?? null);
+    this.transferTargetId.set(this.otherActiveMembers()[0]?.userId ?? '');
   }
 
   protected cancelLeave(): void {

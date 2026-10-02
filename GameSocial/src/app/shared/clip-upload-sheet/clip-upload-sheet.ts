@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, computed, inject, output, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
+import { SelectControl } from '../select-control';
 import { finalize } from 'rxjs';
 import { SheetModal } from '../sheet-modal/sheet-modal';
 import { PostService } from '../../services/post/post.service';
@@ -30,7 +31,7 @@ const MAX_TAG_LENGTH = 30;
  */
 @Component({
   selector: 'app-clip-upload-sheet',
-  imports: [SheetModal, FormsModule],
+  imports: [SheetModal, FormField],
   templateUrl: './clip-upload-sheet.html',
   styleUrl: './clip-upload-sheet.scss',
 })
@@ -54,18 +55,26 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
   protected readonly fileDuration = signal<number | null>(null);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly isDragging = signal(false);
-  protected readonly title = signal('');
-  protected readonly gameId = signal<number | null>(null);
-  protected readonly squadId = signal<string | null>(null);
+
+  /**
+   * Title + game + squad (Signal Forms). Selects hold strings: `gameId` is the game's id as text
+   * ('' = none yet), `squadId` is '' for "＋ Tag a squad".
+   */
+  private readonly model = signal({ title: '', gameId: '', squadId: '' });
+  protected readonly clipForm = form(this.model, (path) => {
+    maxLength(path.title, MAX_TITLE);
+  });
+  protected readonly squadId = computed(() => this.model().squadId || null);
+
   protected readonly alsoPostToSquad = signal(true);
   protected readonly tags = signal<string[]>([]);
+  /** The "＋ tag" chip input — its own one-field form, committed into `tags`. */
   protected readonly tagDraft = signal('');
+  protected readonly tagField = form(this.tagDraft, (path) => maxLength(path, MAX_TAG_LENGTH));
   protected readonly isAddingTag = signal(false);
   protected readonly isSubmitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly maxTitle = MAX_TITLE;
-  protected readonly maxTagLength = MAX_TAG_LENGTH;
   protected readonly xp = computed(() => this.xpAwards.amount('clip'));
   protected readonly squad = computed(() => this.squads().find((s) => s.id === this.squadId()) ?? null);
   protected readonly durationLabel = computed(() => {
@@ -79,8 +88,8 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
     this.gameService.getGames().subscribe({
       next: (games) => {
         this.games.set(games);
-        if (this.gameId() === null && games.length > 0) {
-          this.gameId.set(games[0].id);
+        if (!this.model().gameId && games.length > 0) {
+          this.model.update((m) => ({ ...m, gameId: String(games[0].id) }));
         }
       },
       error: () => this.notificationService.error('Oyunlar yüklenemedi.'),
@@ -89,7 +98,7 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
       next: (squads) => {
         this.squads.set(squads);
         if (squads.length > 0) {
-          this.squadId.set(squads[0].id);
+          this.model.update((m) => ({ ...m, squadId: squads[0].id }));
         }
       },
       error: () => void 0,
@@ -158,8 +167,9 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
     this.file.set(file);
     this.fileDuration.set(null);
     this.previewUrl.set(URL.createObjectURL(file));
-    if (!this.title().trim()) {
-      this.title.set(file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, MAX_TITLE));
+    if (!this.model().title.trim()) {
+      const title = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, MAX_TITLE);
+      this.model.update((m) => ({ ...m, title }));
     }
   }
 
@@ -222,7 +232,8 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
       this.error.set('Önce bir klip seç.');
       return;
     }
-    if (this.gameId() === null) {
+    const { title: rawTitle, gameId, squadId } = this.model();
+    if (!gameId) {
       this.error.set('Bir oyun seç.');
       return;
     }
@@ -230,13 +241,13 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
 
     const form = new FormData();
     form.append('PostType', String(PostType.Clip));
-    form.append('GameId', String(this.gameId()));
-    const title = this.title().trim();
+    form.append('GameId', gameId);
+    const title = rawTitle.trim();
     if (title) {
       form.append('Caption', title);
     }
-    if (this.squadId() && this.alsoPostToSquad()) {
-      form.append('SquadId', this.squadId()!);
+    if (squadId && this.alsoPostToSquad()) {
+      form.append('SquadId', squadId);
     }
     for (const tag of this.tags()) {
       form.append('Tags', tag);
