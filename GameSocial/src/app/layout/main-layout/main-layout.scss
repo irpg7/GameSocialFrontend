@@ -20,6 +20,17 @@
   }
 }
 
+// Immersive routes (`data: { immersive: true }`, the squad room): on phones the
+// page takes the whole screen — no topbar, no bottom tab bar.
+.layout-immersive {
+  @media (max-width: 768px) {
+    .layout-topbar,
+    app-mobile-tab-bar {
+      display: none;
+    }
+  }
+}
+
 .layout-body {
   flex-grow: 1;
   display: flex;

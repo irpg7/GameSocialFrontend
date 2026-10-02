@@ -40,7 +40,10 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
 - `shared/` — reusable UI: `sheet-modal`, `squad-create-sheet` (+ `squad-sheet-frame` for small sheets),
   `player-picker` (username combobox: followed users first, then `/api/search`; only real accounts),
   `review-sheet`, `clip-stage`, `photo-viewer`, `star-rating`, `api-error.util.ts`
-  (`extractApiErrorMessage(err, fallback)` — always use it for server messages).
+  (`extractApiErrorMessage(err, fallback)` — always use it for server messages), `bottom-sheet` (phone sheet),
+  `media-query.ts` (`mediaQuery(PHONE_QUERY)` signal — only for markup that differs on phones; styling stays in
+  `@media`). Phone styles go in a sibling `*.mobile.scss` (styleUrls) to stay under the CSS budget.
+- Route data: `flush` (no content inset) and `immersive` (phones hide topbar + tab bar; the squad room).
 - `layout/` — `main-layout`, `topbar` (brand: `assets/tavern-logo.png` + "Tavern"), `toast-list`.
 - Toasts: `NotificationService.success()/error()`. Current user: `AuthService.currentUser()` (from JWT claims);
   full profile: `MeService.me()`.

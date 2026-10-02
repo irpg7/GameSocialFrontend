@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
@@ -34,14 +34,23 @@ export class MainLayout implements OnInit {
    * sidebar sits flush against the topbar and scrolls independently of the
    * main column (bkz. Gamer Feed.dc.html `onSquad`).
    */
-  protected readonly isFlush = toSignal(
+  private readonly routeData = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       startWith(null),
-      map(() => this.deepestRouteData()['flush'] === true),
+      map(() => this.deepestRouteData()),
     ),
-    { initialValue: false },
+    { initialValue: {} as Record<string, unknown> },
   );
+
+  protected readonly isFlush = computed(() => this.routeData()['flush'] === true);
+
+  /**
+   * Routes marked `data: { immersive: true }` hide the topbar and the bottom
+   * tab bar on phones (main-layout.scss) — the squad room brings its own
+   * compact header and keeps its composer at the bottom edge. Desktop is unchanged.
+   */
+  protected readonly isImmersive = computed(() => this.routeData()['immersive'] === true);
 
   ngOnInit(): void {
     // "Refetch on app init" per the live gamification-state refresh strategy —

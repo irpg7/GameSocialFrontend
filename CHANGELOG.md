@@ -4,6 +4,13 @@ Newest first. One or two lines per change: what + why, with the key file/area. M
 date when it's committed. Paths are relative to `GameSocial/src/app`.
 
 ## Unreleased
+- Squads on phones (≤ 768px, from the "Tavern Squads — Mobile" prototype). The room route is `immersive` (no topbar /
+  tab bar). `squad-room-header` replaces the banner, the sidebar becomes the ☰ drawer, the rail moves to
+  `squad-members-sheet`, and a long press opens `squad-message-sheet` (7 reactions, pin, copy, profile). The composer's
+  ▶ ▣ fold into a ＋ menu, clips stay 2 columns. The hub stacks search/buttons, puts the invite above "Your squads",
+  shows friends as a strip, and makes the whole card the room link. New `shared/bottom-sheet`, `shared/media-query`.
+- Room sidebar "Squad'larım" collapses (all sizes), collapsed by default and remembered (`arena.squadSidebar.squadsOpen`).
+  The collapsed row still shows the other squads' icons and their unread total.
 - Every feed clip now uses the "clip of the day" card: the clip-stage `feed` variant plus the "Öne çıkan yorumlar"
   thread. Only the badge differs ("CLIP OF THE DAY" / "CLIP"). The post's ··· menu (save, link, edit, delete) moved
   into the stage's buttons via the new `extraActions` input. Right to left the buttons are ⛶, mute, ···; feed

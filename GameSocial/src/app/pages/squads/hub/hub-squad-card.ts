@@ -58,14 +58,18 @@ import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
       </div>
 
       <div class="squad-actions">
-        <a class="squad-btn" [class.primary]="canManage()" [routerLink]="['/squads', squad().id]">Open room</a>
+        <!-- Telefonda kartın tamamı bu link (hub-squad-card.mobile.scss); metin yerine chevron. -->
+        <a class="squad-btn squad-open" [class.primary]="canManage()" [routerLink]="['/squads', squad().id]">
+          <span class="squad-open-label">Open room</span>
+          <svg class="squad-open-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </a>
         @if (canManage()) {
           <button type="button" class="squad-btn" (click)="invite.emit()">Invite</button>
         }
       </div>
     </article>
   `,
-  styleUrl: './hub-squad-card.scss',
+  styleUrls: ['./hub-squad-card.scss', './hub-squad-card.mobile.scss'],
 })
 export class HubSquadCard {
   squad = input.required<SquadModel>();

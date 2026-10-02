@@ -1,0 +1,122 @@
+@use '../../../../../styles/variables' as *;
+
+// Prototip "Oda · mesaj eylemleri": mesaj önizlemesi, 7 tepki (44px), eylem listesi.
+.mm-preview {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0 14px;
+  padding: 10px 12px;
+  border-radius: $border-radius-lg;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+}
+
+.mm-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  overflow: hidden;
+  background-color: $color-border-strong;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.mm-preview-text {
+  min-width: 0;
+}
+
+.mm-author {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.mm-time {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: $color-text-hint;
+}
+
+.mm-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: $color-text-body;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mm-reactions {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.mm-reaction {
+  height: 44px;
+  border-radius: $border-radius-full;
+  border: 1px solid $color-border-strong;
+  background-color: $color-bg-row;
+  color: $color-text-body;
+  font-size: 16px;
+  cursor: pointer;
+
+  &.text {
+    font-family: $font-family-mono;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  &.mine {
+    border-color: $color-accent-border;
+    background-color: $color-accent-tint;
+    color: $color-accent-light;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.mm-actions {
+  display: flex;
+  flex-direction: column;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-border;
+  overflow: hidden;
+}
+
+.mm-action {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: none;
+  background-color: $color-bg-secondary;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  & + & {
+    border-top: 1px solid $color-border;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: -2px;
+  }
+}

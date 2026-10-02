@@ -34,7 +34,9 @@ export const routes: Routes = [
         path: 'squads/:id',
         // flush: squad odası full-bleed çalışır — sol sidebar topbar'a yapışık ve
         // main kolondan bağımsız kayar (bkz. MainLayout.isFlush).
-        data: { flush: true },
+        // immersive: telefonda topbar ve alt tab bar gizlenir; oda kendi başlığını ve
+        // en altta yazma alanını gösterir (bkz. MainLayout.isImmersive).
+        data: { flush: true, immersive: true },
         loadComponent: () => import('./pages/squads/squad-room/squad-room').then((m) => m.SquadRoom),
       },
       { path: 'profile/:id', loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile) },

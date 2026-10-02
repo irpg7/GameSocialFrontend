@@ -1,0 +1,136 @@
+@use '../../../../../styles/variables' as *;
+
+// Prototip "Oda · sohbet" başlığı: #101014 zemin, alt çizgi, 44px dokunma hedefleri.
+:host {
+  display: block;
+  flex: none;
+}
+
+.rh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 6px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+  background-color: $color-bg-sheet;
+  border-bottom: 1px solid $color-border;
+}
+
+.rh-btn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.rh-btn-plain {
+  background: none;
+}
+
+.rh-mark {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  overflow: hidden;
+  background-color: $color-border-strong;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.rh-identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rh-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.rh-name {
+  margin: 0;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rh-lv {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background-color: $color-accent-tint;
+  color: $color-accent-light;
+  font-size: 10px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.rh-channel {
+  align-self: flex-start;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.rh-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: $color-presence-online;
+}
+
+.rh-sep {
+  color: $color-border-dashed;
+}
+
+.rh-channel-name {
+  color: $color-text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

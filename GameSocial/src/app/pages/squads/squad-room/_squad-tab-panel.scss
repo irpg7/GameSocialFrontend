@@ -24,6 +24,23 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+
+  // Telefon (prototip "Oda · klipler"): 36px çipler, kırmızı eylem altta tam genişlik ("＋ Upload clip").
+  @media (max-width: 768px) {
+    gap: 6px;
+
+    .filter-chip {
+      min-height: 36px;
+    }
+
+    .filter-action {
+      order: 99;
+      flex-basis: 100%;
+      min-height: 44px;
+      margin: 4px 0 0;
+      font-size: 14px;
+    }
+  }
 }
 
 .filter-chip {

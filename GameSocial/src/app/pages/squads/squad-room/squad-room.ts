@@ -42,6 +42,10 @@ import { SquadSettingsSheet } from './squad-settings-sheet/squad-settings-sheet'
 import { SquadGuideSheet } from './squad-guide-sheet/squad-guide-sheet';
 import { HubSessionSheet } from '../hub/hub-session-sheet';
 import { environment } from '../../../../environments/environment';
+import { PHONE_QUERY, mediaQuery } from '../../../shared/media-query';
+import { SquadRoomHeader } from './squad-room-header/squad-room-header';
+import { SquadMembersSheet } from './squad-members-sheet/squad-members-sheet';
+import { SquadMessageSheet } from './squad-message-sheet/squad-message-sheet';
 
 const MESSAGE_PAGE_SIZE = 50;
 const POST_PAGE_SIZE = 12;
@@ -61,6 +65,11 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
  * composes the child sections and wires the SignalR room channel
  * (messages, reactions, guides, typing, presence) plus a presence heartbeat,
  * which also refreshes the sidebar's voice sessions ("Sesli sohbet").
+ *
+ * Phones (≤ 768px, prototype "Tavern Squads — Mobile"): the route is immersive
+ * (no topbar / tab bar), the banner becomes `squad-room-header`, the sidebar
+ * the ☰ drawer, the rail the members sheet, and long-pressing a message opens
+ * the actions sheet.
  */
 @Component({
   selector: 'app-squad-room',
@@ -69,6 +78,9 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
     FormsModule,
     SquadSidebar,
     SquadBanner,
+    SquadRoomHeader,
+    SquadMembersSheet,
+    SquadMessageSheet,
     SquadChat,
     SquadClips,
     SquadScreens,
@@ -82,7 +94,10 @@ const EMPTY_LIBRARY: SquadLibraryModel = { clipCount: 0, screenCount: 0, guideCo
     PostComposer,
   ],
   templateUrl: './squad-room.html',
-  styleUrl: './squad-room.scss',
+  styleUrls: ['./squad-room.scss', './squad-room.mobile.scss'],
+  host: {
+    '(document:keydown.escape)': 'isDrawerOpen.set(false)',
+  },
 })
 export class SquadRoom {
   private route = inject(ActivatedRoute);
@@ -164,6 +179,15 @@ export class SquadRoom {
   protected readonly sessions = signal<SquadSessionModel[]>([]);
   protected readonly busySessionId = signal<string | null>(null);
   protected readonly isSessionSheetOpen = signal(false);
+
+  // ─── Phone layout ──────────────────────────────────────────────
+  protected readonly isPhone = mediaQuery(PHONE_QUERY);
+  /** ☰ drawer (the sidebar off-canvas). Closed until the header opens it. */
+  protected readonly isDrawerOpen = signal(false);
+  /** Roster + this week's board sheet (the desktop rail). */
+  protected readonly isMembersOpen = signal(false);
+  /** Long-pressed message → actions sheet. */
+  protected readonly actionMessage = signal<SquadMessageModel | null>(null);
 
   // ─── Sheets ────────────────────────────────────────────────────
   protected readonly isSettingsOpen = signal(false);
@@ -394,7 +418,60 @@ export class SquadRoom {
   }
 
   openCreateSquad(): void {
+    this.isDrawerOpen.set(false);
     this.isCreateSquadOpen.set(true);
+  }
+
+  // ─── Phone: drawer, members sheet, message actions ─────────────
+
+  /** Channel picked in the sidebar — on phones that also closes the drawer. */
+  pickChannel(channelId: string): void {
+    this.isDrawerOpen.set(false);
+    this.selectChannel(channelId);
+  }
+
+  openMembersInvite(): void {
+    this.isMembersOpen.set(false);
+    this.openSettings();
+  }
+
+  /** Captains and the author may unpin (server rule); any member may pin. */
+  canUnpin(message: SquadMessageModel): boolean {
+    return this.isCaptain() || message.userId === this.currentUserId();
+  }
+
+  reactFromSheet(message: SquadMessageModel, emoji: string): void {
+    this.actionMessage.set(null);
+    this.react({ message, emoji });
+  }
+
+  togglePinFromSheet(message: SquadMessageModel): void {
+    this.actionMessage.set(null);
+    this.squadService.toggleMessagePin(this.squadId(), message.channelId, message.id).subscribe({
+      next: (updated) => {
+        this.upsertMessage(updated);
+        this.notificationService.success(updated.isPinned ? 'Mesaj sabitlendi.' : 'Sabitleme kaldırıldı.');
+      },
+      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Mesaj sabitlenemedi.')),
+    });
+  }
+
+  copyFromSheet(message: SquadMessageModel): void {
+    this.actionMessage.set(null);
+    const text = message.body ?? '';
+    if (!text || !navigator.clipboard) {
+      this.notificationService.error('Metin kopyalanamadı.');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(
+      () => this.notificationService.success('Metin kopyalandı.'),
+      () => this.notificationService.error('Metin kopyalanamadı.'),
+    );
+  }
+
+  viewProfileFromSheet(message: SquadMessageModel): void {
+    this.actionMessage.set(null);
+    this.router.navigate(['/profile', message.userId]);
   }
 
   closeCreateSquad(): void {
@@ -408,6 +485,7 @@ export class SquadRoom {
   }
 
   openAddChannel(): void {
+    this.isDrawerOpen.set(false);
     this.isAddChannelOpen.set(true);
     this.addChannelError.set(null);
   }

@@ -1,0 +1,45 @@
+<app-bottom-sheet title="Mesaj eylemleri" [hideHeader]="true" (closed)="closed.emit()">
+  <div class="mm-preview">
+    <span class="mm-avatar" aria-hidden="true">
+      <img [appImg]="message().userAvatarUrl" fallback="avatar" alt="" />
+    </span>
+    <div class="mm-preview-text">
+      <div class="mm-author">{{ message().username }} <span class="mm-time">{{ time() }}</span></div>
+      <p class="mm-body">{{ preview() }}</p>
+    </div>
+  </div>
+
+  @if (canReact()) {
+    <div class="mm-reactions" role="group" aria-label="Tepki ver">
+      @for (emoji of reactions; track emoji) {
+        <button
+          type="button"
+          class="mm-reaction"
+          [class.mine]="mine(emoji)"
+          [class.text]="emoji === 'GG'"
+          [attr.aria-pressed]="mine(emoji)"
+          [attr.aria-label]="reactionLabel(emoji)"
+          (click)="react.emit(emoji)">{{ emoji }}</button>
+      }
+    </div>
+  }
+
+  <div class="mm-actions">
+    @if (showPin()) {
+      <button type="button" class="mm-action" (click)="togglePin.emit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5M8 3h8l-1 6 3 4H6l3-4z" /></svg>
+        {{ message().isPinned ? 'Sabitlemeyi kaldır' : 'Mesajı sabitle' }}
+      </button>
+    }
+    @if (message().body) {
+      <button type="button" class="mm-action" (click)="copy.emit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" /></svg>
+        Metni kopyala
+      </button>
+    }
+    <button type="button" class="mm-action" (click)="viewProfile.emit()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+      {{ message().username }} profilini gör
+    </button>
+  </div>
+</app-bottom-sheet>

@@ -1,0 +1,102 @@
+@use '../../../../../styles/variables' as *;
+
+// "Squad'larım" açılır/kapanır satırı (her boyutta). Masaüstünde eski başlık satırının yerini alır:
+// aynı 10px büyük harf etiket + sayı, sağda chevron. Kapalıyken diğer squad'ların küçük ikonları ve
+// okunmamış toplamı (kırmızı) sayının yanına gelir. Telefon çerçevesi: squad-sidebar.mobile.scss.
+
+.drawer-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.squads-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 4px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: $color-text-tertiary;
+  font-family: $font-family-primary;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-bg-row;
+    color: $color-text-secondary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 1px;
+  }
+
+  // Sayı başlıkta sağa yaslıydı; artık chevron sağda, sayı etiketin hemen yanında.
+  .sidebar-count {
+    margin-left: 0;
+  }
+}
+
+.squads-peek {
+  display: flex;
+  margin-left: 2px;
+}
+
+.squads-peek-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  overflow: hidden;
+  background-color: $color-border-strong;
+  box-shadow: 0 0 0 2px $color-bg-sheet;
+
+  & + & {
+    margin-left: -5px;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.squads-peek-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: $border-radius-full;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-size: 10px;
+  line-height: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.squads-chevron {
+  margin-left: auto;
+  display: flex;
+  transition: transform $transition-speed-fast;
+
+  .open & {
+    transform: rotate(90deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// Telefon dışında çekmece kontrolleri yok: kenar çubuğu hep açık, topbar da yerinde.
+.drawer-close,
+.drawer-back {
+  display: none;
+}

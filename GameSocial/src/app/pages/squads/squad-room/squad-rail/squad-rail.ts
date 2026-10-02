@@ -20,14 +20,22 @@ const BOARD_ROWS = 4;
  * çıktı"; offline rows dimmed) with the dashed invite action, and "This
  * week's board" (top four by XP earned in the last 7 days, your row
  * highlighted).
+ *
+ * On phones the same panels live in the room's members sheet, one at a time
+ * (`section` = 'roster' | 'board', picked by the sheet's tabs).
  */
 @Component({
   selector: 'app-squad-rail',
   imports: [ImgFallback, RouterLink],
   templateUrl: './squad-rail.html',
   styleUrl: './squad-rail.scss',
+  host: {
+    '[class.in-sheet]': "section() !== 'all'",
+  },
 })
 export class SquadRail {
+  /** 'all' = the desktop rail; 'roster' / 'board' = one panel inside the phone members sheet. */
+  section = input<'all' | 'roster' | 'board'>('all');
   roster = input.required<SquadMemberModel[]>();
   leaderboard = input.required<SquadLeaderboardEntryModel[]>();
   currentUserId = input<string | undefined>(undefined);

@@ -1,0 +1,137 @@
+@use '../../../../styles/variables' as *;
+
+// Telefon (≤ 768px) squad kartı — prototip "Squads · liste": 44px ikon, ad + rozet + meta, sağda chevron;
+// altta tam genişlik seviye çubuğu ve çipler. Kartın tamamı "Open room" linki (görünmez ::after katmanı);
+// yöneticinin Invite butonu bu katmanın üstünde kalır. Açıklama telefonda gösterilmez.
+
+.squad-open-chevron {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .squad {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    column-gap: 12px;
+    row-gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-radius: $border-radius-lg;
+  }
+
+  .squad-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  // Gövdenin çocukları ızgaraya katılır: başlık ikonun yanında, ilerleme alt satırda tam genişlik.
+  .squad-body {
+    display: contents;
+  }
+
+  .squad-head {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 2px 7px;
+  }
+
+  .squad-name {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 800;
+  }
+
+  .squad-meta {
+    flex-basis: 100%;
+  }
+
+  .squad-desc {
+    display: none;
+  }
+
+  // Seviye satırı tam genişlik, çipler altında — yan yana sığmıyorlar.
+  .squad-progress {
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 0;
+    gap: 10px;
+  }
+
+  .squad-level {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .squad-level-track {
+    height: 4px;
+  }
+
+  .squad-actions {
+    grid-column: 3;
+    grid-row: 1;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .squad-btn {
+    min-height: 36px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+  }
+
+  // Invite görünür ve tıklanabilir kalsın (kart linkinin üstünde).
+  button.squad-btn {
+    position: relative;
+    z-index: 1;
+  }
+
+  .squad-open {
+    padding: 0;
+    min-width: 28px;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: $color-text-tertiary;
+
+    &.primary {
+      background: none;
+      color: $color-text-tertiary;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: $border-radius-lg;
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::after {
+        outline: 2px solid $color-accent-light;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  // Ad kartın linki gibi okunur; metin ekran okuyucuya kalır.
+  .squad-open-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .squad-open-chevron {
+    display: block;
+  }
+}

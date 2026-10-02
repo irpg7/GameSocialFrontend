@@ -1,10 +1,37 @@
-<aside class="squad-sidebar" aria-label="Squad'larım ve kanallar">
-  <div class="sidebar-heading">
-    <span class="sidebar-label">Squad'larım</span>
-    <span class="sidebar-count mono">{{ squads().length }}</span>
+<aside id="squad-drawer" class="squad-sidebar" aria-label="Squad'larım ve kanallar">
+  <!-- "Squad'larım" açılır/kapanır (varsayılan kapalı, cihazda hatırlanır). Kapalıyken diğer
+       squad'ların ikonları + okunmamış toplamı görünür kalır. Telefonda yanında çekmeceyi kapatma. -->
+  <div class="drawer-top">
+    <button
+      type="button"
+      class="squads-toggle"
+      [class.open]="squadsOpen()"
+      [attr.aria-expanded]="squadsOpen()"
+      aria-controls="squad-cards"
+      (click)="toggleSquads()">
+      <span class="sidebar-label">Squad'larım</span>
+      <span class="sidebar-count mono">{{ squads().length }}</span>
+      @if (!squadsOpen()) {
+        @if (otherSquads().length > 0) {
+          <span class="squads-peek" aria-hidden="true">
+            @for (squad of otherSquads(); track squad.id) {
+              <span class="squads-peek-mark"><img [appImg]="squad.iconUrl" fallback="squad" alt="" /></span>
+            }
+          </span>
+        }
+        @if (otherActivity() > 0) {
+          <span class="squads-peek-count mono" [attr.aria-label]="otherActivityLabel()">{{ otherActivity() }}</span>
+        }
+      }
+      <span class="squads-chevron" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+      </span>
+    </button>
+    <button #closeButton type="button" class="drawer-close" aria-label="Çekmeceyi kapat" (click)="closeDrawer.emit()">&#10005;</button>
   </div>
 
-  <ul class="squad-cards">
+  @if (squadsOpen()) {
+  <ul id="squad-cards" class="squad-cards">
     @for (squad of squads(); track squad.id) {
       @let active = squad.id === activeSquadId();
       <li>
@@ -12,7 +39,8 @@
           class="squad-card"
           [class.active]="active"
           [routerLink]="['/squads', squad.id]"
-          [attr.aria-current]="active ? 'page' : null">
+          [attr.aria-current]="active ? 'page' : null"
+          (click)="squadPicked.emit()">
           <span class="squad-card-top">
             <span class="squad-card-mark" aria-hidden="true">
               <img [appImg]="squad.iconUrl" fallback="squad" alt="" />
@@ -47,6 +75,7 @@
   </ul>
 
   <button type="button" class="sidebar-dashed" (click)="createSquad.emit()">＋ Yeni squad</button>
+  }
 
   <div class="sidebar-section">
     <div class="sidebar-heading channels-heading">
@@ -155,4 +184,7 @@
         (end)="sessionEnded.emit(live)" />
     }
   }
+
+  <!-- Telefonda topbar gizli (immersive route): odadan çıkış yolu çekmecenin dibinde. -->
+  <a routerLink="/squads" class="drawer-back">← Tüm squad'lar</a>
 </aside>

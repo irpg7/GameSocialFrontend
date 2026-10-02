@@ -31,6 +31,10 @@
         <button type="button" class="btn btn-secondary" (click)="load()">Try again</button>
       </div>
     } @else {
+      @if (isPhone()) {
+        <ng-container [ngTemplateOutlet]="inviteCard" />
+      }
+
       <!-- Your squads -->
       <section aria-labelledby="hub-mine">
         <div class="section-head hub-section-head">
@@ -94,26 +98,11 @@
   </div>
 
   <aside class="hub-aside">
-    @if (visibleInvite(); as invite) {
-      <section class="hub-panel hub-invites" aria-labelledby="hub-invites-title">
-        <h2 class="section-head-label hub-panel-title" id="hub-invites-title">Squad invites</h2>
-        <div class="hub-person">
-          <span class="hub-avatar hub-avatar-38" aria-hidden="true">
-            <img [appImg]="invite.squadIconUrl" fallback="squad" alt="" />
-          </span>
-          <div class="hub-person-text">
-            <div class="hub-person-name">{{ invite.squadName }}</div>
-            <div class="hub-person-meta">{{ invite.inviterUsername }} invited you</div>
-          </div>
-        </div>
-        <div class="hub-invite-actions">
-          <button type="button" class="hub-invite-accept" [disabled]="busyId() === invite.id" (click)="acceptInvite(invite)">Accept</button>
-          <button type="button" class="hub-invite-later" (click)="postponeInvite(invite)">Later</button>
-        </div>
-      </section>
+    @if (!isPhone()) {
+      <ng-container [ngTemplateOutlet]="inviteCard" />
     }
 
-    <section class="hub-panel" aria-labelledby="hub-friends-title">
+    <section class="hub-panel hub-friends-panel" aria-labelledby="hub-friends-title">
       <h2 class="section-head-label hub-panel-title hub-panel-title-14" id="hub-friends-title">Friends online</h2>
       @if (friends().length > 0) {
         <ul class="hub-friends">
@@ -140,6 +129,28 @@
     </section>
   </aside>
 </div>
+
+<!-- Squad invite card: top of the aside on desktop, above "Your squads" on phones. -->
+<ng-template #inviteCard>
+  @if (visibleInvite(); as invite) {
+    <section class="hub-panel hub-invites" aria-labelledby="hub-invites-title">
+      <h2 class="section-head-label hub-panel-title" id="hub-invites-title">Squad invites</h2>
+      <div class="hub-person">
+        <span class="hub-avatar hub-avatar-38" aria-hidden="true">
+          <img [appImg]="invite.squadIconUrl" fallback="squad" alt="" />
+        </span>
+        <div class="hub-person-text">
+          <div class="hub-person-name">{{ invite.squadName }}</div>
+          <div class="hub-person-meta">{{ invite.inviterUsername }} invited you</div>
+        </div>
+      </div>
+      <div class="hub-invite-actions">
+        <button type="button" class="hub-invite-accept" [disabled]="busyId() === invite.id" (click)="acceptInvite(invite)">Accept</button>
+        <button type="button" class="hub-invite-later" (click)="postponeInvite(invite)">Later</button>
+      </div>
+    </section>
+  }
+</ng-template>
 
 @if (isCreateSheetOpen()) {
   <app-squad-create-sheet (created)="onCreated($event)" (closed)="isCreateSheetOpen.set(false)" />

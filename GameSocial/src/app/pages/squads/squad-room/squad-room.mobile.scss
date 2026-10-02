@@ -1,0 +1,67 @@
+@use '../../../../styles/variables' as *;
+
+// Telefon (≤ 768px) odası — prototip "Tavern Squads — Mobile": başlık (squad-room-header) + kayan
+// sekme şeridi + tam genişlik içerik. Sidebar çekmece (fixed), rail üyeler sheet'i; ikisi de
+// burada yer kaplamaz. Masaüstünde "Guides" kısa etiketi ve karartma yok.
+
+.tab-short,
+.drawer-scrim {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .room-body {
+    padding: 0;
+    gap: 0;
+  }
+
+  .room-column {
+    gap: 0;
+  }
+
+  // Sekmeler kaydırılır, satır kırılmaz; kenarlar ekrana kadar uzanır.
+  .tab-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 10px 16px;
+    border-bottom: 1px solid $color-bg-row;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .tab {
+    flex: none;
+    min-height: 36px;
+    white-space: nowrap;
+  }
+
+  .tab-long,
+  .tab-library {
+    display: none;
+  }
+
+  .tab-short {
+    display: inline;
+  }
+
+  // Sohbet kendi kenar boşluğunu ve alt çubuğunu çizer (squad-chat.mobile.scss); diğer sekmeler 16px.
+  .room-column > app-squad-clips,
+  .room-column > app-squad-screens,
+  .room-column > app-squad-pins {
+    padding: 12px 16px 16px;
+  }
+
+  .drawer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    padding: 0;
+    border: none;
+    background-color: rgba(5, 5, 6, 0.66);
+    cursor: default;
+  }
+}

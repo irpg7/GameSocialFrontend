@@ -22,6 +22,8 @@ import { HubInviteSheet } from './hub/hub-invite-sheet';
 import { HubPeekSheet } from './hub/hub-peek-sheet';
 import { friendStatus, initialOf, isInVoice } from './hub/hub-format';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { PHONE_QUERY, mediaQuery } from '../../shared/media-query';
+import { NgTemplateOutlet } from '@angular/common';
 
 const BROWSE_PAGE = 12;
 
@@ -30,10 +32,14 @@ const BROWSE_PAGE = 12;
  * "Your squads", "Squads looking for you" and an aside with invites /
  * friends online / the squad XP explainer. Rooms live at `/squads/:id`,
  * and a squad's voice sessions live in its room sidebar.
+ *
+ * Phones (squads.mobile.scss, prototype "Squads · liste"): search full width,
+ * create / browse side by side, the invite card above "Your squads" instead of
+ * in the aside, and friends online as a sideways strip.
  */
 @Component({
   selector: 'app-squads',
-  imports: [ImgFallback, 
+  imports: [ImgFallback, NgTemplateOutlet,
     FormsModule,
     RouterLink,
     SquadCreateSheet,
@@ -43,9 +49,11 @@ const BROWSE_PAGE = 12;
     HubPeekSheet,
   ],
   templateUrl: './squads.html',
-  styleUrl: './squads.scss',
+  styleUrls: ['./squads.scss', './squads.mobile.scss'],
 })
 export class Squads implements OnInit {
+  /** Phones put the invite card above "Your squads"; desktop keeps it at the top of the aside. */
+  protected readonly isPhone = mediaQuery(PHONE_QUERY);
   private squadService = inject(SquadService);
   private hubService = inject(SquadHubService);
   private notificationService = inject(NotificationService);

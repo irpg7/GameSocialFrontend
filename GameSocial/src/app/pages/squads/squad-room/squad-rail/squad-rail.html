@@ -1,5 +1,6 @@
 <aside class="squad-rail">
   <!-- 05-squad.html L258: Roster -->
+  @if (section() !== 'board') {
   <section class="panel-card" aria-labelledby="squad-roster-label">
     <div class="panel-head">
       <span class="panel-label" id="squad-roster-label">Roster</span>
@@ -37,8 +38,10 @@
 
     <button type="button" class="panel-dashed" (click)="invite.emit()">＋ Invite a player</button>
   </section>
+  }
 
   <!-- L279: This week's board -->
+  @if (section() !== 'roster') {
   <section class="panel-card" aria-labelledby="squad-board-label">
     <div class="panel-label board-title" id="squad-board-label">This week's board</div>
 
@@ -61,4 +64,5 @@
       </ol>
     }
   </section>
+  }
 </aside>

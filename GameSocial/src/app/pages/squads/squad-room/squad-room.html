@@ -8,7 +8,11 @@
 } @else if (squad(); as squad) {
   <!-- onSquad: sidebar | (banner + tabs) | rail, full-bleed under the topbar -->
   <div class="room">
+    <!-- Telefonda sidebar ☰ çekmecesidir (squad-sidebar.mobile.scss); karartma burada. -->
     <app-squad-sidebar
+      [drawerOpen]="isPhone() && isDrawerOpen()"
+      (closeDrawer)="isDrawerOpen.set(false)"
+      (squadPicked)="isDrawerOpen.set(false)"
       [squads]="mySquads()"
       [activeSquadId]="squad.id"
       [channels]="channels()"
@@ -20,7 +24,7 @@
       [busySessionId]="busySessionId()"
       [currentUserId]="currentUserId()"
       [canManageSessions]="isManager()"
-      (channelPicked)="selectChannel($event)"
+      (channelPicked)="pickChannel($event)"
       (createSquad)="openCreateSquad()"
       (addChannel)="openAddChannel()"
       (startSession)="openSessionSheet()"
@@ -28,13 +32,29 @@
       (sessionStarted)="startSessionNow($event)"
       (sessionEnded)="endSession($event)" />
 
+    @if (isPhone() && isDrawerOpen()) {
+      <!-- Fare/dokunma kolaylığı: kapatma çekmecedeki ✕ ve Escape ile de var. -->
+      <button type="button" class="drawer-scrim" tabindex="-1" aria-hidden="true" (click)="isDrawerOpen.set(false)"></button>
+    }
+
     <main class="room-main">
-      <app-squad-banner
-        [squad]="squad"
-        [canPost]="isMember()"
-        [onlineCount]="onlineCount()"
-        (postToSquad)="openComposer('clip')"
-        (openSettings)="openSettings()" />
+      @if (isPhone()) {
+        <app-squad-room-header
+          [squad]="squad"
+          [onlineCount]="onlineCount()"
+          [channelName]="activeChannel()?.name"
+          [drawerOpen]="isDrawerOpen()"
+          (openDrawer)="isDrawerOpen.set(true)"
+          (openMembers)="isMembersOpen.set(true)"
+          (openSettings)="openSettings()" />
+      } @else {
+        <app-squad-banner
+          [squad]="squad"
+          [canPost]="isMember()"
+          [onlineCount]="onlineCount()"
+          (postToSquad)="openComposer('clip')"
+          (openSettings)="openSettings()" />
+      }
 
       <div class="room-body">
         <div class="room-column">
@@ -43,7 +63,7 @@
             <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'chat'" [attr.aria-selected]="activeTab() === 'chat'" (click)="selectTab('chat')">💬 Chat</button>
             <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'clips'" [attr.aria-selected]="activeTab() === 'clips'" (click)="selectTab('clips')">▶ Clips <span class="tab-count mono">{{ library().clipCount }}</span></button>
             <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'screens'" [attr.aria-selected]="activeTab() === 'screens'" (click)="selectTab('screens')">▣ Screens <span class="tab-count mono">{{ library().screenCount }}</span></button>
-            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'pinned'" [attr.aria-selected]="activeTab() === 'pinned'" (click)="selectTab('pinned')">◫ Pinned guides <span class="tab-count mono">{{ library().guideCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'pinned'" [attr.aria-selected]="activeTab() === 'pinned'" (click)="selectTab('pinned')">◫ <span class="tab-long">Pinned guides</span><span class="tab-short">Guides</span> <span class="tab-count mono">{{ library().guideCount }}</span></button>
             <span class="tab-library">{{ squad.name }} library</span>
           </div>
 
@@ -63,6 +83,7 @@
               (react)="react($event)"
               (typing)="onTyping()"
               (openShared)="openShared($event)"
+              (messageActions)="actionMessage.set($event)"
               (attachClip)="openComposer('clip')"
               (attachScreens)="openComposer('screenshots')" />
           }
@@ -105,16 +126,42 @@
           }
         </div>
 
-        <app-squad-rail
-          [roster]="activeMembers()"
-          [leaderboard]="leaderboard()"
-          [currentUserId]="currentUserId()"
-          [rosterError]="rosterError()"
-          [leaderboardError]="leaderboardError()"
-          (invite)="openSettings()" />
+        @if (!isPhone()) {
+          <app-squad-rail
+            [roster]="activeMembers()"
+            [leaderboard]="leaderboard()"
+            [currentUserId]="currentUserId()"
+            [rosterError]="rosterError()"
+            [leaderboardError]="leaderboardError()"
+            (invite)="openSettings()" />
+        }
       </div>
     </main>
   </div>
+
+  @if (isPhone() && isMembersOpen()) {
+    <app-squad-members-sheet
+      [roster]="activeMembers()"
+      [leaderboard]="leaderboard()"
+      [currentUserId]="currentUserId()"
+      [rosterError]="rosterError()"
+      [leaderboardError]="leaderboardError()"
+      (invite)="openMembersInvite()"
+      (closed)="isMembersOpen.set(false)" />
+  }
+
+  @if (actionMessage(); as message) {
+    <app-squad-message-sheet
+      [message]="message"
+      [canReact]="isMember()"
+      [canPin]="isMember()"
+      [canUnpin]="canUnpin(message)"
+      (react)="reactFromSheet(message, $event)"
+      (togglePin)="togglePinFromSheet(message)"
+      (copy)="copyFromSheet(message)"
+      (viewProfile)="viewProfileFromSheet(message)"
+      (closed)="actionMessage.set(null)" />
+  }
 
   @if (isSettingsOpen()) {
     <app-squad-settings-sheet

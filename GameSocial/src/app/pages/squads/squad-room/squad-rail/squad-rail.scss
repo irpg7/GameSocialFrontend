@@ -19,6 +19,29 @@
   }
 }
 
+// Telefon üyeler sheet'i: tek panel, kart çerçevesi yok (sheet zaten panel); başlığı sheet'in sekmesi taşır.
+:host(.in-sheet) {
+  display: block;
+
+  .squad-rail {
+    display: flex;
+    width: auto;
+    overflow: visible;
+  }
+
+  .panel-card {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .panel-head,
+  .board-title {
+    display: none;
+  }
+}
+
 .panel-card {
   flex: none;
   background-color: $color-bg-secondary;

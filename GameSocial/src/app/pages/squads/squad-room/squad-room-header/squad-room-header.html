@@ -1,0 +1,41 @@
+<header class="rh">
+  <button
+    type="button"
+    class="rh-btn rh-btn-plain"
+    aria-label="Squad'lar ve kanallar"
+    aria-controls="squad-drawer"
+    [attr.aria-expanded]="drawerOpen()"
+    (click)="openDrawer.emit()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+  </button>
+
+  <span class="rh-mark" aria-hidden="true">
+    <img [appImg]="squad().iconUrl" fallback="squad" alt="" />
+  </span>
+
+  <div class="rh-identity">
+    <div class="rh-title">
+      <h1 class="rh-name">{{ squad().name }}</h1>
+      <span class="rh-lv mono">LV {{ squad().level }}</span>
+    </div>
+    <button
+      type="button"
+      class="rh-channel"
+      [attr.aria-label]="'Kanal değiştir: ' + channel()"
+      aria-controls="squad-drawer"
+      (click)="openDrawer.emit()">
+      <span class="rh-dot" aria-hidden="true"></span>
+      <span>{{ online() }} online</span>
+      <span class="rh-sep" aria-hidden="true">·</span>
+      <span class="rh-channel-name">#{{ channel() }}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+    </button>
+  </div>
+
+  <button type="button" class="rh-btn" aria-label="Üyeler ve bu haftanın tablosu" (click)="openMembers.emit()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5M21 19c0-2.6-1.7-4.8-4-5.6" /></svg>
+  </button>
+  <button type="button" class="rh-btn" aria-label="Squad ayarları" (click)="openSettings.emit()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>
+  </button>
+</header>

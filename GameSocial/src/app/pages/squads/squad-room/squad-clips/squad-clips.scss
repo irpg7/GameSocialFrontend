@@ -14,7 +14,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 560px) {
+  // Telefonda da 2 sütun (prototip "Oda · klipler"); yalnızca çok dar ekranda tek sütun.
+  @media (max-width: 340px) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -98,6 +99,14 @@
   line-height: 18px;
   font-weight: 700;
   text-wrap: pretty;
+
+  // Telefonda 2 sütunlu ızgarada başlık en fazla iki satır.
+  @media (max-width: 768px) {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 .clip-meta {

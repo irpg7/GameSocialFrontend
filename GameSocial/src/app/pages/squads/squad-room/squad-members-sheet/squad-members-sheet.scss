@@ -1,0 +1,41 @@
+@use '../../../../../styles/variables' as *;
+
+// Prototip: #0f0f13 kuyu içinde iki parçalı seçici; seçili parça #1B1B21.
+.ms-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 12px;
+  background-color: $color-bg-inset;
+  border: 1px solid $color-border;
+}
+
+.ms-tab {
+  min-height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &.active {
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 1px;
+  }
+}
+
+.ms-online {
+  margin-left: 4px;
+  font-size: 11px;
+  color: $color-presence-online;
+}

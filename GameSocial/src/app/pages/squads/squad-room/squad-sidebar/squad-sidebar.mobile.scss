@@ -1,0 +1,120 @@
+@use '../../../../../styles/variables' as *;
+
+// Telefon (≤ 768px): kenar çubuğu odanın ☰ çekmecesi olur — soldan kayan 316px panel, sağ köşeleri
+// yuvarlak, sohbetin üstünde (karartmayı oda çizer). Kapalıyken ekran dışında ve `visibility: hidden`,
+// böylece klavye ile içine girilmez.
+
+@media (max-width: 768px) {
+  :host {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 90;
+    width: min(316px, 86vw);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.22s ease-out, visibility 0s linear 0.22s;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  :host(.drawer-open) {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.22s ease-out, visibility 0s;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  .squad-sidebar {
+    width: 100%;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+    gap: 12px;
+    border-right: 1px solid $color-border-strong;
+    border-radius: 0 22px 22px 0;
+    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.5);
+  }
+
+  // Prototipteki 44px kutu: etiket + sayı (+ kapalıyken ikonlar ve okunmamış) + chevron.
+  .squads-toggle {
+    min-height: 44px;
+    padding: 0 10px 0 12px;
+    border: 1px solid $color-border;
+    border-radius: 12px;
+    background-color: $color-bg-row;
+
+    &.open {
+      background-color: $color-bg-secondary;
+    }
+
+    .sidebar-label {
+      font-size: 11px;
+      color: $color-text-secondary;
+    }
+
+    .sidebar-count {
+      font-size: 11px;
+      color: $color-text-secondary;
+    }
+  }
+
+  .squads-peek-mark {
+    width: 22px;
+    height: 22px;
+    box-shadow: 0 0 0 2px $color-bg-row;
+  }
+
+  .drawer-close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 12px;
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+      outline-offset: 2px;
+    }
+  }
+
+  // Dokunma hedefleri ≥ 44px.
+  .channel-row {
+    min-height: 44px;
+  }
+
+  .sidebar-add {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .drawer-back {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: auto;
+    padding: 0 12px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    color: $color-text-secondary;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-text-primary;
+      background-color: $color-bg-row;
+    }
+  }
+}

@@ -1,0 +1,142 @@
+@use '../../../styles/variables' as *;
+
+// Telefon (≤ 768px) squad listesi — prototip "Squads · liste": başlık altında tam genişlik arama,
+// Create / Browse all yan yana (44px), davet kartı tek satır ve listenin üstünde (squads.html), çevrimiçi
+// arkadaşlar yana kayan şerit. Masaüstü squads.scss'te.
+
+@media (max-width: 768px) {
+  .hub,
+  .hub-main {
+    gap: 16px;
+  }
+
+  .hub-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    h1 {
+      font-size: 26px;
+      line-height: 32px;
+    }
+  }
+
+  .hub-sub {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  // page-head son çocuğu sağa iter (`.page-head > :last-child:not(:first-child)`); telefonda satır tam
+  // genişlik — seçici o kuralı geçecek kadar özgül.
+  .hub-head > .hub-head-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-left: 0;
+  }
+
+  .hub-search {
+    grid-column: 1 / -1;
+    width: auto;
+    height: 44px;
+    background: $color-bg-inset;
+    border-color: $color-border-strong;
+
+    // 16px: iOS'ta odaklanınca yakınlaştırma yapmasın.
+    input {
+      font-size: 16px;
+    }
+  }
+
+  .hub-btn {
+    min-height: 44px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  // Davet: başlık ekran okuyucuya kalır; ikon + metin + Accept / Later tek satırda.
+  .hub-invites {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: $border-radius-lg;
+    border-color: $color-accent-border;
+
+    .hub-panel-title {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .hub-person {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .hub-person-name {
+      font-size: 14px;
+    }
+  }
+
+  .hub-invite-actions {
+    flex: none;
+    margin-top: 0;
+    gap: 4px;
+
+    button {
+      flex: none;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+  }
+
+  .hub-invite-later {
+    border-color: transparent;
+    color: $color-text-secondary;
+  }
+
+  // Çevrimiçi arkadaşlar: panel çerçevesi yok, 150px kartlar yana kayar.
+  .hub-friends-panel {
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .hub-friends {
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hub-person {
+      flex: none;
+      width: 150px;
+      padding: 9px;
+      border-radius: 12px;
+      background: $color-bg-secondary;
+      border: 1px solid $color-border;
+    }
+
+    .hub-person-meta {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .hub-more,
+  .hub-dashed {
+    min-height: 44px;
+  }
+}

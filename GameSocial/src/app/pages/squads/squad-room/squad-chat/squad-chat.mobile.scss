@@ -1,0 +1,148 @@
+@use '../../../../../styles/variables' as *;
+
+// Telefon (≤ 768px) sohbeti — prototip "Oda · sohbet": hover şeridi yok (uzun basma → eylem sheet'i),
+// yazma alanı ekranın alt kenarına oturan tam genişlik bir çubuk: ＋ menüsü, 44px kutu input, gönder.
+// Masaüstünde ＋ menüsü ve "⋯" yok.
+
+.composer-attach,
+.composer-menu,
+.message-more {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .chat {
+    gap: 10px;
+  }
+
+  .chat-head,
+  .chat-scroll,
+  .chat-typing,
+  .chat > .chat-status {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .chat-head {
+    padding-top: 4px;
+  }
+
+  // Uzun basmada tarayıcının metin seçimi / bağlam balonu açılmasın — kopyalama sheet'te.
+  .message {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  .message-tools {
+    display: none;
+  }
+
+  .message-more {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    border: none;
+    background: $color-bg-tertiary;
+    color: $color-text-primary;
+
+    &:focus-visible {
+      width: 44px;
+      height: 36px;
+      clip-path: none;
+      border-radius: 10px;
+      outline: 2px solid $color-accent-light;
+    }
+  }
+
+  .reaction {
+    min-height: 28px;
+  }
+
+  .composer {
+    position: relative;
+    gap: 8px;
+    padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+    border: none;
+    border-top: 1px solid $color-bg-row;
+    border-radius: 0;
+    background-color: $color-bg-primary;
+
+    &:focus-within {
+      border-color: $color-bg-row;
+    }
+  }
+
+  .composer-avatar,
+  .composer-inline {
+    display: none;
+  }
+
+  // 16px: iOS input'a odaklanınca sayfayı yakınlaştırmasın.
+  .composer-input {
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid $color-border-strong;
+    border-radius: 12px;
+    background-color: $color-bg-inset;
+    font-size: 16px;
+
+    &:focus {
+      border-color: $color-border-dashed;
+    }
+  }
+
+  .composer-action {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 18px;
+  }
+
+  .composer-attach {
+    display: flex;
+    flex: none;
+    order: -1;
+    color: $color-text-primary;
+  }
+
+  .composer-menu {
+    position: absolute;
+    left: 12px;
+    bottom: calc(100% + 6px);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: 4px;
+    border-radius: $border-radius-lg;
+    background-color: $color-bg-sheet;
+    border: 1px solid $color-border-strong;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .composer-menu-item {
+    min-height: 44px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    color: $color-text-primary;
+    font-family: $font-family-primary;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background-color: $color-bg-tertiary;
+      outline: none;
+    }
+  }
+}
