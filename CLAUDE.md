@@ -7,8 +7,12 @@ Recent work and the reasoning behind it: `CHANGELOG.md` (repo root). Read it bef
 touched this session.
 
 ## Skills
-- Load the `angular-developer` skill (vendored in `.claude/skills/`) before writing or reviewing frontend code. It holds
-  the general Angular guidance; this file only adds project rules, and where they differ this file wins.
+- Before writing or reviewing frontend code, load the `angular-developer` skill. It is Google's official skill from
+  `angular/skills`, installed per machine with `npx skills add angular/skills`, not kept in this repo. If it's missing,
+  tell the user instead of working without it.
+- The skill holds the general Angular guidance; this file only adds project rules, and where they differ this file wins.
+- Skip the skill's **testing** guides: no unit, harness, router or e2e tests, and no test files. Also skip its
+  **Tailwind** guide, because this project styles with SCSS.
 - Never use dotnet-claude-kit skills or agents here (disabled for this repo in `.claude/settings.json`).
 - The backend is a separate repo next to this one: `../GameSocialBackend` (.NET 10, FastEndpoints, EF Core, SignalR).
   When you touch it, follow its `CLAUDE.md` and use its dotnet-claude-kit skills.
