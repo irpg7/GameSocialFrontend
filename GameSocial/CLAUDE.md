@@ -20,9 +20,8 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
   DB is the Docker container `posgreslocal` (Postgres, db `GameSocial`). Inspect it read-only with
   `docker exec posgreslocal psql -U postgres -d GameSocial -c '<sql>'` (quote PascalCase names) —
   handy when a list renders empty. API calls need a JWT, so unauthenticated curl only shows 401.
-- Verify with `npx ng build --configuration development`. The default (production) build fails on pre-existing
-  CSS budget errors in `post-composer.scss` / `clip-stage.scss` — not a regression. Say exactly what was and
-  wasn't exercised.
+- Verify with `npx ng build --configuration development` and `npx ng build` (production — passes with no budget
+  warnings; keep it that way). Say exactly what was and wasn't exercised.
 - UI copy is English, except the squad room (sidebar/sheets), which is Turkish.
 - Designs come from the ARENA mockups (Claude Design); comments like `05-squad.html L22` / `expl.html 2a`
   point into them. Match designs closely — read every state, don't approximate.
@@ -32,18 +31,38 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
 - `pages/<page>/` — lazy routes from `app.routes.ts` (feed, games, clips, clips/:id, reviews, trophies, squads,
   squads/:id, profile/:id, onboarding, saved, me/*, drafts, search). Big pages split into child folders
   (`pages/feed/feed-sidebar`, `pages/squads/squad-room/squad-sidebar`, `pages/squads/hub/*`).
-- `backoffice/` — admin area (games, languages, settings, users); `guards/` (auth, guest, permission, backoffice).
+- `backoffice/` — admin area (games, languages, settings, users, moderation); `guards/` (auth, guest, permission, backoffice).
 - `services/<area>/` — one HTTP service per backend area, `@Service()` + `inject(HttpClient)`, URLs `/api/...`.
   Squads are split: `squad.service` (core/chat), `squad-room.service` (room data), `squad-hub.service`
   (discover/join/invites/sessions), `squad-realtime.service` (SignalR hub `/api/hubs/squads`).
+  `realtime/user-realtime.service` is the always-on per-user hub (`/api/hubs/me`: notifications, DMs, badges), started by
+  `main-layout` via `NotificationCenterService.start()`. `notification-center` = in-app notifications + topbar badges;
+  `notification/NotificationService` = toasts (different thing). `direct-message` = DM HTTP calls.
 - `models/*.model.ts` — mirror `Domain.Responses.*` (comments name the C# type). Enums are string unions.
 - `shared/` — reusable UI: `sheet-modal`, `squad-create-sheet` (+ `squad-sheet-frame` for small sheets),
   `player-picker` (username combobox: followed users first, then `/api/search`; only real accounts),
+  `game-picker` (searchable game combobox; `[formField]` binds the id as text; put the old select's box classes on
+  the host; never load the whole catalogue for a picker), `pager` (backoffice tables),
   `review-sheet`, `clip-stage`, `photo-viewer`, `star-rating`, `api-error.util.ts`
   (`extractApiErrorMessage(err, fallback)` — always use it for server messages), `bottom-sheet` (phone sheet),
   `media-query.ts` (`mediaQuery(PHONE_QUERY)` signal — only for markup that differs on phones; styling stays in
-  `@media`). Phone styles go in a sibling `*.mobile.scss` (styleUrls) to stay under the CSS budget.
-- Route data: `flush` (no content inset) and `immersive` (phones hide topbar + tab bar; the squad room).
+  `@media`), `overlay/` (`appDialog` focus trap + top-most Escape via `OverlayStack`, `appBackdropClose`; every
+  sheet/modal uses them), `load-error` ("Try again" card for failed loads). Phone styles go in a sibling `*.mobile.scss` (styleUrls) to stay under the CSS budget.
+- Account: signed-out pages use `pages/auth/auth-card` + `pages/auth/_auth-form.scss` (login, check-inbox, verify-email,
+  forgot/reset-password); `/settings` sections live in `pages/settings/*` (`settings-danger` = data export + account deletion). Account calls go through `services/account`,
+  which keeps `MeService.me()` in sync and adopts new token pairs (`AuthService.applySession`). Password rules:
+  `shared/password-rules.ts`.
+- Public pages: `/posts/:id` has two routes — a signed-out one first (`canMatch: [anonymousMatch]`,
+  `pages/post-permalink/public-post-page`, no main layout, never calls authenticated APIs) and the in-app one. Share links
+  always point at `/posts/:id`; link previews come from the API's OG page via the reverse proxy, not from Angular.
+- Route data: `flush` (no content inset) and `immersive` (phones hide topbar + tab bar; the squad room, a DM thread).
+- Notifications / DMs: notification copy and click targets come from `shared/notification-item/notification-text.ts`
+  (one place per type). `/messages` is one page for list + thread (`pages/messages`, state in `inbox.store`); its child
+  routes carry only the id. Start a DM with `DirectMessageService.open(userId)` → `/messages/:id`; only offer it when the
+  profile says `canMessage`.
+- Safety: to report anything call `ReportService.open({ type, id, label })` — never add another report sheet. "Is this
+  user blocked by me?" = `BlockService.isBlocked(userId)` (from `me.blockedUserIds`); the server already hides blocked
+  users' content both ways, so the client only hides cards blocked mid-session and folds squad chat messages.
 - Forms: Signal Forms only (`form()` + `[formField]`, `[formRoot]` + `submission.action` for real forms); no FormsModule/ngModel.
   Messages via `shared/form-errors.ts`. **Every `<select [formField]>` needs `SelectControl` (`shared/select-control.ts`) in the
   component's imports** — without it Chrome's customizable select loops with Signal Forms and crashes the tab.
@@ -65,7 +84,10 @@ EF Core + Npgsql, SignalR). It has its own `CLAUDE.md` and `CHANGELOG.md`.
 - Filter "tabs" made of chips: exactly one selected, `role="tablist"`/`role="tab"` + `aria-selected`.
 - List reloads on filter/search change: cancel the in-flight request (keep the `Subscription`, unsubscribe)
   and clear the old list, so a slow older response can't overwrite the new one.
-- Popovers inside sheets: the sheet body scrolls, so render suggestion lists in flow, not absolutely positioned.
+- Popovers inside sheets: the sheet body scrolls, so render suggestion lists in flow, not absolutely positioned
+  (or in the top layer with `popover`, as `game-picker` does).
+- Lists from the API are paged (`PagedResult<T>`): games, followed games/people, admin users. Use `GameLookup` to
+  name a game from its id instead of fetching the catalogue.
 
 ## TypeScript Best Practices
 

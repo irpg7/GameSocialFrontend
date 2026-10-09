@@ -1,0 +1,31 @@
+@use '../../../../styles/variables' as *;
+
+.ad-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.ad-text {
+  margin: 0;
+  color: $color-text-secondary;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.ad-error {
+  display: block;
+  margin: $spacing-xs 0 0;
+  font-size: 13px;
+  color: $color-accent-light;
+}
+
+.ad-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

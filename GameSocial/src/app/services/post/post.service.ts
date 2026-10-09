@@ -90,6 +90,14 @@ export class PostService {
   }
 
   /**
+   * The `/posts/:id` permalink — works signed out too (read-only preview). 404 when the post is gone, removed,
+   * in a Hidden squad, or its author is banned / deleted.
+   */
+  getPublicPost(postId: string): Observable<PostModel> {
+    return this.http.get<PostModel>(`${this.apiUrl}/${postId}/public`);
+  }
+
+  /**
    * Backend expects multipart/form-data with PascalCase fields
    * (PostType, GameId, Caption/Title+Body, MediaType, PhotoType, Media,
    * MediaRoles, SquadId, IsDraft, Tags, Score/PlayStatus/HoursPlayed/SpoilerFree/

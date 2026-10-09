@@ -1,0 +1,22 @@
+<div class="settings-page">
+  <div class="page-head">
+    <div>
+      <h1>Account settings</h1>
+      <p class="page-sub">Your profile, sign-in details, privacy, blocked users and your data.</p>
+    </div>
+  </div>
+
+  @if (me(); as me) {
+    <app-settings-profile [me]="me" />
+    <app-settings-username [me]="me" />
+    <app-settings-email [me]="me" />
+    <app-settings-password />
+    <app-settings-privacy [me]="me" />
+    <app-settings-blocked />
+    <app-settings-danger />
+  } @else if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="load()" />
+  } @else {
+    <p class="text-muted">Loading your account...</p>
+  }
+</div>

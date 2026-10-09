@@ -1,0 +1,87 @@
+<article class="card pp">
+  <header class="pp-head">
+    <img class="pp-avatar" [appImg]="post().authorAvatarUrl" fallback="avatar" alt="" />
+    <div class="pp-meta">
+      <span class="pp-author">
+        &#64;{{ post().username }}
+        @if (post().authorIsDeveloper) {
+          <span class="pp-badge">◆ DEVELOPER</span>
+        }
+      </span>
+      <span class="pp-sub">
+        @if (post().gameName; as game) {
+          {{ game }} ·
+        }
+        {{ timeAgo() }}
+      </span>
+    </div>
+  </header>
+
+  @if (post().devlog; as devlog) {
+    <h1 class="pp-title">{{ devlog.title }}</h1>
+  } @else if (post().caption; as caption) {
+    <p class="pp-caption"><app-rich-text [text]="caption" /></p>
+  }
+
+  @if (video(); as clip) {
+    <video class="pp-video" controls playsinline preload="metadata" [src]="clip.src" [poster]="clip.poster ?? ''"></video>
+  }
+
+  @if (photos().length > 0) {
+    <div class="pp-photos" [class.single]="photos().length === 1">
+      @for (photo of photos(); track photo.id) {
+        <img [src]="photo.url" [alt]="post().gameName ? post().gameName + ' screenshot' : 'Screenshot'" loading="lazy" />
+      }
+    </div>
+  }
+
+  @if (post().review; as review) {
+    <div class="pp-review">
+      <span class="pp-score">{{ reviewScore() }}<small>/10</small></span>
+      <span class="pp-sub">{{ review.hoursPlayed }} h played</span>
+    </div>
+    <p class="pp-body"><app-rich-text [text]="review.body" /></p>
+  }
+
+  @if (post().devlog; as devlog) {
+    <p class="pp-body"><app-rich-text [text]="devlog.body" /></p>
+    @if (devlog.patchLines.length > 0) {
+      <ul class="pp-patch">
+        @for (line of devlog.patchLines; track line.id) {
+          <li><span class="pp-patch-status">{{ line.status }}</span> {{ line.text }}</li>
+        }
+      </ul>
+    }
+  }
+
+  @if (post().poll; as poll) {
+    <ul class="pp-poll">
+      @for (option of poll.options; track option.id) {
+        <li>
+          <span class="pp-poll-text">{{ option.text }}</span>
+          @if (showPollResults()) {
+            <span class="pp-poll-bar" [style.width.%]="pollPercent(option.voteCount)"></span>
+            <span class="pp-poll-pct">{{ pollPercent(option.voteCount) }}%</span>
+          }
+        </li>
+      }
+    </ul>
+    <p class="pp-sub">{{ count(poll.totalVotes) }} votes{{ poll.isExpired ? ' · final results' : '' }}</p>
+  }
+
+  @if (post().tags.length > 0) {
+    <div class="pp-tags">
+      @for (tag of post().tags; track tag) {
+        <span class="chip">{{ tag }}</span>
+      }
+    </div>
+  }
+
+  <footer class="pp-stats">
+    <span>{{ likeLabel() }}</span>
+    <span>{{ count(post().commentCount) }} comments</span>
+    @if (post().viewCount > 0) {
+      <span>{{ count(post().viewCount) }} views</span>
+    }
+  </footer>
+</article>

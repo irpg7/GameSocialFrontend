@@ -1,0 +1,34 @@
+<section class="card settings-section" aria-labelledby="settings-danger-title">
+  <h2 class="settings-title" id="settings-danger-title">Your data &amp; account</h2>
+
+  <div class="danger-row">
+    <div class="danger-text">
+      <h3>Download my data</h3>
+      <p class="settings-note">
+        A JSON file with your profile, posts, comments, reviews, follows, squads, messages and notifications.
+        Media is listed as links. Available once every 24 hours.
+      </p>
+    </div>
+    <button type="button" class="btn btn-secondary" [disabled]="isExporting()" (click)="download()">
+      {{ isExporting() ? 'Preparing…' : 'Download my data' }}
+    </button>
+  </div>
+  @if (exportError(); as message) {
+    <p class="form-error" role="alert">{{ message }}</p>
+  }
+
+  <div class="danger-row danger-delete">
+    <div class="danger-text">
+      <h3>Delete account</h3>
+      <p class="settings-note">
+        Your account is deleted 14 days after you ask; signing in before then cancels it. After that your posts,
+        clips, reviews, comments and messages are gone for good.
+      </p>
+    </div>
+    <button type="button" class="btn btn-danger" (click)="isDeleteOpen.set(true)">Delete account…</button>
+  </div>
+</section>
+
+@if (isDeleteOpen()) {
+  <app-account-delete-sheet (closed)="isDeleteOpen.set(false)" />
+}

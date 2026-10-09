@@ -1,0 +1,28 @@
+<app-sheet-modal title="Delete your account?" subtitle="Deleted for good after 14 days" (closed)="closed.emit()">
+  <form class="ad-form" [formRoot]="deleteForm">
+    <p class="ad-text">
+      You'll be signed out everywhere now. In 14 days your posts, clips, reviews, comments, messages, follows and
+      squad memberships are deleted and your profile disappears. Sign in before then and nothing is lost.
+    </p>
+    <p class="ad-text">If you're the only captain of a squad with other members, hand captaincy over first.</p>
+
+    <div class="form-group">
+      <label for="account-delete-password">Your password</label>
+      <input type="password" id="account-delete-password" autocomplete="current-password" [formField]="deleteForm.password">
+      @if (fieldError(deleteForm.password()); as message) {
+        <span class="ad-error">{{ message }}</span>
+      }
+    </div>
+
+    @if (submitError(deleteForm()); as message) {
+      <p class="ad-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="ad-actions">
+      <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="deleteForm().submitting()">
+        {{ deleteForm().submitting() ? 'Deleting…' : 'Delete my account' }}
+      </button>
+    </div>
+  </form>
+</app-sheet-modal>

@@ -1,0 +1,68 @@
+@use '../../../../styles/variables' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.pub-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  padding: 12px 16px;
+  border-bottom: 1px solid $color-border;
+}
+
+.pub-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $color-text-primary;
+  font-weight: 800;
+  font-size: 17px;
+  text-decoration: none;
+}
+
+.pub-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pub-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: $spacing-lg 16px $spacing-2xl;
+}
+
+.pub-cta,
+.pub-gone {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  h1,
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+  }
+
+  .btn {
+    align-self: flex-start;
+  }
+}
+
+.pub-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: $spacing-xs;
+}
