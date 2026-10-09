@@ -3,18 +3,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, catchError, finalize, of, switchMap } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
-import { GameService } from '../../services/game/game.service';
+import { GameLookup } from '../../services/game/game-lookup.service';
 import { SquadService } from '../../services/squad/squad.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { MeService } from '../../services/me/me.service';
 import { PostModel } from '../../models/post.model';
-import { GameModel } from '../../models/game.model';
 import { SquadModel } from '../../models/squad.model';
 import { PagedResult } from '../../models/paged-result.model';
 import { PostComposer } from './post-composer/post-composer';
 import { PostCard } from './post-card/post-card';
 import { FeedSidebar } from './feed-sidebar/feed-sidebar';
 import { FeedRightRail } from './feed-right-rail/feed-right-rail';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 const PAGE_SIZE = 10;
 
@@ -35,7 +35,7 @@ type FeedFilter = { kind: 'game'; gameId: number } | { kind: 'user'; userId: str
 })
 export class Feed {
   private postService = inject(PostService);
-  private gameService = inject(GameService);
+  private gameLookup = inject(GameLookup);
   private squadService = inject(SquadService);
   private notificationService = inject(NotificationService);
   private meService = inject(MeService);
@@ -45,7 +45,8 @@ export class Feed {
   protected readonly featured = signal<PostModel | null>(null);
   protected readonly devlogs = signal<PostModel[]>([]);
   protected readonly posts = signal<PostModel[]>([]);
-  protected readonly games = signal<GameModel[]>([]);
+  /** The filtered game's name for the rule label (resolved from the `?game=` id). */
+  private readonly filterGameName = signal<string | null>(null);
   /** Fetched once here (not per-card) and passed down so PostCard can resolve a squad-tagged post's name client-side. */
   protected readonly mySquads = signal<SquadModel[]>([]);
   protected readonly page = signal(1);
@@ -77,7 +78,7 @@ export class Feed {
       return this.isDiscoverFallback() ? 'Discover' : 'From your games';
     }
     if (filter.kind === 'game') {
-      return this.games().find((g) => g.id === filter.gameId)?.name ?? 'Game';
+      return this.filterGameName() ?? 'Game';
     }
     return this.posts().find((p) => p.userId === filter.userId)?.username ?? 'Player';
   });
@@ -89,19 +90,32 @@ export class Feed {
       const game = Number(params.get('game'));
       const user = params.get('user');
       this.filter.set(game ? { kind: 'game', gameId: game } : user ? { kind: 'user', userId: user } : null);
+      this.resolveFilterGameName(game || null);
       this.posts.set([]);
       this.loadPosts(1);
     });
 
     this.loadFeatured();
 
-    this.gameService.getGames().subscribe({
-      next: (games) => this.games.set(games),
-      error: () => this.notificationService.error('Failed to load games.'),
-    });
-
     this.squadService.getMine().subscribe({
       next: (squads) => this.mySquads.set(squads),
+      error: () => void 0,
+    });
+  }
+
+  private resolveFilterGameName(gameId: number | null): void {
+    this.filterGameName.set(gameId === null ? null : (this.gameLookup.get(gameId)?.name ?? null));
+    if (gameId === null || this.filterGameName()) {
+      return;
+    }
+    this.gameLookup.resolve(gameId).subscribe({
+      next: (game) => {
+        const filter = this.filter();
+        if (filter?.kind === 'game' && filter.gameId === gameId) {
+          this.filterGameName.set(game?.name ?? null);
+        }
+      },
+      // The label falls back to "Game".
       error: () => void 0,
     });
   }
@@ -148,7 +162,7 @@ export class Feed {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: () => this.notificationService.error('Failed to load feed.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load feed.')),
       });
   }
 

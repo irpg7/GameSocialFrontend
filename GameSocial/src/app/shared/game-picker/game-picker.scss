@@ -1,0 +1,149 @@
+@use '../../../styles/variables' as *;
+
+// The host takes the replaced <select>'s box classes from the parent template (border, padding,
+// radius, background), so it only lays out the text field and the caret.
+:host {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  cursor: text;
+
+  &.open {
+    border-color: $color-accent-primary;
+
+    .gp-caret {
+      rotate: 180deg;
+      color: $color-text-primary;
+    }
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.gp-input {
+  all: unset;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: inherit;
+  color: inherit;
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.gp-caret {
+  flex: none;
+  font-size: 11px;
+  color: $color-text-tertiary;
+  transition: rotate $transition-speed-fast;
+  pointer-events: none;
+}
+
+// Same panel as the themed <select> list (styles.scss `select::picker(select)`).
+.gp-list {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 5px;
+  max-width: min(360px, calc(100vw - 32px));
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-md;
+  background-color: $color-bg-sheet;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  scrollbar-width: thin;
+  scrollbar-color: $color-border-dashed transparent;
+  color: $color-text-secondary;
+}
+
+.gp-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: $border-radius-sm;
+  font: 500 13px/18px $font-family-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, color $transition-speed-fast;
+
+  &.active {
+    background-color: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+
+  &.selected {
+    background-color: $color-accent-tint;
+    color: $color-text-primary;
+    font-weight: 600;
+
+    &::after {
+      content: '✓';
+      margin-left: auto;
+      color: $color-accent-primary;
+      font-weight: 700;
+    }
+
+    &:has(.gp-tag)::after {
+      margin-left: 6px;
+    }
+  }
+}
+
+.gp-cover {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: $color-border-strong;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.gp-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-tag {
+  margin-left: auto;
+  flex: none;
+  font: 700 10px/13px $font-family-mono;
+  color: $color-accent-light;
+}
+
+.gp-hint {
+  padding: 8px 10px;
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.gp-error {
+  color: $color-accent-light;
+}
+
+.gp-retry {
+  all: unset;
+  margin-left: 4px;
+  font-weight: 700;
+  color: $color-text-primary;
+  text-decoration: underline;
+  cursor: pointer;
+}

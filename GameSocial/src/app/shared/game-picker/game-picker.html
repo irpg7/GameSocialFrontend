@@ -1,0 +1,82 @@
+<input
+  #field
+  class="gp-input"
+  type="text"
+  role="combobox"
+  autocomplete="off"
+  spellcheck="false"
+  aria-autocomplete="list"
+  [id]="inputId()"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-controls]="listId()"
+  [attr.aria-activedescendant]="isOpen() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
+  [placeholder]="isOpen() ? placeholder() : (noneLabel() ?? placeholder())"
+  [disabled]="disabled()"
+  (focus)="open()"
+  (click)="open()"
+  (blur)="close()"
+  (input)="onInput(field.value)"
+  (keydown)="onKeydown($event)" />
+<span class="gp-caret" aria-hidden="true">▾</span>
+
+@if (isOpen()) {
+  <ul
+    #list
+    class="gp-list"
+    popover="manual"
+    role="listbox"
+    [id]="listId()"
+    [attr.aria-busy]="isLoading()"
+    (mousedown)="$event.preventDefault()"
+    (scroll)="onListScroll(list)">
+    @if (showNoneRow()) {
+      <li
+        class="gp-option gp-none"
+        role="option"
+        [id]="optionId(0)"
+        [class.active]="activeIndex() === 0"
+        [class.selected]="selectedId() === null"
+        [attr.aria-selected]="selectedId() === null"
+        (click)="pickNone()"
+        (mouseenter)="activeIndex.set(0)">
+        <span class="gp-name">{{ noneLabel() }}</span>
+      </li>
+    }
+    @for (game of options(); track game.id; let i = $index) {
+      <li
+        class="gp-option"
+        role="option"
+        [id]="optionId(rowIndex(i))"
+        [class.active]="activeIndex() === rowIndex(i)"
+        [class.selected]="selectedId() === game.id"
+        [attr.aria-selected]="selectedId() === game.id"
+        (click)="pick(game)"
+        (mouseenter)="activeIndex.set(rowIndex(i))">
+        <span class="gp-cover" aria-hidden="true"><img [appImg]="game.coverImageUrl" fallback="game" alt="" /></span>
+        <span class="gp-name">{{ game.name }}</span>
+        @if (game.isFollowed) {
+          <span class="gp-tag">Following</span>
+        }
+      </li>
+    } @empty {
+      @if (!isLoading() && !loadError()) {
+        <li class="gp-hint" role="presentation">
+          @if (query().trim()) {
+            No games match “{{ query().trim() }}”.
+          } @else {
+            {{ emptyHint() }}
+          }
+        </li>
+      }
+    }
+    @if (isLoading()) {
+      <li class="gp-hint" role="presentation">Loading…</li>
+    }
+    @if (loadError(); as message) {
+      <li class="gp-hint gp-error" role="presentation">
+        {{ message }} <button type="button" class="gp-retry" (click)="retry()">Try again</button>
+      </li>
+    }
+  </ul>
+}

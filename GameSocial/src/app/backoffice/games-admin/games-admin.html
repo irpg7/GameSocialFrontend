@@ -43,7 +43,18 @@
     </button>
   </div>
 
-  @if (isLoading()) {
+  <div class="admin-toolbar">
+    <h2>Catalogue</h2>
+    <input
+      type="search"
+      class="admin-search"
+      placeholder="Search name or studio"
+      aria-label="Search games"
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)" />
+  </div>
+
+  @if (isLoading() && games().length === 0) {
     <p class="text-muted">Loading games...</p>
   } @else {
     <div class="table-wrapper card">
@@ -127,11 +138,12 @@
 
           @if (games().length === 0) {
             <tr>
-              <td colspan="6" class="text-muted">No games yet.</td>
+              <td colspan="6" class="text-muted">{{ searchQuery().trim() ? 'No games match.' : 'No games yet.' }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+    <app-pager [page]="page()" [pageSize]="pageSize" [totalCount]="totalCount()" itemLabel="games" [disabled]="isLoading()" (pageChange)="goToPage($event)" />
   }
 </div>

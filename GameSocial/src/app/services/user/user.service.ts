@@ -1,7 +1,9 @@
 import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminUserModel } from '../../models/admin-user.model';
+import { AdminUserListQuery, AdminUserModel } from '../../models/admin-user.model';
+import { PagedResult } from '../../models/paged-result.model';
+import { toHttpParams } from '../../shared/http-params';
 
 /** Backoffice-only user administration (Users.Manage permission required server-side). */
 @Service()
@@ -9,8 +11,8 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = '/api/users';
 
-  list(): Observable<AdminUserModel[]> {
-    return this.http.get<AdminUserModel[]>(this.apiUrl);
+  list(query: AdminUserListQuery = {}): Observable<PagedResult<AdminUserModel>> {
+    return this.http.get<PagedResult<AdminUserModel>>(this.apiUrl, { params: toHttpParams(query) });
   }
 
   grantPermission(userId: string, permissionKey: string): Observable<AdminUserModel> {

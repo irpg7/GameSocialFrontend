@@ -1,0 +1,14 @@
+@use '../../../styles/variables' as *;
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.pager-status {
+  font-size: 0.85rem;
+  color: $color-text-tertiary;
+}

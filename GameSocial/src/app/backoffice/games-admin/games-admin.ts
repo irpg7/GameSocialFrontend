@@ -1,16 +1,19 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength, submit, validate } from '@angular/forms/signals';
-import { finalize, firstValueFrom } from 'rxjs';
+import { Subscription, debounceTime, distinctUntilChanged, finalize, firstValueFrom, skip } from 'rxjs';
 import { GameService } from '../../services/game/game.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { GAME_GENRES, GameGenreName, GameModel } from '../../models/game.model';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { Pager } from '../../shared/pager/pager';
 import { SERVER_ERROR, fieldError, serverError, submitError } from '../../shared/form-errors';
 
 const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 const POSTER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_STUDIO_LENGTH = 150;
+const PAGE_SIZE = 25;
 
 /** Create and edit share one shape. Genres stay a list toggled by the checkboxes (not form fields). */
 interface GameFormModel {
@@ -30,7 +33,7 @@ function toggleIn<T>(list: T[], value: T): T[] {
 
 @Component({
   selector: 'app-games-admin',
-  imports: [ImgFallback, FormField],
+  imports: [ImgFallback, FormField, Pager],
   templateUrl: './games-admin.html',
   styleUrl: './games-admin.scss',
 })
@@ -38,8 +41,14 @@ export class GamesAdmin implements OnInit {
   private gameService = inject(GameService);
   private notificationService = inject(NotificationService);
 
+  /** One page of the catalogue (GET /api/games is paged); the search box narrows it on the server. */
   protected readonly games = signal<GameModel[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly searchQuery = signal('');
+  protected readonly page = signal(1);
+  protected readonly totalCount = signal(0);
+  protected readonly pageSize = PAGE_SIZE;
+  private loadRequest?: Subscription;
   protected readonly genres = GAME_GENRES;
 
   // ─── New game ──────────────────────────────────────────────────
@@ -62,7 +71,8 @@ export class GamesAdmin implements OnInit {
           }
           try {
             const game = await firstValueFrom(this.gameService.create(this.toFormData(this.newModel(), this.newPosterFile())));
-            this.games.update((existing) => [...existing, game].sort((a, b) => a.name.localeCompare(b.name)));
+            this.notificationService.success(`${game.name} added.`);
+            this.loadGames(this.page());
             this.newModel.set({ ...EMPTY_GAME });
             this.newPosterFile.set(null);
             this.newForm().reset();
@@ -119,8 +129,18 @@ export class GamesAdmin implements OnInit {
   protected readonly createError = () => fieldError(this.newForm.name()) ?? submitError(this.newForm());
   protected readonly editError = () => fieldError(this.editForm.name()) ?? submitError(this.editForm());
 
+  constructor() {
+    toObservable(this.searchQuery)
+      .pipe(skip(1), debounceTime(250), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(() => this.loadGames(1));
+  }
+
   ngOnInit(): void {
-    this.loadGames();
+    this.loadGames(1);
+  }
+
+  protected goToPage(page: number): void {
+    this.loadGames(page);
   }
 
   onNewPosterSelected(event: Event): void {
@@ -183,7 +203,8 @@ export class GamesAdmin implements OnInit {
       .delete(game.id)
       .pipe(finalize(() => this.deletingId.set(null)))
       .subscribe({
-        next: () => this.games.update((existing) => existing.filter((g) => g.id !== game.id)),
+        // Reload so the page refills (and steps back if it was the last row of the last page).
+        next: () => this.loadGames(this.games().length === 1 && this.page() > 1 ? this.page() - 1 : this.page()),
         error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete game.')),
       });
   }
@@ -219,14 +240,22 @@ export class GamesAdmin implements OnInit {
     return null;
   }
 
-  private loadGames(): void {
+  private loadGames(page: number): void {
+    this.loadRequest?.unsubscribe();
     this.isLoading.set(true);
-    this.gameService
-      .getGames()
-      .pipe(finalize(() => this.isLoading.set(false)))
+    this.loadRequest = this.gameService
+      .list({ search: this.searchQuery().trim() || undefined, page, pageSize: PAGE_SIZE })
       .subscribe({
-        next: (games) => this.games.set(games),
-        error: () => this.notificationService.error('Failed to load games.'),
+        next: (result) => {
+          this.games.set(result.items);
+          this.page.set(result.page);
+          this.totalCount.set(result.totalCount);
+          this.isLoading.set(false);
+        },
+        error: (err: unknown) => {
+          this.isLoading.set(false);
+          this.notificationService.error(extractApiErrorMessage(err, 'Failed to load games.'));
+        },
       });
   }
 }

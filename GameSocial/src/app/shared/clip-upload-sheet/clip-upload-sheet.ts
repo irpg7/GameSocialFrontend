@@ -8,7 +8,8 @@ import { GameService } from '../../services/game/game.service';
 import { SquadService } from '../../services/squad/squad.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { XpAwardsService } from '../../services/config/xp-awards.service';
-import { GameModel } from '../../models/game.model';
+import { GameLookup } from '../../services/game/game-lookup.service';
+import { GamePicker } from '../game-picker/game-picker';
 import { SquadModel } from '../../models/squad.model';
 import { PostModel } from '../../models/post.model';
 import { PostMediaType, PostType } from '../../models/post-enums.model';
@@ -31,13 +32,14 @@ const MAX_TAG_LENGTH = 30;
  */
 @Component({
   selector: 'app-clip-upload-sheet',
-  imports: [SheetModal, FormField],
+  imports: [SheetModal, FormField, SelectControl, GamePicker],
   templateUrl: './clip-upload-sheet.html',
   styleUrl: './clip-upload-sheet.scss',
 })
 export class ClipUploadSheet implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private gameService = inject(GameService);
+  private gameLookup = inject(GameLookup);
   private squadService = inject(SquadService);
   private notificationService = inject(NotificationService);
   private xpAwards = inject(XpAwardsService);
@@ -49,7 +51,6 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
   private readonly tagInput = viewChild<ElementRef<HTMLInputElement>>('tagInput');
 
-  protected readonly games = signal<GameModel[]>([]);
   protected readonly squads = signal<SquadModel[]>([]);
   protected readonly file = signal<File | null>(null);
   protected readonly fileDuration = signal<number | null>(null);
@@ -85,14 +86,16 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
   protected readonly canAddTag = computed(() => this.tags().length < MAX_TAGS);
 
   ngOnInit(): void {
-    this.gameService.getGames().subscribe({
-      next: (games) => {
-        this.games.set(games);
-        if (!this.model().gameId && games.length > 0) {
-          this.model.update((m) => ({ ...m, gameId: String(games[0].id) }));
+    // Start on the first game you follow (A–Z), as the old select started on its first option.
+    this.gameService.list({ followedFirst: true, pageSize: 1 }).subscribe({
+      next: (page) => {
+        this.gameLookup.remember(page.items);
+        const first = page.items[0];
+        if (!this.model().gameId && first) {
+          this.model.update((m) => ({ ...m, gameId: String(first.id) }));
         }
       },
-      error: () => this.notificationService.error('Oyunlar yüklenemedi.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Oyunlar yüklenemedi.')),
     });
     this.squadService.getMine().subscribe({
       next: (squads) => {
@@ -101,7 +104,7 @@ export class ClipUploadSheet implements OnInit, OnDestroy {
           this.model.update((m) => ({ ...m, squadId: squads[0].id }));
         }
       },
-      error: () => void 0,
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, "Squad'lar yüklenemedi.")),
     });
   }
 

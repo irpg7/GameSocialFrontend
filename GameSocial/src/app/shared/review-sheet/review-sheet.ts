@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, effect, inject, input, linkedSignal, output, signal, untracked } from '@angular/core';
 import { FormField, form, max, maxLength, min } from '@angular/forms/signals';
-import { SelectControl } from '../select-control';
+import { GamePicker, GamePickerFilter } from '../game-picker/game-picker';
+import { GameLookup } from '../../services/game/game-lookup.service';
 import { finalize } from 'rxjs';
 import { GameModel } from '../../models/game.model';
 import { PlayStatusName, PostModel } from '../../models/post.model';
@@ -57,7 +58,7 @@ const MAX_HOURS = 10_000;
 
 @Component({
   selector: 'app-review-sheet',
-  imports: [ImgFallback, FormField, SelectControl, SheetModal, StarRating, RichTextToolbar],
+  imports: [ImgFallback, FormField, GamePicker, SheetModal, StarRating, RichTextToolbar],
   templateUrl: './review-sheet.html',
   styleUrl: './review-sheet.scss',
 })
@@ -66,8 +67,8 @@ export class ReviewSheet implements OnInit {
   private meService = inject(MeService);
   private authService = inject(AuthService);
   private xpAwards = inject(XpAwardsService);
+  private gameLookup = inject(GameLookup);
 
-  games = input.required<GameModel[]>();
   /** Optional pre-fill — e.g. the Reviews page's "Waiting for your review" Rate CTA. */
   preselectedGameId = input<number | null>(null);
 
@@ -78,11 +79,10 @@ export class ReviewSheet implements OnInit {
   protected readonly formatClock = formatClock;
   protected readonly formatTimeAgo = formatTimeAgo;
 
-  /** One review per game: games you already reviewed are left out of the picker (the server enforces it too). */
-  protected readonly reviewableGames = computed(() => {
-    const reviewed = this.meService.me()?.reviewedGameIds ?? [];
-    return this.games().filter((g) => !reviewed.includes(g.id));
-  });
+  /** One review per game: the picker asks the server to leave out games you already reviewed (it enforces it too). */
+  protected readonly reviewableFilter: GamePickerFilter = { notReviewedByMe: true };
+  /** The chosen game's details (cover, studio, release date for the hours cap), resolved from its id. */
+  private readonly resolvedGame = signal<GameModel | null>(null);
   /**
    * The game select's value (Signal Forms): the game id as text, '' = none. Kept apart from the
    * rest of the form so the preselect input resets only the game, as before.
@@ -123,6 +123,7 @@ export class ReviewSheet implements OnInit {
   protected readonly isPickingClip = signal(false);
   protected readonly myClips = signal<PostModel[]>([]);
   protected readonly isLoadingClips = signal(false);
+  protected readonly clipsError = signal<string | null>(null);
 
   /** A Review draft offered for resuming when the sheet opens. */
   protected readonly resumableDraft = signal<PostModel | null>(null);
@@ -135,7 +136,11 @@ export class ReviewSheet implements OnInit {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly draftSavedAt = signal<string | null>(null);
 
-  protected readonly selectedGame = computed(() => this.reviewableGames().find((g) => g.id === this.gameId()) ?? null);
+  protected readonly selectedGame = computed(() => {
+    const game = this.resolvedGame();
+    const reviewed = this.meService.me()?.reviewedGameIds ?? [];
+    return game && game.id === this.gameId() && !reviewed.includes(game.id) ? game : null;
+  });
   protected readonly reviewXp = computed(() => this.xpAwards.amount('review'));
   protected readonly hoursLabel = computed(() => (this.hoursPlayed() ?? 0).toString());
   /** Same cap as the server (ReviewHoursRules): hours since release for released games, 10,000 at most. */
@@ -162,6 +167,19 @@ export class ReviewSheet implements OnInit {
   });
 
   constructor() {
+    effect((onCleanup) => {
+      const gameId = this.gameId();
+      if (gameId === null) {
+        this.resolvedGame.set(null);
+        return;
+      }
+      const sub = this.gameLookup.resolve(gameId).subscribe({
+        next: (game) => this.resolvedGame.set(game),
+        error: () => this.resolvedGame.set(null),
+      });
+      onCleanup(() => sub.unsubscribe());
+    });
+
     // Prefill hours/status from your latest published review of the chosen game.
     effect(() => {
       const gameId = this.gameId();
@@ -184,7 +202,7 @@ export class ReviewSheet implements OnInit {
     });
   }
 
-  /** The game select changed (the value itself is already in `gameIdValue`). */
+  /** The game picker changed (the value itself is already in `gameIdValue`). */
   onGameChanged(): void {
     this.isPickingGame.set(false);
     this.embeddedClipIds.set([]);
@@ -326,12 +344,13 @@ export class ReviewSheet implements OnInit {
       return;
     }
     this.isLoadingClips.set(true);
+    this.clipsError.set(null);
     this.postService
       .getPosts(1, 20, { postType: 'Clip', userId, gameId: this.gameId() ?? undefined, sort: 'new' })
       .pipe(finalize(() => this.isLoadingClips.set(false)))
       .subscribe({
         next: (result) => this.myClips.set(result.items),
-        error: () => void 0,
+        error: (err: unknown) => this.clipsError.set(extractApiErrorMessage(err, 'Could not load your clips.')),
       });
   }
 
