@@ -1,0 +1,30 @@
+<section class="card settings-section" aria-labelledby="settings-username-title">
+  <h2 class="settings-title" id="settings-username-title">Username</h2>
+
+  @if (lockedUntil(); as until) {
+    <p class="settings-note">
+      You're <strong>{{ me().username }}</strong>. You can change your username again on {{ until | date: 'MMMM d, y' }}.
+    </p>
+  } @else {
+    <form class="settings-section" [formRoot]="usernameForm">
+      <div class="form-group">
+        <label for="settings-username">Username</label>
+        <input type="text" id="settings-username" autocomplete="username" [formField]="usernameForm.username">
+        <span class="field-hint">Your profile link stays the same. You can change it once every 30 days.</span>
+        @if (fieldError(usernameForm.username()); as message) {
+          <span class="field-error">{{ message }}</span>
+        }
+      </div>
+
+      @if (submitError(usernameForm()); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+
+      <div class="settings-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="usernameForm().submitting() || unchanged()">
+          {{ usernameForm().submitting() ? 'Saving...' : 'Change username' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

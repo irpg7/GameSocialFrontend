@@ -1,0 +1,39 @@
+<section class="card settings-section" aria-labelledby="settings-email-title">
+  <h2 class="settings-title" id="settings-email-title">Email</h2>
+
+  <p class="settings-note">You sign in with <strong>{{ me().email }}</strong>.</p>
+
+  @if (me().pendingEmail; as pending) {
+    <p class="settings-note" role="status">
+      Waiting for confirmation: <strong>{{ pending }}</strong>. Open the link we sent there to finish the change.
+      <button type="button" class="link-button" [disabled]="cancelling()" (click)="cancelPending()">Cancel change</button>
+    </p>
+  }
+
+  <form class="settings-section" [formRoot]="emailForm">
+    <div class="form-group">
+      <label for="settings-new-email">New email</label>
+      <input type="email" id="settings-new-email" autocomplete="email" [formField]="emailForm.newEmail">
+      @if (fieldError(emailForm.newEmail()); as message) {
+        <span class="field-error">{{ message }}</span>
+      }
+    </div>
+    <div class="form-group">
+      <label for="settings-email-password">Current password</label>
+      <input type="password" id="settings-email-password" autocomplete="current-password" [formField]="emailForm.currentPassword">
+      @if (fieldError(emailForm.currentPassword()); as message) {
+        <span class="field-error">{{ message }}</span>
+      }
+    </div>
+
+    @if (submitError(emailForm()); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="settings-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="emailForm().submitting()">
+        {{ emailForm().submitting() ? 'Sending...' : 'Send confirmation link' }}
+      </button>
+    </div>
+  </form>
+</section>

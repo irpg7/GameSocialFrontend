@@ -1,0 +1,71 @@
+// One settings card (profile, username, email, password) — listed first in each section's styleUrls.
+@use '../../../styles/variables' as *;
+
+:host {
+  display: block;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: $color-text-secondary;
+
+  strong {
+    color: $color-text-primary;
+    word-break: break-all;
+  }
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.field-error {
+  display: block;
+  margin-top: $spacing-xs;
+  font-size: 0.8rem;
+  color: $color-accent-primary;
+}
+
+.field-hint {
+  display: block;
+  margin-top: $spacing-xs;
+  font-size: 0.8rem;
+  color: $color-text-tertiary;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $color-accent-primary;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: $color-accent-primary;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}

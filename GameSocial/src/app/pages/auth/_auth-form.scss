@@ -1,0 +1,94 @@
+// Form pieces shared by the signed-out pages (content projected into <app-auth-card>, so each page
+// styles it itself): `@use '../auth-form' as *;` then `@include auth-form;` at the top level.
+@use '../../../styles/variables' as *;
+
+@mixin auth-form {
+  .auth-form {
+    // The shared .btn is the design's compact 13px action pill; a form's primary
+    // submit is the one place that wants a taller, full-width control.
+    .auth-submit {
+      width: 100%;
+      margin-top: $spacing-md;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 16px;
+    }
+
+    .auth-submit[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .auth-row-link {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: calc(-1 * $spacing-xs);
+    font-size: 0.85rem;
+  }
+
+  .field-error {
+    display: block;
+    margin-top: $spacing-xs;
+    font-size: 0.8rem;
+    color: $color-accent-primary;
+  }
+
+  .field-hint {
+    display: block;
+    margin-top: $spacing-xs;
+    font-size: 0.8rem;
+    color: $color-text-tertiary;
+  }
+
+  .form-error {
+    margin-top: $spacing-sm;
+    font-size: 0.9rem;
+    color: $color-accent-primary;
+  }
+
+  // Status line for link pages (verifying…, verified, link expired) and "check your inbox".
+  .auth-message {
+    margin: 0 0 $spacing-lg;
+    text-align: center;
+    line-height: 1.55;
+    color: $color-text-secondary;
+
+    strong {
+      color: $color-text-primary;
+      word-break: break-all;
+    }
+
+    &.is-error {
+      color: $color-accent-primary;
+    }
+  }
+
+  .auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    .btn {
+      width: 100%;
+      padding: 12px 16px;
+      justify-content: center;
+    }
+  }
+
+  .link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $color-accent-primary;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &[disabled] {
+      color: $color-text-tertiary;
+      cursor: default;
+      text-decoration: none;
+    }
+  }
+}

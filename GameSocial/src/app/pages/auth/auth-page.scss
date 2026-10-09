@@ -1,0 +1,14 @@
+// Styles of the small signed-out pages (check inbox, verify email, forgot / reset password).
+@use '../../../styles/variables' as *;
+@use 'auth-form' as *;
+
+@include auth-form;
+
+.auth-status {
+  margin-top: $spacing-md;
+  text-align: center;
+
+  .is-error {
+    color: $color-accent-primary;
+  }
+}

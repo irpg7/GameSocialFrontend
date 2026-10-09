@@ -1,38 +1,59 @@
-<div class="auth-container">
-  <div class="auth-card card">
-    <div class="auth-header">
-      <img class="auth-logo" ngSrc="assets/tavern-logo.png" width="88" height="108" priority alt="" />
-      <h1 class="auth-title">Welcome back to the <span class="text-accent">Tavern</span></h1>
-      <p class="text-muted">Pull up a stool — your party's waiting.</p>
-    </div>
+<app-auth-card heading="Welcome back to the" accent="Tavern" subtitle="Pull up a stool — your party's waiting.">
+  @switch (notice()) {
+    @case ('verified') {
+      <p class="auth-message">Your email is verified. Sign in to continue.</p>
+    }
+    @case ('password-reset') {
+      <p class="auth-message">Your password was changed. Sign in with the new one.</p>
+    }
+    @case ('deletion-scheduled') {
+      <p class="auth-message">
+        Your account will be deleted{{ deletionDate() ? ' on ' + (deletionDate() | date: 'mediumDate') : '' }}.
+        Changed your mind? Just sign in before then to cancel.
+      </p>
+    }
+  }
 
-    <form class="auth-form" [formRoot]="loginForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" [formField]="loginForm.email" placeholder="Enter your email">
-        @if (fieldError(loginForm.email()); as message) {
-          <span class="field-error">{{ message }}</span>
-        }
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" [formField]="loginForm.password" placeholder="Enter your password">
-        @if (fieldError(loginForm.password()); as message) {
-          <span class="field-error">{{ message }}</span>
-        }
-      </div>
-
-      @if (submitError(loginForm()); as message) {
-        <p class="form-error">{{ message }}</p>
+  <form class="auth-form" [formRoot]="loginForm">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="email" [formField]="loginForm.email" placeholder="Enter your email">
+      @if (fieldError(loginForm.email()); as message) {
+        <span class="field-error">{{ message }}</span>
       }
-
-      <button type="submit" class="btn btn-primary auth-submit" [disabled]="loginForm().submitting()">
-        {{ loginForm().submitting() ? 'Logging in...' : 'Login' }}
-      </button>
-    </form>
-
-    <div class="auth-footer">
-      <p class="text-muted">Don't have an account? <a routerLink="/register">Register here</a></p>
     </div>
-  </div>
-</div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" [formField]="loginForm.password" placeholder="Enter your password">
+      @if (fieldError(loginForm.password()); as message) {
+        <span class="field-error">{{ message }}</span>
+      }
+    </div>
+    <div class="auth-row-link">
+      <a routerLink="/forgot-password" [queryParams]="{ email: loginForm.email().value() || null }">Forgot password?</a>
+    </div>
+
+    @if (submitError(loginForm()); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+    @if (unverifiedEmail()) {
+      <p class="field-hint" aria-live="polite">
+        @switch (resendState()) {
+          @case ('sent') { We sent a new verification link. Check your inbox. }
+          @default {
+            Didn't get the email?
+            <button type="button" class="link-button" [disabled]="resendState() === 'sending'" (click)="resendVerification()">
+              Resend verification email
+            </button>
+          }
+        }
+      </p>
+    }
+
+    <button type="submit" class="btn btn-primary auth-submit" [disabled]="loginForm().submitting()">
+      {{ loginForm().submitting() ? 'Logging in...' : 'Login' }}
+    </button>
+  </form>
+
+  <p auth-footer class="text-muted">Don't have an account? <a routerLink="/register">Register here</a></p>
+</app-auth-card>

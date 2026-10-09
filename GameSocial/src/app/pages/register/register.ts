@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth/auth.service';
 import { fieldError, serverError, submitError } from '../../shared/form-errors';
+import { passwordRules } from '../../shared/password-rules';
 
 @Component({
   imports: [FormField, FormRoot, RouterLink],
@@ -27,8 +28,7 @@ export class Register {
       minLength(path.username, 3, { message: 'Username must be at least 3 characters.' });
       required(path.email, { message: 'Enter a valid email address.' });
       email(path.email, { message: 'Enter a valid email address.' });
-      required(path.password, { message: 'Password must be at least 8 characters.' });
-      minLength(path.password, 8, { message: 'Password must be at least 8 characters.' });
+      passwordRules(path.password);
     },
     {
       submission: {
@@ -40,7 +40,8 @@ export class Register {
             // The server's own message when it has one ("That email or username is already taken.").
             return serverError(err, 'Registration failed. Please check your details and try again.');
           }
-          await this.router.navigateByUrl('/onboarding');
+          // No session yet: the account unlocks once the emailed link is opened.
+          await this.router.navigate(['/check-inbox'], { queryParams: { email: address } });
           return undefined;
         },
       },

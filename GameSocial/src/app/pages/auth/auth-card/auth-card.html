@@ -1,0 +1,22 @@
+<div class="auth-container">
+  <div class="auth-card card">
+    <div class="auth-header">
+      <img class="auth-logo" ngSrc="assets/tavern-logo.png" width="88" height="108" priority alt="" />
+      <h1 class="auth-title">
+        {{ heading() }}
+        @if (accent(); as accent) {
+          <span class="text-accent">{{ accent }}</span>
+        }
+      </h1>
+      @if (subtitle(); as subtitle) {
+        <p class="text-muted">{{ subtitle }}</p>
+      }
+    </div>
+
+    <ng-content />
+
+    <div class="auth-footer">
+      <ng-content select="[auth-footer]" />
+    </div>
+  </div>
+</div>

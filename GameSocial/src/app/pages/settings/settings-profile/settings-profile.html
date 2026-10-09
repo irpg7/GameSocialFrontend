@@ -1,0 +1,62 @@
+<section class="card settings-section" aria-labelledby="settings-profile-title">
+  <h2 class="settings-title" id="settings-profile-title">Profile</h2>
+
+  <div class="avatar-row">
+    <span class="avatar-preview">
+      <img [appImg]="me().avatarUrl" fallback="avatar" alt="Your avatar" />
+    </span>
+    <div class="avatar-controls">
+      <div class="avatar-buttons">
+        <button type="button" class="btn btn-secondary" [disabled]="avatarBusy()" (click)="chooseAvatar()">
+          {{ avatarBusy() ? 'Uploading...' : me().avatarUrl ? 'Change avatar' : 'Upload avatar' }}
+        </button>
+        @if (me().avatarUrl) {
+          <button type="button" class="btn btn-secondary" [disabled]="avatarBusy()" (click)="removeAvatar()">Remove</button>
+        }
+      </div>
+      <span class="field-hint">JPG, PNG or WebP, up to 5 MB. Cropped to a square.</span>
+      @if (avatarError(); as message) {
+        <span class="field-error" role="alert">{{ message }}</span>
+      }
+      <input
+        #avatarInput
+        class="visually-hidden"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="onAvatarSelected($event)">
+    </div>
+  </div>
+
+  <form class="settings-section" [formRoot]="profileForm">
+    <div class="form-group">
+      <label for="settings-bio">Bio</label>
+      <textarea id="settings-bio" rows="3" [formField]="profileForm.bio" placeholder="What do you play? What are you grinding?"></textarea>
+      <span class="field-hint">{{ bioLength() }} / {{ bioMax }}</span>
+      @if (fieldError(profileForm.bio()); as message) {
+        <span class="field-error">{{ message }}</span>
+      }
+    </div>
+
+    @if (me().isDeveloper) {
+      <div class="form-group">
+        <label for="settings-studio">Studio name</label>
+        <input type="text" id="settings-studio" [formField]="profileForm.studioName" placeholder="Shown on your devlogs">
+        @if (fieldError(profileForm.studioName()); as message) {
+          <span class="field-error">{{ message }}</span>
+        }
+      </div>
+    }
+
+    @if (submitError(profileForm()); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="settings-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="profileForm().submitting() || !profileForm().dirty()">
+        {{ profileForm().submitting() ? 'Saving...' : 'Save profile' }}
+      </button>
+    </div>
+  </form>
+</section>

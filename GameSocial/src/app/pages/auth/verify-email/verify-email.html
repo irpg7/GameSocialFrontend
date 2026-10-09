@@ -1,0 +1,37 @@
+@if (result(); as result) {
+  @if (result.purpose === 'EmailChange') {
+    <app-auth-card heading="Email" accent="updated">
+      <p class="auth-message">Your account now uses <strong>{{ result.email }}</strong>.</p>
+      <div class="auth-actions">
+        @if (signedIn) {
+          <a class="btn btn-primary" routerLink="/settings">Back to settings</a>
+        } @else {
+          <a class="btn btn-primary" routerLink="/login" [queryParams]="{ email: result.email }">Sign in</a>
+        }
+      </div>
+    </app-auth-card>
+  } @else {
+    <app-auth-card heading="You're" accent="in" subtitle="Your email is verified.">
+      <p class="auth-message">Welcome to the Tavern, <strong>{{ result.email }}</strong>. Sign in to set up your games.</p>
+      <div class="auth-actions">
+        @if (signedIn) {
+          <a class="btn btn-primary" routerLink="/feed">Go to the feed</a>
+        } @else {
+          <a class="btn btn-primary" routerLink="/login" [queryParams]="{ email: result.email, notice: 'verified', returnUrl: '/onboarding' }">Sign in</a>
+        }
+      </div>
+    </app-auth-card>
+  }
+} @else if (error(); as message) {
+  <app-auth-card heading="Link" accent="expired">
+    <p class="auth-message is-error" role="alert">{{ message }}</p>
+    <p class="auth-message">Sign in to get a new verification link, or request one from the sign-up email page.</p>
+    <div class="auth-actions">
+      <a class="btn btn-primary" routerLink="/login">Go to sign in</a>
+    </div>
+  </app-auth-card>
+} @else {
+  <app-auth-card heading="Verifying your" accent="email">
+    <p class="auth-message" aria-live="polite">One moment…</p>
+  </app-auth-card>
+}

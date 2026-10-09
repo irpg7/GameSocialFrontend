@@ -1,0 +1,37 @@
+<app-auth-card heading="Check your" accent="inbox" subtitle="One more step before you pull up a stool.">
+  <p class="auth-message">
+    @if (email) {
+      We sent a verification link to <strong>{{ email }}</strong>.
+    } @else {
+      We sent you a verification link.
+    }
+    Open it to activate your account, then sign in.
+  </p>
+
+  <div class="auth-actions">
+    <a class="btn btn-primary" routerLink="/login" [queryParams]="{ email: email || null }">Go to sign in</a>
+    @if (email) {
+      <button type="button" class="btn btn-secondary" [disabled]="!canResend()" (click)="resend()">
+        @if (sending()) {
+          Sending…
+        } @else if (cooldown() > 0) {
+          Resend email ({{ cooldown() }}s)
+        } @else {
+          Resend email
+        }
+      </button>
+    }
+  </div>
+
+  <p class="field-hint auth-status" aria-live="polite">
+    @if (error(); as message) {
+      <span class="is-error">{{ message }}</span>
+    } @else if (status(); as message) {
+      {{ message }}
+    } @else {
+      Can't find it? Check your spam folder.
+    }
+  </p>
+
+  <p auth-footer class="text-muted">Wrong address? <a routerLink="/register">Register again</a></p>
+</app-auth-card>
