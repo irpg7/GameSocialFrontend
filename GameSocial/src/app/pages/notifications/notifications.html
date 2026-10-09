@@ -1,0 +1,40 @@
+<div class="notifications-page">
+  <div class="page-head">
+    <div>
+      <h1>Notifications</h1>
+      <p class="page-sub">Follows, comments, likes, squad invites and moderation updates.</p>
+    </div>
+    @if (center.counts().notifications > 0) {
+      <button type="button" class="btn btn-secondary" (click)="markAllRead()">Mark all read</button>
+    }
+  </div>
+
+  <div class="notif-tabs" role="tablist" aria-label="Notification filter">
+    <button type="button" role="tab" class="chip" [class.active]="!unreadOnly()" [attr.aria-selected]="!unreadOnly()" (click)="setUnreadOnly(false)">All</button>
+    <button type="button" role="tab" class="chip" [class.active]="unreadOnly()" [attr.aria-selected]="unreadOnly()" (click)="setUnreadOnly(true)">
+      Unread @if (center.counts().notifications > 0) { · {{ center.counts().notifications }} }
+    </button>
+  </div>
+
+  @if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="load(items().length === 0)" />
+  }
+
+  <div class="card notif-list">
+    @for (n of items(); track n.id) {
+      <app-notification-item [notification]="n" (activate)="open($event)" />
+    } @empty {
+      @if (isLoading()) {
+        <p class="notif-status" role="status">Loading…</p>
+      } @else if (!loadError()) {
+        <p class="notif-status">{{ unreadOnly() ? 'No unread notifications.' : 'Nothing here yet. Follows, comments and likes will show up here.' }}</p>
+      }
+    }
+  </div>
+
+  @if (hasMore() && items().length > 0) {
+    <button type="button" class="btn btn-secondary notif-more" [disabled]="isLoading()" (click)="loadMore()">
+      {{ isLoading() ? 'Loading…' : 'Load more' }}
+    </button>
+  }
+</div>

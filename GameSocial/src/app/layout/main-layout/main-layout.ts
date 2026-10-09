@@ -6,6 +6,8 @@ import { Topbar } from '../topbar/topbar';
 import { ToastList } from '../toast-list/toast-list';
 import { MeService } from '../../services/me/me.service';
 import { MobileTabBar } from '../mobile-tab-bar/mobile-tab-bar';
+import { ReportSheetHost } from '../../shared/report-sheet/report-sheet-host';
+import { NotificationCenterService } from '../../services/notification-center/notification-center.service';
 
 /**
  * Shell for every authenticated route. No longer owns a global right rail —
@@ -18,12 +20,13 @@ import { MobileTabBar } from '../mobile-tab-bar/mobile-tab-bar';
  */
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, Topbar, ToastList, MobileTabBar],
+  imports: [RouterOutlet, Topbar, ToastList, MobileTabBar, ReportSheetHost],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
 })
 export class MainLayout implements OnInit {
   private meService = inject(MeService);
+  private notificationCenter = inject(NotificationCenterService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -56,6 +59,8 @@ export class MainLayout implements OnInit {
     // "Refetch on app init" per the live gamification-state refresh strategy —
     // failures are swallowed, the header/sidebar just show no XP pill/streak.
     this.meService.refresh().subscribe({ error: () => void 0 });
+    // Badges + the user hub (notifications, DMs) for as long as the signed-in shell is up.
+    this.notificationCenter.start();
   }
 
   /**

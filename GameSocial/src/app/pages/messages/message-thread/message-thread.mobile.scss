@@ -1,0 +1,51 @@
+@use '../../../../styles/variables' as *;
+
+// Phones: the thread is a full screen of its own (the route is immersive — no topbar / tab bar),
+// so it brings a back button and keeps the composer at the bottom edge.
+@media (max-width: 768px) {
+  .mt-head {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .mt-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border: none;
+    border-radius: $border-radius-md;
+    background: $color-bg-tertiary;
+    color: $color-text-primary;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid $color-accent-light;
+    }
+  }
+
+  .mt-scroller {
+    padding: 12px;
+  }
+
+  .mt-msg {
+    max-width: 88%;
+  }
+
+  // Touch has no hover: the report button stays visible but quiet.
+  .mt-report {
+    opacity: 0.6;
+  }
+
+  .mt-composer {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+
+    textarea {
+      resize: none;
+    }
+  }
+}

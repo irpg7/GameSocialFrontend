@@ -1,0 +1,30 @@
+@use '../../../styles/variables' as *;
+
+.notifications-page {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notif-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.notif-list {
+  padding: 6px;
+}
+
+.notif-status {
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: 14px;
+}
+
+.notif-more {
+  align-self: center;
+}

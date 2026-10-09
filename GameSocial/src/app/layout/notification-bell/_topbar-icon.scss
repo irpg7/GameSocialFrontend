@@ -1,0 +1,44 @@
+@use '../../../styles/variables' as *;
+
+// Round icon button on the red topbar (bell, messages) with a white count badge.
+@mixin topbar-icon-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover,
+  &.open,
+  &.active {
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+@mixin topbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: $border-radius-full;
+  background: #fff;
+  color: $color-accent-primary;
+  font: 800 11px/18px $font-family-primary;
+  text-align: center;
+  box-shadow: 0 0 0 2px $color-accent-primary;
+}

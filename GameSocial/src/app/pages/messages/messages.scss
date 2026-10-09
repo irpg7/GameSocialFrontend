@@ -1,0 +1,62 @@
+@use '../../../styles/variables' as *;
+
+// Route data `flush`: the page owns its height and scrolling (list and thread scroll separately).
+:host {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dm-page {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.dm-list {
+  border-right: 1px solid $color-border;
+  background: $color-bg-secondary;
+  min-height: 0;
+}
+
+.dm-thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dm-placeholder {
+  margin: auto;
+  padding: 24px;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: 14px;
+}
+
+// Phones: one column — the list, or (with a conversation open) the thread.
+@media (max-width: 768px) {
+  .dm-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dm-list {
+    border-right: none;
+  }
+
+  .dm-thread {
+    display: none;
+  }
+
+  .dm-page.has-thread {
+    .dm-list {
+      display: none;
+    }
+
+    .dm-thread {
+      display: flex;
+    }
+  }
+}

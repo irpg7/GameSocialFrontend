@@ -82,6 +82,9 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
     </button>
 
+    <app-messages-link />
+    <app-notification-bell />
+
     @if (meService.me(); as me) {
       <div class="xp-pill" [attr.title]="me.xp + ' XP · ' + me.xpToNextLevel + ' to next level'">
         <span class="xp-level">LV {{ me.level }}</span>
@@ -135,6 +138,10 @@
                 <span class="me-item-hint">{{ item.hint }}</span>
               </a>
             }
+            <a class="me-item" role="menuitem" routerLink="/settings" (click)="isMenuOpen.set(false)">
+              <span class="me-item-icon" aria-hidden="true">⚙</span>Account settings
+              <span class="me-item-hint"></span>
+            </a>
             @if (authService.permissions().length > 0) {
               <a class="me-item" role="menuitem" routerLink="/backoffice" (click)="isMenuOpen.set(false)">
                 <span class="me-item-icon" aria-hidden="true">◈</span>Backoffice

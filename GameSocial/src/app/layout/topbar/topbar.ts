@@ -8,6 +8,11 @@ import { SearchService } from '../../services/search/search.service';
 import { PresenceStatusName } from '../../models/me.model';
 import { SearchResultModel } from '../../models/search.model';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { OverlayStack } from '../../shared/overlay/overlay-stack.service';
+import { NotificationService } from '../../services/notification/notification.service';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
+import { NotificationBell } from '../notification-bell/notification-bell';
+import { MessagesLink } from '../notification-bell/messages-link';
 
 const HEARTBEAT_MS = 60_000;
 
@@ -27,19 +32,22 @@ interface MenuItem {
 
 @Component({
   selector: 'app-topbar',
-  imports: [ImgFallback, RouterLink, RouterLinkActive],
+  imports: [ImgFallback, RouterLink, RouterLinkActive, NotificationBell, MessagesLink],
   templateUrl: './topbar.html',
   styleUrls: ['./topbar.scss', './topbar.mobile.scss'],
   host: {
     '[class.m-search]': 'isMobileSearch()',
     '(document:click)': 'onDocumentClick($event)',
-    '(document:keydown.escape)': 'closeAll()',
+    '(document:keydown.escape)': 'overlays.hasOpen() || closeAll()',
   },
 })
 export class Topbar {
+  /** Page-level Escape stands down while a dialog is open — the dialog closes first. */
+  protected readonly overlays = inject(OverlayStack);
   protected readonly authService = inject(AuthService);
   protected readonly meService = inject(MeService);
   private searchService = inject(SearchService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
   private elementRef = inject(ElementRef<HTMLElement>);
 
@@ -145,7 +153,13 @@ export class Topbar {
   cycleStatus(): void {
     const index = STATUSES.findIndex((s) => s.value === this.status().value);
     const next = STATUSES[(index + 1) % STATUSES.length];
-    this.meService.setStatus(next.value).subscribe({ error: () => void 0 });
+    const previous = this.status().value;
+    this.meService.setStatus(next.value).subscribe({
+      error: (err: unknown) => {
+        this.meService.revertStatus(previous);
+        this.notificationService.error(extractApiErrorMessage(err, 'Could not change your status.'));
+      },
+    });
   }
 
   logout(): void {

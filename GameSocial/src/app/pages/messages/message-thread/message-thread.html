@@ -1,0 +1,91 @@
+@if (loadError(); as error) {
+  <div class="mt-error">
+    <button type="button" class="mt-back" aria-label="Back to conversations" (click)="back.emit()">‹</button>
+    <app-load-error [message]="error" (retry)="load(conversationId())" />
+  </div>
+} @else {
+  <header class="mt-head">
+    <button type="button" class="mt-back" aria-label="Back to conversations" (click)="back.emit()">‹</button>
+    @if (conversation(); as c) {
+      <a class="mt-who" [routerLink]="['/profile', c.otherUserId]">
+        <span class="mt-avatar">
+          <img [appImg]="c.otherAvatarUrl" fallback="avatar" alt="" />
+          <span class="mt-presence" [attr.data-presence]="c.otherPresence" aria-hidden="true"></span>
+        </span>
+        <span class="mt-who-text">
+          <span class="mt-name">{{ c.otherUsername }}</span>
+          <span class="mt-status">{{ isTyping() ? 'typing…' : c.otherPresence === 'offline' ? 'Offline' : c.otherPresence === 'online' ? 'Online' : 'Away' }}</span>
+        </span>
+      </a>
+      <button type="button" class="btn btn-secondary mt-delete" (click)="isClearOpen.set(true)">Delete</button>
+    }
+  </header>
+
+  <div class="mt-scroller" #scroller>
+    @if (isLoading()) {
+      <p class="mt-status-line" role="status">Loading…</p>
+    } @else {
+      @if (hasMore()) {
+        <button type="button" class="btn btn-secondary mt-older" [disabled]="isLoadingOlder()" (click)="loadOlder()">
+          {{ isLoadingOlder() ? 'Loading…' : 'Load older messages' }}
+        </button>
+      }
+      <ol class="mt-list" aria-label="Messages" aria-live="polite">
+        @for (m of messages(); track m.id; let i = $index) {
+          @if (dayLabel(i); as day) {
+            <li class="mt-day" aria-hidden="true">{{ day }}</li>
+          }
+          <li class="mt-msg" [class.mine]="m.senderId === myId()">
+            <div class="mt-bubble">
+              <p class="mt-body">{{ m.body }}</p>
+              <span class="mt-meta">
+                <time [attr.datetime]="m.createdAt">{{ time(m.createdAt) }}</time>
+                @if (m.id === seenMessageId()) {
+                  <span class="mt-seen">· Seen</span>
+                }
+              </span>
+            </div>
+            @if (m.senderId !== myId()) {
+              <button type="button" class="mt-report" [attr.aria-label]="'Report message from ' + time(m.createdAt)" title="Report" (click)="report(m)">⚑</button>
+            }
+          </li>
+        } @empty {
+          @if (conversation(); as c) {
+            <li class="mt-status-line">Say hi to &#64;{{ c.otherUsername }}.</li>
+          }
+        }
+      </ol>
+    }
+  </div>
+
+  @if (readOnlyNote(); as note) {
+    <p class="mt-readonly" role="note">{{ note }}</p>
+  } @else if (conversation()) {
+    <form class="mt-composer" (submit)="$event.preventDefault(); send()">
+      <label class="visually-hidden" for="mt-input">Message</label>
+      <textarea
+        id="mt-input"
+        rows="1"
+        placeholder="Write a message…"
+        [formField]="draftField"
+        (input)="onInput()"
+        (keydown)="onKeydown($event)"></textarea>
+      <button type="submit" class="btn btn-primary mt-send" [disabled]="!draft().trim() || draft().length > maxLength || isSending()">
+        {{ isSending() ? 'Sending…' : 'Send' }}
+      </button>
+    </form>
+    @if (draft().length > maxLength) {
+      <p class="mt-send-error" role="alert">Messages can be at most {{ maxLength }} characters ({{ draft().length }}).</p>
+    } @else if (sendError(); as error) {
+      <p class="mt-send-error" role="alert">{{ error }}</p>
+    }
+  }
+}
+
+@if (isClearOpen() && conversation(); as c) {
+  <app-clear-conversation-sheet
+    [conversationId]="c.id"
+    [username]="c.otherUsername"
+    (closed)="isClearOpen.set(false)"
+    (cleared)="onCleared()" />
+}

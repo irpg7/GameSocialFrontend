@@ -1,0 +1,49 @@
+<div class="cl-head">
+  <h1 class="cl-title">Messages</h1>
+</div>
+
+@if (store.loadError(); as error) {
+  <div class="cl-error">
+    <app-load-error [message]="error" (retry)="store.load(store.conversations().length === 0)" />
+  </div>
+}
+
+<nav class="cl-list" aria-label="Conversations">
+  @for (c of store.conversations(); track c.id) {
+    <a
+      class="cl-row"
+      [class.active]="c.id === activeId()"
+      [class.unread]="c.unreadCount > 0"
+      [routerLink]="['/messages', c.id]"
+      [attr.aria-current]="c.id === activeId() ? 'page' : null">
+      <span class="cl-avatar">
+        <img [appImg]="c.otherAvatarUrl" fallback="avatar" alt="" />
+        <span class="cl-presence" [attr.data-presence]="c.otherPresence" aria-hidden="true"></span>
+      </span>
+      <span class="cl-body">
+        <span class="cl-line">
+          <span class="cl-name">{{ c.otherUsername }}</span>
+          <span class="cl-time">{{ ago(c) }}</span>
+        </span>
+        <span class="cl-line">
+          <span class="cl-preview">{{ preview(c) }}</span>
+          @if (c.unreadCount > 0) {
+            <span class="cl-unread">{{ c.unreadCount }}<span class="visually-hidden"> unread</span></span>
+          }
+        </span>
+      </span>
+    </a>
+  } @empty {
+    @if (store.isLoading()) {
+      <p class="cl-empty" role="status">Loading…</p>
+    } @else if (!store.loadError()) {
+      <p class="cl-empty">No conversations yet. Open someone's profile and tap <strong>Message</strong> to start one.</p>
+    }
+  }
+
+  @if (store.hasMore() && store.conversations().length > 0) {
+    <button type="button" class="btn btn-secondary cl-more" [disabled]="store.isLoading()" (click)="store.loadMore()">
+      {{ store.isLoading() ? 'Loading…' : 'Load more' }}
+    </button>
+  }
+</nav>

@@ -1,0 +1,46 @@
+<button
+  type="button"
+  class="bell"
+  [class.open]="isOpen()"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-label]="center.counts().notifications ? 'Notifications, ' + center.counts().notifications + ' unread' : 'Notifications'"
+  (click)="toggle(); $event.stopPropagation()">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0" />
+  </svg>
+  @if (center.counts().notifications > 0) {
+    <span class="badge" aria-hidden="true">{{ center.counts().notifications > 99 ? '99+' : center.counts().notifications }}</span>
+  }
+</button>
+
+@if (isOpen()) {
+  <button type="button" class="m-backdrop" aria-label="Close notifications" (click)="close()"></button>
+  <section class="panel" role="dialog" aria-label="Notifications">
+    <header class="panel-head">
+      <h2 class="panel-title">Notifications</h2>
+      @if (center.counts().notifications > 0) {
+        <button type="button" class="panel-action" (click)="markAllRead()">Mark all read</button>
+      }
+    </header>
+
+    <div class="panel-list">
+      @if (loadFailed()) {
+        <p class="panel-empty" role="alert">
+          Could not load notifications.
+          <button type="button" class="panel-action" (click)="load()">Try again</button>
+        </p>
+      } @else if (isLoading() && items().length === 0) {
+        <p class="panel-empty">Loading…</p>
+      } @else {
+        @for (n of items(); track n.id) {
+          <app-notification-item [notification]="n" (activate)="open($event)" />
+        } @empty {
+          <p class="panel-empty">You're all caught up.</p>
+        }
+      }
+    </div>
+
+    <a class="panel-all" routerLink="/notifications" (click)="close()">See all notifications →</a>
+  </section>
+}
