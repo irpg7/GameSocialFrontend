@@ -60,6 +60,7 @@ export class MessageThread {
 
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
   private request: Subscription | null = null;
+  private olderRequest: Subscription | null = null;
   private typingTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly myId = computed(() => this.auth.currentUser()?.id ?? null);
@@ -121,18 +122,28 @@ export class MessageThread {
 
     destroyRef.onDestroy(() => {
       this.request?.unsubscribe();
+      this.olderRequest?.unsubscribe();
       if (this.typingTimer) clearTimeout(this.typingTimer);
       if (this.store.openId() === this.conversationId()) this.store.openId.set(null);
     });
   }
 
   protected load(id: string): void {
+    // This component is reused when another conversation opens: nothing of the previous one may leak in.
+    const switched = untracked(() => this.store.openId()) !== id;
     this.request?.unsubscribe();
+    this.olderRequest?.unsubscribe();
+    this.isLoadingOlder.set(false);
     this.store.openId.set(id);
     this.conversation.set(null);
     this.messages.set([]);
     this.hasMore.set(false);
     this.isTyping.set(false);
+    if (switched) {
+      // A send still in flight finishes for its own conversation (see send()); the new one starts clean.
+      this.draft.set('');
+      this.isSending.set(false);
+    }
     this.sendError.set(null);
     this.loadError.set(null);
     this.isLoading.set(true);
@@ -159,7 +170,8 @@ export class MessageThread {
     const el = this.scroller()?.nativeElement;
     const fromBottom = el ? el.scrollHeight - el.scrollTop : 0;
     this.isLoadingOlder.set(true);
-    this.dms.messages(this.conversationId(), oldest.id).subscribe({
+    // Cancelled by load() if another conversation opens meanwhile, so its older page can't land there.
+    this.olderRequest = this.dms.messages(this.conversationId(), oldest.id).subscribe({
       next: (page) => {
         this.messages.update((list) => [...page.items.filter((m) => !list.some((x) => x.id === m.id)), ...list]);
         this.hasMore.set(page.hasMore);
@@ -182,7 +194,8 @@ export class MessageThread {
 
   /** Enter sends, Shift+Enter is a new line. */
   protected onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    // keyCode 229: Safari fires the Enter that confirms an IME composition with isComposing already false.
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
       event.preventDefault();
       this.send();
     }
@@ -191,19 +204,25 @@ export class MessageThread {
   protected send(): void {
     const body = this.draft().trim();
     if (!body || body.length > this.maxLength || this.isSending()) return;
+    const id = this.conversationId();
     this.isSending.set(true);
     this.sendError.set(null);
-    this.dms.send(this.conversationId(), body).subscribe({
+    // Not cancelled on a conversation switch (the message may already be sent); the result only touches this
+    // view while the same conversation is still open. The list preview follows the hub's dmCreated either way.
+    const stillOpen = () => this.conversationId() === id;
+    this.dms.send(id, body).subscribe({
       next: (message) => {
+        if (!stillOpen()) return;
         this.isSending.set(false);
         this.draft.set('');
         this.append(message);
       },
       error: (err: unknown) => {
+        if (!stillOpen()) return;
         this.isSending.set(false);
         this.sendError.set(extractApiErrorMessage(err, 'Message not sent. Try again.'));
         // 403: the conversation became read-only (blocked / privacy changed) — show why.
-        this.dms.conversation(this.conversationId()).subscribe({ next: (c) => this.conversation.set(c), error: () => void 0 });
+        this.dms.conversation(id).subscribe({ next: (c) => stillOpen() && this.conversation.set(c), error: () => void 0 });
       },
     });
   }

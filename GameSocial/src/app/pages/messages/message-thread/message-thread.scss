@@ -181,6 +181,11 @@
   text-align: right;
 }
 
+// The template's whitespace is stripped, so the gap after the time is drawn here.
+.mt-seen {
+  margin-left: 3px;
+}
+
 .mt-report {
   flex: none;
   width: 28px;

@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { FormField, FormRoot, email, form, required } from '@angular/forms/signals';
@@ -30,10 +31,13 @@ export class Login {
   /** The account exists and the password matched, but its email isn't verified yet — offer a new link. */
   protected readonly unverifiedEmail = signal<string | null>(null);
   protected readonly resendState = signal<'idle' | 'sending' | 'sent'>('idle');
+  // Read live, not from the first snapshot: Angular reuses this page when /login is navigated to again with new
+  // params (account deletion: the hub's sessionEnded lands here first, then the sheet adds notice + until).
+  private readonly queryParams = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   /** "Your email is verified" / "password changed" notes when arriving from those pages. */
-  protected readonly notice = signal(this.route.snapshot.queryParamMap.get('notice'));
+  protected readonly notice = computed(() => this.queryParams().get('notice'));
   /** `notice=deletion-scheduled`: when the account will be deleted (`until`, ISO). */
-  protected readonly deletionDate = signal(this.route.snapshot.queryParamMap.get('until'));
+  protected readonly deletionDate = computed(() => this.queryParams().get('until'));
 
   protected readonly loginForm = form(
     this.model,

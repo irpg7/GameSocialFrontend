@@ -52,5 +52,23 @@ export class SelectControl implements FormValueControl<string> {
     if (this.select.value !== value) {
       this.select.value = value;
     }
+    this.refreshSelectedContent();
+  }
+
+  /**
+   * Chrome only clones the chosen option into `<selectedcontent>` when the selection *changes*. Options added
+   * after the select (by @for) make the first one selected without that clone, so the closed select showed
+   * nothing even though its value was right (e.g. Settings → Privacy). Re-selecting forces the clone; it only
+   * touches the button's subtree, which the observer above doesn't watch.
+   */
+  private refreshSelectedContent(): void {
+    const shown = this.select.querySelector('selectedcontent');
+    const option = this.select.selectedOptions[0];
+    if (!shown || !option || shown.textContent?.trim() === option.textContent?.trim()) {
+      return;
+    }
+    const current = this.select.value;
+    this.select.selectedIndex = -1;
+    this.select.value = current;
   }
 }

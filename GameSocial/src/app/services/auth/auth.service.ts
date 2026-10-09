@@ -304,8 +304,12 @@ export class AuthService {
       return;
     }
     if (current && subjectOf(current) !== subjectOf(stored)) {
-      // Another account signed in elsewhere: start clean rather than mixing two users' state.
+      // Another account signed in elsewhere: start clean rather than mixing two users' state. A full reload
+      // rebuilds every per-user piece (hub connection, badges, loaded lists) for the new account; the current
+      // URL may point at the previous user's data (e.g. one of their conversations), so land on the feed.
       this.sessionEndedSubject.next();
+      window.location.assign('/feed');
+      return;
     }
     this.sessionState.set(stored);
     this.scheduleRefresh();

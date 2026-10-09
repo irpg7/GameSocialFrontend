@@ -38,7 +38,9 @@ export class Messages {
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       startWith(null),
-      map(() => this.route.firstChild?.snapshot.paramMap.get('conversationId') ?? null),
+      // `snapshot` is still undefined on the child while this page is being created mid-navigation (e.g. coming
+      // from a profile's "Message"); an error here would kill the signal, so read it defensively.
+      map(() => this.route.firstChild?.snapshot?.paramMap.get('conversationId') ?? null),
     ),
     { initialValue: null },
   );
