@@ -40,7 +40,8 @@ export class SquadChatStore {
   readonly hasMore = signal(false);
   readonly isLoading = signal(false);
   readonly isSending = signal(false);
-  private readonly page = signal(1);
+  /** Last applied pin state per message id (see applyPin). */
+  private readonly pinStates = new Map<string, boolean>();
 
   /** channelId → (username → expiry timestamp). */
   private readonly typing = signal<Record<string, Record<string, number>>>({});
@@ -76,7 +77,7 @@ export class SquadChatStore {
   reset(): void {
     this.activeChannelId.set(null);
     this.messages.set([]);
-    this.page.set(1);
+    this.pinStates.clear();
     this.hasMore.set(false);
     this.typing.set({});
   }
@@ -87,18 +88,21 @@ export class SquadChatStore {
     }
     this.activeChannelId.set(channelId);
     this.messages.set([]);
-    this.page.set(1);
     this.hasMore.set(false);
-    this.load(1);
+    this.load();
     this.markRead(channelId);
   }
 
   loadEarlier(): void {
-    this.load(this.page() + 1, true);
+    // Cursor paging: new messages arriving meanwhile cannot shift what "earlier" means.
+    const oldest = this.messages()[0];
+    if (oldest) {
+      this.load(oldest.id);
+    }
   }
 
   reload(): void {
-    this.load(1);
+    this.load();
   }
 
   send(body: string): void {
@@ -123,14 +127,19 @@ export class SquadChatStore {
     });
   }
 
-  togglePin(message: SquadMessageModel): void {
+  /** `done` gets the updated message, or null when the toggle failed (the toast is shown here). */
+  togglePin(message: SquadMessageModel, done?: (updated: SquadMessageModel | null) => void): void {
     this.squadService.toggleMessagePin(this.room.squadId(), message.channelId, message.id).subscribe({
       next: (updated) => {
         this.applyPin(updated.id, updated.isPinned);
         this.upsert(updated);
         this.notificationService.success(updated.isPinned ? 'Mesaj sabitlendi.' : 'Sabitleme kaldırıldı.');
+        done?.(updated);
       },
-      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Mesaj sabitlenemedi.')),
+      error: (err: unknown) => {
+        this.notificationService.error(extractApiErrorMessage(err, 'Mesaj sabitlenemedi.'));
+        done?.(null);
+      },
     });
   }
 
@@ -141,23 +150,22 @@ export class SquadChatStore {
     }
   }
 
-  private load(page: number, append = false): void {
+  private load(before?: string): void {
     const channelId = this.activeChannelId();
     if (channelId === null) {
       return;
     }
     this.isLoading.set(true);
     this.squadService
-      .listMessages(this.room.squadId(), channelId, page, MESSAGE_PAGE_SIZE)
+      .listMessages(this.room.squadId(), channelId, before, MESSAGE_PAGE_SIZE)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (result) => {
           if (channelId !== this.activeChannelId()) {
             return;
           }
-          // Page 1 is the newest messages; each page comes back oldest-first, so older pages prepend.
-          this.messages.update((existing) => (append ? [...result.items, ...existing] : result.items));
-          this.page.set(result.page);
+          // The first load is the newest messages; each page comes back oldest-first, so older pages prepend.
+          this.messages.update((existing) => (before ? [...result.items, ...existing] : result.items));
           this.hasMore.set(result.hasMore);
         },
         error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Mesajlar yüklenemedi.')),
@@ -238,8 +246,13 @@ export class SquadChatStore {
 
   /** Sets a message's pinned flag and keeps the squad's pin count in step (idempotent). */
   private applyPin(messageId: string, isPinned: boolean): void {
+    // The HTTP response and the hub's echo of the same toggle both land here. A message outside the loaded channel
+    // has no `isPinned` to compare against, so the last applied state is remembered per id; otherwise the squad's
+    // count moved twice (2 pins → 0 after one unpin from the pins sheet).
     const current = this.messages().find((message) => message.id === messageId);
-    if (current && current.isPinned === isPinned) {
+    const known = current?.isPinned ?? this.pinStates.get(messageId);
+    this.pinStates.set(messageId, isPinned);
+    if (known === isPinned) {
       return;
     }
     this.messages.update((messages) =>

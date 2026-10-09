@@ -1,7 +1,8 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { Observable, catchError, finalize, of, switchMap } from 'rxjs';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { BottomSheet } from '../../shared/bottom-sheet/bottom-sheet';
+import { Observable, Subscription, catchError, finalize, of, switchMap } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
 import { GameLookup } from '../../services/game/game-lookup.service';
 import { SquadService } from '../../services/squad/squad.service';
@@ -11,6 +12,7 @@ import { PostModel } from '../../models/post.model';
 import { SquadModel } from '../../models/squad.model';
 import { PagedResult } from '../../models/paged-result.model';
 import { PostComposer } from './post-composer/post-composer';
+import { LoadError } from '../../shared/load-error/load-error';
 import { PostCard } from './post-card/post-card';
 import { FeedSidebar } from './feed-sidebar/feed-sidebar';
 import { FeedRightRail } from './feed-right-rail/feed-right-rail';
@@ -29,7 +31,7 @@ type FeedFilter = { kind: 'game'; gameId: number } | { kind: 'user'; userId: str
  */
 @Component({
   selector: 'app-feed',
-  imports: [PostComposer, PostCard, FeedSidebar, FeedRightRail],
+  imports: [PostComposer, PostCard, FeedSidebar, FeedRightRail, LoadError, BottomSheet, RouterLink],
   templateUrl: './feed.html',
   styleUrl: './feed.scss',
 })
@@ -53,6 +55,10 @@ export class Feed {
   protected readonly hasMore = signal(false);
   protected readonly isLoadingFeed = signal(true);
   protected readonly isLoadingMore = signal(false);
+  protected readonly loadError = signal<string | null>(null);
+  /** Phones / narrow windows: the hidden side column opened as a bottom sheet. */
+  protected readonly mobilePanel = signal<'following' | 'progress' | null>(null);
+  private postsRequest: Subscription | null = null;
   /** The default feed fell back to everyone's posts because you follow nothing yet. */
   protected readonly isDiscoverFallback = signal(false);
 
@@ -85,11 +91,14 @@ export class Feed {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => this.postsRequest?.unsubscribe());
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(destroyRef)).subscribe((params) => {
       const game = Number(params.get('game'));
       const user = params.get('user');
       this.filter.set(game ? { kind: 'game', gameId: game } : user ? { kind: 'user', userId: user } : null);
+      // Picking a game or player in the "Following" sheet filters the feed; the sheet has done its job.
+      this.mobilePanel.set(null);
       this.resolveFilterGameName(game || null);
       this.posts.set([]);
       this.loadPosts(1);
@@ -152,9 +161,14 @@ export class Feed {
   }
 
   private loadPosts(page: number, append = false): void {
+    if (!append) {
+      // Filter change / retry: a slower response (or "load more") for the previous filter must not land in this list.
+      this.postsRequest?.unsubscribe();
+      this.loadError.set(null);
+    }
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
     loadingSignal.set(true);
-    this.request(page)
+    this.postsRequest = this.request(page)
       .pipe(finalize(() => loadingSignal.set(false)))
       .subscribe({
         next: (result) => {
@@ -162,8 +176,19 @@ export class Feed {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load feed.')),
+        error: (err: unknown) => {
+          if (append) {
+            this.notificationService.error(extractApiErrorMessage(err, 'Failed to load feed.'));
+          } else {
+            // A failed first page must not read as "No posts yet".
+            this.loadError.set('Error loading the feed.');
+          }
+        },
       });
+  }
+
+  protected retry(): void {
+    this.loadPosts(1);
   }
 
   private request(page: number): Observable<PagedResult<PostModel>> {

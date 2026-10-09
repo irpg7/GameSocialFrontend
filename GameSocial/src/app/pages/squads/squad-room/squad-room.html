@@ -85,6 +85,9 @@
               (react)="react($event)"
               (typing)="chat.typingPing()"
               (openShared)="openShared($event)"
+              (pushShared)="openPost($event)"
+              [pinnedCount]="squad.pinnedMessageCount"
+              (openPins)="isPinsOpen.set(true)"
               (messageActions)="openMessageActions($event)"
               (attachClip)="openComposer('clip')"
               (attachScreens)="openComposer('screenshots')" />
@@ -101,7 +104,7 @@
               (gamePicked)="library.setClipGame($event)"
               (sortPicked)="library.setClipSort($event)"
               (upload)="openComposer('clip')"
-              (openClip)="openClip($event.id)" />
+              (openClip)="openClip($event.id, library.clipPosts())" />
           }
 
           @if (activeTab() === 'screens') {
@@ -176,10 +179,19 @@
       (saved)="onSettingsSaved($event)"
       (membersChanged)="onMembersChanged()"
       (iconChanged)="room.reloadSquad()"
+      (bannerChanged)="room.reloadSquad()"
       (left)="onLeftSquad()"
       (closed)="isSettingsOpen.set(false)" />
   }
 
+
+
+  @if (isPinsOpen()) {
+    <app-squad-pinned-sheet (goToChannel)="isPinsOpen.set(false); selectChannel($event)" (closed)="isPinsOpen.set(false)" />
+  }
+  @if (clipViewer(); as viewer) {
+    <app-squad-clip-viewer [postId]="viewer.postId" [clips]="viewer.clips" (closed)="clipViewer.set(null)" />
+  }
   @if (guideSheet(); as sheet) {
     <app-squad-guide-sheet
       [squadId]="squad.id"

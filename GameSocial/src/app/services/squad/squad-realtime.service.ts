@@ -95,7 +95,15 @@ export class SquadRealtimeService {
     this.currentSquadId = squadId;
     try {
       await this.ensureStarted();
+      // The user may have moved to another squad (or left the room) while the connection was starting:
+      // joining now would keep them in this squad's group, receiving its events and showing as present.
+      if (this.currentSquadId !== squadId) {
+        return;
+      }
       await this.connection?.invoke('JoinSquad', squadId);
+      if (this.currentSquadId !== squadId) {
+        await this.connection?.invoke('LeaveSquad', squadId);
+      }
     } catch {
       // Offline or hub unavailable — the room still works over plain HTTP.
     }

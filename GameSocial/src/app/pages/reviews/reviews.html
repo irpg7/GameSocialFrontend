@@ -82,6 +82,8 @@
 
       @if (isLoadingFeed()) {
         <p class="feed-status">Loading reviews…</p>
+      } @else if (loadError(); as error) {
+        <app-load-error [message]="error" (retry)="retryLoad()" />
       } @else if (posts().length === 0) {
         <div class="empty-feed">
           <p>No reviews match yet.</p>

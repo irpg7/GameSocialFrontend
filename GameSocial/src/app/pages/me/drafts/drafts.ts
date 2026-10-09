@@ -6,12 +6,14 @@ import { NotificationService } from '../../../services/notification/notification
 import { PostModel } from '../../../models/post.model';
 import { formatTimeAgo } from '../../../shared/clip-format';
 import { extractApiErrorMessage } from '../../../shared/api-error.util';
+import { LoadError } from '../../../shared/load-error/load-error';
 
 const TYPE_GLYPH: Record<string, string> = { Clip: '▶', Screenshots: '▣', Review: '★', Poll: '▤', Devlog: '◆' };
 
 /** Account menu "◫ Taslaklar": your unpublished posts — publish (XP is awarded now) or delete. */
 @Component({
   selector: 'app-drafts',
+  imports: [LoadError],
   template: `
     <div class="drafts">
       <div class="page-head">
@@ -23,6 +25,8 @@ const TYPE_GLYPH: Record<string, string> = { Clip: '▶', Screenshots: '▣', Re
 
       @if (isLoading()) {
         <p class="status">Loading...</p>
+      } @else if (loadError(); as error) {
+        <app-load-error [message]="error" (retry)="load()" />
       } @else if (drafts().length === 0) {
         <p class="status empty">No drafts — "Save draft" in any composer sheet keeps one here.</p>
       } @else {
@@ -51,16 +55,23 @@ export class Drafts {
 
   protected readonly drafts = signal<PostModel[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
   protected readonly busyId = signal<string | null>(null);
   protected readonly ago = formatTimeAgo;
 
   constructor() {
+    this.load();
+  }
+
+  protected load(): void {
+    this.isLoading.set(true);
+    this.loadError.set(null);
     this.postService
       .getDrafts()
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (drafts) => this.drafts.set(drafts),
-        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load drafts.')),
+        error: () => this.loadError.set('Error loading drafts.'),
       });
   }
 

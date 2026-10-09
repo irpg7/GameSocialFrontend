@@ -6,6 +6,15 @@
     <span class="chat-head-note">{{ groups()[0]?.label ?? 'Today' }}</span>
   </div>
 
+  @if (pinnedCount() > 0) {
+    <!-- Sabitlenen mesajlar: squad'ın tüm kanallarından; tıklayınca liste açılır. -->
+    <button type="button" class="chat-pins" (click)="openPins.emit()">
+      <span class="chat-pins-icon" aria-hidden="true">📌</span>
+      <span class="chat-pins-label">{{ pinnedCount() }} sabitlenmiş mesaj</span>
+      <span class="chat-pins-cta">Göster →</span>
+    </button>
+  }
+
   <div class="chat-scroll" #scroller aria-live="polite">
     @if (hasMore()) {
       <button type="button" class="chat-load-earlier" [disabled]="isLoading()" (click)="loadEarlier.emit()">
@@ -81,23 +90,33 @@
 
               @if (message.sharedPost; as shared) {
                 <!-- L228: large inline SQUAD CLIP card -->
-                <div class="shared-card">
-                  <button type="button" class="shared-stage" [attr.aria-label]="'Aç: ' + (shared.caption || 'paylaşım')" (click)="openShared.emit(shared)">
-                    @if (shared.thumbnailUrl) {
-                      <img [src]="shared.thumbnailUrl" alt="" />
-                    }
-                    @if (shared.postType === 'Clip') {
-                      <span class="shared-play" aria-hidden="true">▶</span>
-                    }
-                    <span class="shared-badge mono">SQUAD {{ shared.postType === 'Clip' ? 'CLIP' : 'SCREENS' }}</span>
-                    @if (shared.durationSeconds) {
-                      <span class="shared-duration mono">{{ clock(shared.durationSeconds) }}</span>
-                    }
-                  </button>
+                <div class="shared-card" [class.is-clip]="shared.postType === 'Clip'">
+                  @if (playingClips()[shared.id]; as clipPost) {
+                    <!-- Clip Player spec "In-feed inline": plays in place; ⛶ opens the in-app fullscreen overlay. -->
+                    <app-clip-stage class="shared-player" [post]="clipPost" variant="inline" [autoplay]="true" [expandInPlace]="true" />
+                  } @else {
+                    <button
+                      type="button"
+                      class="shared-stage"
+                      [attr.aria-label]="(shared.postType === 'Clip' ? 'Oynat: ' : 'Aç: ') + (shared.caption || 'paylaşım')"
+                      [attr.aria-busy]="loadingClipId() === shared.id"
+                      (click)="playShared(shared)">
+                      @if (shared.thumbnailUrl) {
+                        <img [src]="shared.thumbnailUrl" alt="" />
+                      }
+                      @if (shared.postType === 'Clip') {
+                        <span class="shared-play" [class.is-loading]="loadingClipId() === shared.id" aria-hidden="true">▶</span>
+                      }
+                      <span class="shared-badge mono">SQUAD {{ shared.postType === 'Clip' ? 'CLIP' : 'SCREENS' }}</span>
+                      @if (shared.durationSeconds) {
+                        <span class="shared-duration mono">{{ clock(shared.durationSeconds) }}</span>
+                      }
+                    </button>
+                  }
                   <div class="shared-foot">
                     <span class="shared-votes">▲ {{ shared.likeCount }}</span>
                     <span>💬 {{ shared.commentCount }}</span>
-                    <button type="button" class="shared-push" (click)="openShared.emit(shared)">Push to main feed →</button>
+                    <button type="button" class="shared-push" (click)="pushShared.emit(shared)">Push to main feed →</button>
                   </div>
                 </div>
               }

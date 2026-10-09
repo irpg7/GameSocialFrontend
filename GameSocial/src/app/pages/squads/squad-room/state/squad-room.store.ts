@@ -153,23 +153,38 @@ export class SquadRoomStore {
   }
 
   loadMembers(): void {
+    const squadId = this.squadId();
     this.rosterError.set(null);
-    this.squadService.listMembers(this.squadId()).subscribe({
-      next: (members) => this.members.set(members),
-      error: () => this.rosterError.set('Roster yüklenemedi.'),
+    this.squadService.listMembers(squadId).subscribe({
+      // Switching squads quickly: the previous squad's roster must not land in this one.
+      next: (members) => {
+        if (squadId === this.squadId()) {
+          this.members.set(members);
+        }
+      },
+      error: () => {
+        if (squadId === this.squadId()) {
+          this.rosterError.set('Roster yüklenemedi.');
+        }
+      },
     });
   }
 
-  /** "This week's board" — falls back to the all-time board if the window param is rejected. */
+  /** "This week's board". */
   loadLeaderboard(): void {
+    const squadId = this.squadId();
     this.leaderboardError.set(null);
-    this.roomService.getWeeklyBoard(this.squadId()).subscribe({
-      next: (entries) => this.leaderboard.set(entries),
-      error: () =>
-        this.squadService.getLeaderboard(this.squadId()).subscribe({
-          next: (entries) => this.leaderboard.set(entries),
-          error: () => this.leaderboardError.set('Tablo yüklenemedi.'),
-        }),
+    this.roomService.getWeeklyBoard(squadId).subscribe({
+      next: (entries) => {
+        if (squadId === this.squadId()) {
+          this.leaderboard.set(entries);
+        }
+      },
+      error: () => {
+        if (squadId === this.squadId()) {
+          this.leaderboardError.set('Tablo yüklenemedi.');
+        }
+      },
     });
   }
 }

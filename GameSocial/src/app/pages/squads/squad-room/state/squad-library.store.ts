@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import { PostService } from '../../../../services/post/post.service';
 import { SquadRoomService } from '../../../../services/squad/squad-room.service';
 import { SquadRealtimeService } from '../../../../services/squad/squad-realtime.service';
@@ -48,6 +48,11 @@ export class SquadLibraryStore {
   readonly guides = signal<SquadGuideModel[]>([]);
   readonly isLoadingGuides = signal(false);
 
+  private countsRequest: Subscription | null = null;
+  private clipsRequest: Subscription | null = null;
+  private screensRequest: Subscription | null = null;
+  private guidesRequest: Subscription | null = null;
+
   constructor() {
     this.realtime.guidesChanged$.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event.squadId === this.room.squadId()) {
@@ -58,6 +63,9 @@ export class SquadLibraryStore {
   }
 
   reset(): void {
+    for (const request of [this.countsRequest, this.clipsRequest, this.screensRequest, this.guidesRequest]) {
+      request?.unsubscribe();
+    }
     this.counts.set(EMPTY_LIBRARY);
     this.clipPosts.set([]);
     this.clipGameId.set(null);
@@ -68,7 +76,8 @@ export class SquadLibraryStore {
   }
 
   loadCounts(): void {
-    this.roomService.getLibrary(this.room.squadId()).subscribe({
+    this.countsRequest?.unsubscribe();
+    this.countsRequest = this.roomService.getLibrary(this.room.squadId()).subscribe({
       next: (counts) => this.counts.set(counts),
       error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Kütüphane yüklenemedi.')),
     });
@@ -105,9 +114,11 @@ export class SquadLibraryStore {
   }
 
   loadClips(): void {
+    // A sort/game switch (or a squad change) cancels the previous request so it cannot land on top.
+    this.clipsRequest?.unsubscribe();
     this.isLoadingClips.set(true);
     const top = this.clipSort() === 'top';
-    this.postService
+    this.clipsRequest = this.postService
       .getPosts(1, POST_PAGE_SIZE, {
         squadId: this.room.squadId(),
         postType: 'Clip',
@@ -123,8 +134,9 @@ export class SquadLibraryStore {
   }
 
   loadScreens(): void {
+    this.screensRequest?.unsubscribe();
     this.isLoadingScreens.set(true);
-    this.postService
+    this.screensRequest = this.postService
       .getPosts(1, SCREEN_PAGE_SIZE, {
         squadId: this.room.squadId(),
         postType: 'Screenshots',
@@ -139,8 +151,9 @@ export class SquadLibraryStore {
   }
 
   loadGuides(): void {
+    this.guidesRequest?.unsubscribe();
     this.isLoadingGuides.set(true);
-    this.roomService
+    this.guidesRequest = this.roomService
       .listGuides(this.room.squadId())
       .pipe(finalize(() => this.isLoadingGuides.set(false)))
       .subscribe({

@@ -8,6 +8,11 @@ import { OverlayStack } from '../../../../shared/overlay/overlay-stack.service';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { BlockService } from '../../../../services/safety/block.service';
 import { ReportService } from '../../../../services/safety/report.service';
+import { PostService } from '../../../../services/post/post.service';
+import { NotificationService } from '../../../../services/notification/notification.service';
+import { PostModel } from '../../../../models/post.model';
+import { ClipStage } from '../../../../shared/clip-stage/clip-stage';
+import { extractApiErrorMessage } from '../../../../shared/api-error.util';
 
 /** How long a finger has to stay on a message before the actions sheet opens. */
 const LONG_PRESS_MS = 450;
@@ -38,7 +43,7 @@ export interface ReactRequest {
  */
 @Component({
   selector: 'app-squad-chat',
-  imports: [ImgFallback, FormField],
+  imports: [ImgFallback, FormField, ClipStage],
   templateUrl: './squad-chat.html',
   styleUrls: ['./squad-chat.scss', './squad-chat.mobile.scss'],
   host: {
@@ -51,6 +56,8 @@ export class SquadChat {
   private readonly authService = inject(AuthService);
   private readonly blockService = inject(BlockService);
   private readonly reportService = inject(ReportService);
+  private readonly postService = inject(PostService);
+  private readonly notificationService = inject(NotificationService);
 
   /** Engellediğim kişilerin mesajları katlanır; "Göster" ile tek tek açılır (bu oturumda). */
   protected readonly revealedIds = signal<ReadonlySet<string>>(new Set());
@@ -65,6 +72,8 @@ export class SquadChat {
   currentAvatarUrl = input<string | undefined>(undefined);
   /** Usernames currently typing in this channel (realtime). */
   typingUsers = input<string[]>([]);
+  /** Squad-wide pinned message count (SquadModel.pinnedMessageCount): shows the 📌 bar. */
+  pinnedCount = input(0);
 
   send = output<string>();
   loadEarlier = output<void>();
@@ -72,6 +81,9 @@ export class SquadChat {
   attachClip = output<void>();
   attachScreens = output<void>();
   openShared = output<SharedPostPreviewModel>();
+  /** "Push to main feed →": the post's own page in the main app. */
+  pushShared = output<SharedPostPreviewModel>();
+  openPins = output<void>();
   typing = output<void>();
   /** Phone: long press / context menu on a message — the room opens the actions sheet. */
   messageActions = output<SquadMessageModel>();
@@ -81,6 +93,35 @@ export class SquadChat {
   /** Composer: single-field Signal Form; `draft` stays the model. */
   protected readonly draftField = form(this.draft, (path) => maxLength(path, 1000));
   protected readonly clock = clock;
+
+  /** Shared clips the user started: postId → the full post the inline player needs (the preview has no video URL). */
+  protected readonly playingClips = signal<Readonly<Record<string, PostModel>>>({});
+  protected readonly loadingClipId = signal<string | null>(null);
+
+  /**
+   * Tapping a SQUAD CLIP card plays it right here in the chat (Clip Player spec "In-feed inline"); it no longer
+   * leaves the room for /clips. Screenshots still open the room's Screens tab.
+   */
+  protected playShared(shared: SharedPostPreviewModel): void {
+    if (shared.postType !== 'Clip') {
+      this.openShared.emit(shared);
+      return;
+    }
+    if (this.playingClips()[shared.id] || this.loadingClipId() === shared.id) {
+      return;
+    }
+    this.loadingClipId.set(shared.id);
+    this.postService.getPost(shared.id).subscribe({
+      next: (post) => {
+        this.playingClips.update((map) => ({ ...map, [shared.id]: post }));
+        this.loadingClipId.set(null);
+      },
+      error: (err: unknown) => {
+        this.loadingClipId.set(null);
+        this.notificationService.error(extractApiErrorMessage(err, 'Klip açılamadı.'));
+      },
+    });
+  }
   protected readonly isAttachOpen = signal(false);
 
   private readonly isPhone = mediaQuery(PHONE_QUERY);

@@ -7,7 +7,6 @@ import {
   CreateSquadRequest,
   PinnedSquadMessageModel,
   SquadChannelModel,
-  SquadLeaderboardEntryModel,
   SquadMemberModel,
   SquadMessageModel,
   SquadModel,
@@ -80,9 +79,10 @@ export class SquadService {
     return this.http.post<SquadChannelModel>(`${this.apiUrl}/${squadId}/channels`, { name });
   }
 
-  listMessages(squadId: string, channelId: string, page = 1, pageSize = 30): Observable<PagedResult<SquadMessageModel>> {
+  /** Newest page first; pass `before` (the oldest loaded message id) for earlier messages. */
+  listMessages(squadId: string, channelId: string, before?: string, pageSize = 30): Observable<PagedResult<SquadMessageModel>> {
     return this.http.get<PagedResult<SquadMessageModel>>(`${this.apiUrl}/${squadId}/channels/${channelId}/messages`, {
-      params: { page, pageSize },
+      params: before ? { before, pageSize } : { pageSize },
     });
   }
 
@@ -113,10 +113,5 @@ export class SquadService {
     return this.http.get<PagedResult<PinnedSquadMessageModel>>(`${this.apiUrl}/${squadId}/pins`, {
       params: { page, pageSize },
     });
-  }
-
-  /** Ranked by current all-time XP — there is no weekly-XP tracking, despite the mock's "weekly" framing. */
-  getLeaderboard(squadId: string): Observable<SquadLeaderboardEntryModel[]> {
-    return this.http.get<SquadLeaderboardEntryModel[]>(`${this.apiUrl}/${squadId}/leaderboard`);
   }
 }

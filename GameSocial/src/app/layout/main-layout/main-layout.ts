@@ -58,7 +58,16 @@ export class MainLayout implements OnInit {
   ngOnInit(): void {
     // "Refetch on app init" per the live gamification-state refresh strategy —
     // failures are swallowed, the header/sidebar just show no XP pill/streak.
-    this.meService.refresh().subscribe({ error: () => void 0 });
+    this.meService.refresh().subscribe({
+      next: (me) => {
+        // First sign-in: the onboarding steps come first (once — finishing or skipping marks it done).
+        const url = this.router.url;
+        if (me.needsOnboarding && !url.startsWith('/onboarding')) {
+          void this.router.navigate(['/onboarding'], { queryParams: { returnUrl: url === '/' ? null : url } });
+        }
+      },
+      error: () => void 0,
+    });
     // Badges + the user hub (notifications, DMs) for as long as the signed-in shell is up.
     this.notificationCenter.start();
   }

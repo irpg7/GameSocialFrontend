@@ -1,54 +1,111 @@
 <div class="onboarding-page">
   <div class="card onboarding-card">
-    @if (step() === 1) {
-      <h2>İlgi alanlarını seç</h2>
-      <p class="text-muted mb-lg">Hangi oyun türleriyle ilgileniyorsun? Sana uygun oyunları önerelim.</p>
+    <ol class="onboarding-steps" aria-label="Adımlar">
+      @for (n of [1, 2, 3]; track n) {
+        <li class="onboarding-step" [class.done]="step() > n" [class.current]="step() === n" [attr.aria-current]="step() === n ? 'step' : null">
+          <span class="visually-hidden">Adım {{ n }} / 3</span>
+        </li>
+      }
+    </ol>
 
-      <div class="chip-grid">
-        @for (genre of genres; track genre.value) {
-          <button type="button" class="chip" [class.selected]="isGenreSelected(genre.value)" (click)="toggleGenre(genre.value)">
-            {{ genre.label }}
-          </button>
-        }
-      </div>
+    @switch (step()) {
+      @case (1) {
+        <h2>İlgi alanlarını seç</h2>
+        <p class="text-muted mb-lg">Hangi oyun türleriyle ilgileniyorsun? Sana uygun oyunları önerelim.</p>
 
-      <div class="onboarding-actions">
-        <button type="button" class="btn btn-secondary" (click)="skip()">Atla</button>
-        <button type="button" class="btn btn-primary" (click)="goToGameStep()">Devam et</button>
-      </div>
-    } @else {
-      <h2>Takip etmek istediğin oyunları seç</h2>
-      <p class="text-muted mb-lg">Seçtiğin türlere göre öneriler aşağıda. İstediğin kadar seç, sonra da değiştirebilirsin.</p>
-
-      @if (isLoadingGames() && games().length === 0) {
-        <p class="text-muted">Loading games...</p>
-      } @else if (games().length === 0) {
-        <p class="text-muted mb-lg">Bu türlerde henüz oyun yok.</p>
-      } @else {
         <div class="chip-grid">
-          @for (game of games(); track game.id) {
-            <button type="button" class="chip game-chip" [class.selected]="isGameSelected(game)" (click)="toggleGame(game)">
-              <span class="game-chip-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
-              {{ game.name }}
+          @for (genre of genres; track genre.value) {
+            <button type="button" class="chip" [class.selected]="isGenreSelected(genre.value)" [attr.aria-pressed]="isGenreSelected(genre.value)" (click)="toggleGenre(genre.value)">
+              {{ genre.label }}
             </button>
           }
         </div>
-        @if (hasMoreGames()) {
-          <button type="button" class="btn btn-secondary more-games" [disabled]="isLoadingGames()" (click)="loadMoreGames()">
-            {{ isLoadingGames() ? 'Loading...' : 'Show more games' }}
-          </button>
-        }
+
+        <div class="onboarding-actions">
+          <button type="button" class="btn btn-secondary" [disabled]="isFinishing()" (click)="skip()">Atla</button>
+          <button type="button" class="btn btn-primary" (click)="goToGameStep()">Devam et</button>
+        </div>
       }
 
-      <div class="onboarding-actions">
-        <button type="button" class="btn btn-secondary" (click)="backToGenreStep()">Geri</button>
-        <div class="onboarding-actions-right">
-          <button type="button" class="btn btn-secondary" (click)="skip()">Atla</button>
+      @case (2) {
+        <h2>Takip etmek istediğin oyunları seç</h2>
+        <p class="text-muted mb-lg">Seçtiğin türlere göre öneriler aşağıda. İstediğin kadar seç, sonra da değiştirebilirsin.</p>
+
+        @if (isLoadingGames() && games().length === 0) {
+          <p class="text-muted" role="status">Loading games...</p>
+        } @else if (gamesError(); as error) {
+          <app-load-error [message]="error" (retry)="loadGames(1)" />
+        } @else if (games().length === 0) {
+          <p class="text-muted mb-lg">Bu türlerde henüz oyun yok.</p>
+        } @else {
+          <div class="chip-grid">
+            @for (game of games(); track game.id) {
+              <button type="button" class="chip game-chip" [class.selected]="isGameSelected(game)" [attr.aria-pressed]="isGameSelected(game)" (click)="toggleGame(game)">
+                <span class="game-chip-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
+                {{ game.name }}
+              </button>
+            }
+          </div>
+          @if (hasMoreGames()) {
+            <button type="button" class="btn btn-secondary more-games" [disabled]="isLoadingGames()" (click)="loadMoreGames()">
+              {{ isLoadingGames() ? 'Loading...' : 'Show more games' }}
+            </button>
+          }
+        }
+
+        <div class="onboarding-actions">
+          <button type="button" class="btn btn-secondary" (click)="backTo(1)">Geri</button>
+          <div class="onboarding-actions-right">
+            <button type="button" class="btn btn-secondary" [disabled]="isFinishing()" (click)="skip()">Atla</button>
+            <button type="button" class="btn btn-primary" [disabled]="isSavingGames()" (click)="goToSquadStep()">
+              {{ isSavingGames() ? 'Kaydediliyor...' : 'Devam et' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @case (3) {
+        <h2>Bir squad'a katıl</h2>
+        <p class="text-muted mb-lg">Aynı oyunları oynayanlarla sohbet et, klip paylaş. İstersen şimdilik geçebilirsin.</p>
+
+        @if (isLoadingSquads()) {
+          <p class="text-muted" role="status">Squad'lar yükleniyor…</p>
+        } @else if (squadsError(); as error) {
+          <app-load-error [message]="error" (retry)="loadSquads()" />
+        } @else if (squads().length === 0) {
+          <p class="text-muted mb-lg">Şimdilik önerecek squad yok. Squads sayfasından istediğin zaman keşfedebilirsin.</p>
+        } @else {
+          <ul class="squad-list">
+            @for (squad of squads(); track squad.id) {
+              <li class="squad-row">
+                <span class="squad-icon"><img [appImg]="squad.iconUrl" fallback="squad" alt="" /></span>
+                <span class="squad-info">
+                  <span class="squad-name">{{ squad.name }}</span>
+                  <span class="squad-meta">{{ squad.primaryGameName ?? 'Oyun' }} · {{ squad.memberCount }} üye</span>
+                </span>
+                @if (squad.joinPolicy !== 'InviteOnly') {
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    [class.btn-primary]="!joinStates()[squad.id]"
+                    [class.btn-secondary]="!!joinStates()[squad.id]"
+                    [disabled]="!!joinStates()[squad.id]"
+                    (click)="join(squad)">
+                    {{ joinLabel(squad) }}
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="onboarding-actions">
+          <button type="button" class="btn btn-secondary" (click)="backTo(2)">Geri</button>
           <button type="button" class="btn btn-primary" [disabled]="isFinishing()" (click)="finish()">
             {{ isFinishing() ? 'Kaydediliyor...' : 'Bitir' }}
           </button>
         </div>
-      </div>
+      }
     }
   </div>
 </div>

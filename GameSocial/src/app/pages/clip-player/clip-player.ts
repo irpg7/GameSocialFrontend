@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, finalize } from 'rxjs';
+import { Observable, Subscription, finalize } from 'rxjs';
 import { PostService } from '../../services/post/post.service';
 import { ClipService } from '../../services/clip/clip.service';
 import { FollowService } from '../../services/follow/follow.service';
@@ -51,6 +51,7 @@ export class ClipPlayer implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   private readonly stage = viewChild(ClipStage);
+  private openRequests: Subscription | null = null;
 
   protected readonly post = signal<PostModel | null>(null);
   protected readonly isLoading = signal(true);
@@ -129,50 +130,62 @@ export class ClipPlayer implements OnInit {
         this.open(id);
       }
     });
-    this.destroyRef.onDestroy(() => sub.unsubscribe());
+    this.destroyRef.onDestroy(() => {
+      sub.unsubscribe();
+      this.openRequests?.unsubscribe();
+    });
   }
 
   private open(id: string): void {
     this.commentDelta.set(0);
     this.hotMoments.set([]);
+    this.notFound.set(false);
     const t = Number(this.route.snapshot.queryParamMap.get('t'));
     this.startAt.set(Number.isFinite(t) && t > 0 ? t : null);
+
+    // Stepping through the queue quickly: a slower response for the previous clip must not land on this one.
+    this.openRequests?.unsubscribe();
+    const requests = new Subscription();
+    this.openRequests = requests;
 
     const known = this.queue().find((p) => p.id === id);
     if (known) {
       this.post.set(known);
       this.isLoading.set(false);
+    } else {
+      // Not in the queue: don't keep showing the previous clip while this one loads (or turns out missing).
+      this.post.set(null);
+      this.isLoading.set(true);
     }
 
-    this.postService
-      .getPost(id)
-      .pipe(finalize(() => this.isLoading.set(false)))
-      .subscribe({
-        next: (post) => {
-          this.notFound.set(false);
-          this.post.set(post);
-          this.queue.update((queue) => (queue.some((p) => p.id === post.id) ? queue.map((p) => (p.id === post.id ? post : p)) : queue));
-          if (this.queue().length === 0) {
-            this.loadQueue(post);
-          } else if (!this.queue().some((p) => p.id === post.id)) {
-            this.queue.update((queue) => [post, ...queue]);
-          }
-        },
-        error: () => {
-          if (!this.post()) {
-            this.notFound.set(true);
-          }
-        },
-      });
+    requests.add(
+      this.postService
+        .getPost(id)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe({
+          next: (post) => {
+            this.post.set(post);
+            this.queue.update((queue) => (queue.some((p) => p.id === post.id) ? queue.map((p) => (p.id === post.id ? post : p)) : queue));
+            if (this.queue().length === 0) {
+              this.loadQueue(post);
+            } else if (!this.queue().some((p) => p.id === post.id)) {
+              this.queue.update((queue) => [post, ...queue]);
+            }
+          },
+          error: () => {
+            if (!this.post()) {
+              this.notFound.set(true);
+            }
+          },
+        }),
+    );
 
-    this.clipService.getHotMoments(id).subscribe({
-      next: (moments) => {
-        if (this.post()?.id === id || !this.post()) {
-          this.hotMoments.set(moments);
-        }
-      },
-      error: () => void 0,
-    });
+    requests.add(
+      this.clipService.getHotMoments(id).subscribe({
+        next: (moments) => this.hotMoments.set(moments),
+        error: () => void 0,
+      }),
+    );
   }
 
   private queueRequest(): Observable<PagedResult<PostModel>> {

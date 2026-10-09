@@ -211,8 +211,19 @@ export class AuthService {
     }
 
     this.refreshInFlight = this.http.post<AccessTokenResponse>('/api/auth/refresh', { refreshToken }).pipe(
-      tap((response) => this.setSession(response)),
-      map((response) => response.accessToken),
+      map((response) => {
+        const current = this.sessionState();
+        if (current?.refreshToken === refreshToken) {
+          this.setSession(response);
+          return response.accessToken;
+        }
+        // Logged out while the request was in flight: storing the new pair would silently sign the user
+        // back in. (If another tab adopted a newer session meanwhile, keep that one.)
+        if (!current) {
+          throw new HttpErrorResponse({ status: 401, statusText: 'Session ended during refresh' });
+        }
+        return current.accessToken;
+      }),
       finalize(() => (this.refreshInFlight = null)),
       shareReplay({ bufferSize: 1, refCount: false }),
     );

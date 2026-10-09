@@ -22,6 +22,7 @@ interface PrivacyOption {
 }
 
 const MAX_ICON_BYTES = 5 * 1024 * 1024;
+const MAX_BANNER_BYTES = 8 * 1024 * 1024;
 
 /**
  * Squad settings — 07-squad-settings.html (`sqSettings`), 1:1: 600px sheet
@@ -58,6 +59,8 @@ export class SquadSettingsSheet {
   membersChanged = output<void>();
   /** A new icon was uploaded (fires before save; the PUT response carries it too). */
   iconChanged = output<string>();
+  /** The cover was replaced or removed (the room reloads the squad). */
+  bannerChanged = output<void>();
   /** The current user left; the room should navigate away. */
   left = output<void>();
   closed = output<void>();
@@ -94,6 +97,9 @@ export class SquadSettingsSheet {
     weeklyDigest: this.squad().weeklyDigest,
   }));
   protected readonly iconUrl = linkedSignal(() => this.squad().iconUrl ?? null);
+  protected readonly bannerUrl = linkedSignal(() => this.squad().bannerUrl ?? null);
+  /** What the room shows without an uploaded cover. */
+  protected readonly bannerFallback = computed(() => this.squad().primaryGameCoverImageUrl || null);
 
   protected readonly ruleRows: { key: RuleKey; label: string; desc: string }[] = [
     { key: 'allowMemberUploads', label: 'Klip yüklemeyi herkese aç', desc: 'Kapalıysa sadece yönetici ve kurucu yükler' },
@@ -116,6 +122,7 @@ export class SquadSettingsSheet {
   // ─── Footer ─────────────────────────────────────────────────────────────
   protected readonly isSaving = signal(false);
   protected readonly isUploadingIcon = signal(false);
+  protected readonly isUploadingBanner = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly leaveStep = signal<'idle' | 'confirm'>('idle');
   /** New founder when the captain leaves; '' = none picked. */
@@ -163,6 +170,44 @@ export class SquadSettingsSheet {
           this.iconChanged.emit(iconUrl);
         },
         error: (err: unknown) => this.errorMessage.set(extractApiErrorMessage(err, 'İkon yüklenemedi.')),
+      });
+  }
+
+  protected onBannerPicked(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > MAX_BANNER_BYTES) {
+      this.errorMessage.set('Kapak görseli en fazla 8 MB boyutunda bir JPEG, PNG ya da WebP olmalıdır.');
+      return;
+    }
+    this.isUploadingBanner.set(true);
+    this.hubService
+      .uploadBanner(this.squad().id, file)
+      .pipe(finalize(() => this.isUploadingBanner.set(false)))
+      .subscribe({
+        next: ({ bannerUrl }) => {
+          this.bannerUrl.set(bannerUrl);
+          this.bannerChanged.emit();
+        },
+        error: (err: unknown) => this.errorMessage.set(extractApiErrorMessage(err, 'Kapak yüklenemedi.')),
+      });
+  }
+
+  protected removeBanner(): void {
+    this.isUploadingBanner.set(true);
+    this.hubService
+      .removeBanner(this.squad().id)
+      .pipe(finalize(() => this.isUploadingBanner.set(false)))
+      .subscribe({
+        next: () => {
+          this.bannerUrl.set(null);
+          this.bannerChanged.emit();
+        },
+        error: (err: unknown) => this.errorMessage.set(extractApiErrorMessage(err, 'Kapak kaldırılamadı.')),
       });
   }
 

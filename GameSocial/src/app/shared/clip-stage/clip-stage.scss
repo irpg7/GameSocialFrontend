@@ -34,7 +34,8 @@
 
 :host(.variant-inline) .stage {
   aspect-ratio: 16 / 9;
-  border-radius: 14px;
+  // Hosts that frame the player themselves (the squad chat card) set this to 0.
+  border-radius: var(--clip-inline-radius, 14px);
 }
 
 :host(.variant-vertical) .stage {

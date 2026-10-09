@@ -44,6 +44,8 @@ export interface MeModel {
   profileActivityVisibility: ActivityVisibilityName;
   /** People I blocked — the squad chat folds their messages. */
   blockedUserIds: string[];
+  /** First sign-in: show /onboarding (genres → games → squads) until it is finished or skipped. */
+  needsOnboarding: boolean;
 }
 
 /** Domain.Enums.MessagePermission — who can send me direct messages. */

@@ -91,7 +91,7 @@
       <span class="in-tag">{{ gameTag() }}</span>
       <!-- Right to left, same as the feed card / Clips hero: ⛶ Clip Player, mute. -->
       <button type="button" class="in-mute" [style.right.px]="42" [attr.aria-label]="muted() ? 'Sesi aç' : 'Sesi kapat'" [attr.aria-pressed]="!muted()" (click)="toggleMute()">{{ volGlyph() }}</button>
-      <button type="button" class="in-mute" [attr.aria-label]="'Oynatıcıda aç: ' + title()" (click)="openClipPage()">⛶</button>
+      <button type="button" class="in-mute" [attr.aria-label]="'Oynatıcıda aç: ' + title()" (click)="expand()">⛶</button>
       <div class="in-bottom">
         <button type="button" class="in-play" [attr.aria-label]="playing() ? 'Duraklat' : 'Oynat'" (click)="togglePlay()">{{ playGlyph() }}</button>
         <span class="in-progress" aria-hidden="true"><span class="in-progress-fill" [style.width.%]="playedPercent()"></span></span>

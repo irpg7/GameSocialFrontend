@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, finalize } from 'rxjs';
+import { LoadError } from '../../shared/load-error/load-error';
 import { PostService } from '../../services/post/post.service';
 import { ClipService } from '../../services/clip/clip.service';
 import { NotificationService } from '../../services/notification/notification.service';
@@ -36,7 +37,7 @@ const FILTER_LABELS: Record<ClipFilter, string> = { hot: 'Hot today', following:
  */
 @Component({
   selector: 'app-clips',
-  imports: [ClipStage, ClipQueueCard, ClipRailComments, ClipUploadSheet],
+  imports: [ClipStage, ClipQueueCard, ClipRailComments, ClipUploadSheet, LoadError],
   templateUrl: './clips.html',
   styleUrl: './clips.scss',
 })
@@ -55,6 +56,7 @@ export class Clips implements OnInit {
   protected readonly hasMore = signal(false);
   protected readonly isLoadingFeed = signal(true);
   protected readonly isLoadingMore = signal(false);
+  protected readonly loadError = signal<string | null>(null);
 
   protected readonly filter = signal<ClipFilter>('hot');
   protected readonly rail = signal<ClipRail>('next');
@@ -249,12 +251,17 @@ export class Clips implements OnInit {
     }
   }
 
+  protected retryLoad(): void {
+    this.loadPosts(1);
+  }
+
   private loadPosts(page: number, append = false): void {
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
     const filter = this.filter();
     loadingSignal.set(true);
     if (!append) {
       this.posts.set([]);
+      this.loadError.set(null);
     }
     this.request(page)
       .pipe(finalize(() => loadingSignal.set(false)))
@@ -268,7 +275,17 @@ export class Clips implements OnInit {
           this.hasMore.set(result.hasMore);
           this.totalCount.set(result.totalCount);
         },
-        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Klipler yüklenemedi.')),
+        error: (err: unknown) => {
+          if (filter !== this.filter()) {
+            return;
+          }
+          if (append) {
+            this.notificationService.error(extractApiErrorMessage(err, 'Klipler yüklenemedi.'));
+          } else {
+            // A failed first page must not read as "Henüz klip yok".
+            this.loadError.set('Klipler yüklenemedi.');
+          }
+        },
       });
   }
 }

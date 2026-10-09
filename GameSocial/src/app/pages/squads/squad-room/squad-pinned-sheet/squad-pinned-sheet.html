@@ -1,0 +1,40 @@
+<app-sheet-modal title="📌 Sabitlenen mesajlar" subtitle="Squad'ın tüm kanallarından, en yeniden eskiye" (closed)="closed.emit()">
+  @if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="load(1)" />
+  } @else if (!isLoading() && pins().length === 0) {
+    <p class="pins-status">Henüz sabitlenmiş mesaj yok. Bir mesajın "⋯" menüsünden sabitleyebilirsin.</p>
+  } @else {
+    <ul class="pins">
+      @for (pin of pins(); track pin.id) {
+        <li class="pin">
+          <span class="pin-avatar">
+            <img [appImg]="pin.userAvatarUrl" fallback="avatar" alt="" />
+          </span>
+          <div class="pin-body">
+            <div class="pin-head">
+              <span class="pin-author">{{ pin.username }}</span>
+              <span class="pin-meta">#{{ pin.channelName }} · {{ ago(pin.createdAt) }}</span>
+            </div>
+            @if (isHidden(pin)) {
+              <p class="pin-text pin-text-muted">Engellediğin bir kişinin mesajı.</p>
+            } @else {
+              <p class="pin-text">{{ summary(pin) }}</p>
+            }
+            <div class="pin-actions">
+              <button type="button" class="pin-link" (click)="goToChannel.emit(pin.channelId)">Kanala git →</button>
+              @if (canUnpin(pin)) {
+                <button type="button" class="pin-link pin-link-muted" [disabled]="busyId() === pin.id" (click)="unpin(pin)">Sabitlemeyi kaldır</button>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (isLoading()) {
+      <p class="pins-status" role="status">Yükleniyor…</p>
+    } @else if (hasMore()) {
+      <button type="button" class="btn btn-secondary pins-more" (click)="loadMore()">Daha fazla</button>
+    }
+  }
+</app-sheet-modal>

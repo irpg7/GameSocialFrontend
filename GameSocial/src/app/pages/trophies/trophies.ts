@@ -19,6 +19,7 @@ import {
   rarityLabel,
 } from '../../shared/trophy-tile/trophy-format';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { LoadError } from '../../shared/load-error/load-error';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 /**
@@ -45,7 +46,7 @@ type SortMode = 'default' | 'rarest';
  */
 @Component({
   selector: 'app-trophies',
-  imports: [ImgFallback, RouterLink, DecimalPipe, TrophyTile],
+  imports: [ImgFallback, RouterLink, DecimalPipe, TrophyTile, LoadError],
   templateUrl: './trophies.html',
   styleUrl: './trophies.scss',
 })
@@ -64,6 +65,7 @@ export class Trophies implements OnInit {
   protected readonly achievements = signal<AchievementModel[]>([]);
   protected readonly summary = signal<AchievementSummaryModel | null>(null);
   protected readonly isLoading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
   protected readonly editMode = signal(false);
   protected readonly gameFilter = signal<number | 'all'>('all');
   protected readonly sortMode = signal<SortMode>('default');
@@ -139,14 +141,24 @@ export class Trophies implements OnInit {
     () => this.comparison().findIndex((entry) => this.isCurrentUser(entry.userId)) + 1,
   );
 
-  ngOnInit(): void {
+  protected loadAchievements(): void {
+    this.isLoading.set(true);
+    this.loadError.set(null);
     this.achievementService.getAll().subscribe({
       next: (achievements) => {
         this.achievements.set(achievements);
         this.isLoading.set(false);
       },
-      error: () => this.isLoading.set(false),
+      error: () => {
+        // Without this the page read "No trophies earned yet" after a failed request.
+        this.loadError.set('Error loading trophies.');
+        this.isLoading.set(false);
+      },
     });
+  }
+
+  ngOnInit(): void {
+    this.loadAchievements();
 
     this.loadSummary();
 

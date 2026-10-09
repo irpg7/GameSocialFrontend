@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, finalize, map } from 'rxjs';
+import { Observable, Subscription, finalize, map } from 'rxjs';
 import { PostService } from '../../../services/post/post.service';
 import { MeService } from '../../../services/me/me.service';
 import { SquadService } from '../../../services/squad/squad.service';
@@ -11,6 +11,7 @@ import { SquadModel } from '../../../models/squad.model';
 import { PagedResult } from '../../../models/paged-result.model';
 import { PostCard } from '../../feed/post-card/post-card';
 import { extractApiErrorMessage } from '../../../shared/api-error.util';
+import { LoadError } from '../../../shared/load-error/load-error';
 
 /** Which account-menu list this route renders (route `data.mode`). */
 export type MyPostListMode = 'saved' | 'clips' | 'reviews';
@@ -30,7 +31,7 @@ const COPY: Record<MyPostListMode, { title: string; sub: string; empty: string }
  */
 @Component({
   selector: 'app-my-post-list',
-  imports: [PostCard],
+  imports: [PostCard, LoadError],
   template: `
     <div class="my-list">
       <div class="page-head">
@@ -46,6 +47,8 @@ const COPY: Record<MyPostListMode, { title: string; sub: string; empty: string }
 
       @if (isLoading()) {
         <p class="status">Loading...</p>
+      } @else if (loadError(); as error) {
+        <app-load-error [message]="error" (retry)="load(1)" />
       } @else if (posts().length === 0) {
         <p class="status empty">{{ copy().empty }}</p>
       }
@@ -72,6 +75,8 @@ export class MyPostList {
   protected readonly page = signal(1);
   protected readonly hasMore = signal(false);
   protected readonly isLoading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
+  private request$: Subscription | null = null;
 
   constructor() {
     // Klipslerim / İncelemelerim need my id — wait for /users/me, then (re)load.
@@ -86,8 +91,14 @@ export class MyPostList {
   }
 
   load(page: number): void {
+    if (page === 1) {
+      // Switching between Saved / My clips / My reviews: the previous list's response must not land here.
+      this.request$?.unsubscribe();
+      this.posts.set([]);
+      this.loadError.set(null);
+    }
     this.isLoading.set(true);
-    this.request(page)
+    this.request$ = this.request(page)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (result) => {
@@ -95,7 +106,13 @@ export class MyPostList {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load posts.')),
+        error: (err: unknown) => {
+          if (page === 1) {
+            this.loadError.set('Error loading posts.');
+          } else {
+            this.notificationService.error(extractApiErrorMessage(err, 'Failed to load posts.'));
+          }
+        },
       });
   }
 

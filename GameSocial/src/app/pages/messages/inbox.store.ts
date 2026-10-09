@@ -79,7 +79,9 @@ export class InboxStore {
   upsert(conversation: Conversation): void {
     this.conversations.update((list) => {
       const exists = list.some((c) => c.id === conversation.id);
-      return exists ? list.map((c) => (c.id === conversation.id ? conversation : c)) : list;
+      // Not loaded yet (a new, empty conversation, or one past the loaded pages): show it at the top now
+      // instead of waiting for its first message to trigger a reload.
+      return exists ? list.map((c) => (c.id === conversation.id ? conversation : c)) : [conversation, ...list];
     });
   }
 

@@ -21,6 +21,8 @@
 
     @if (isLoading()) {
       <p class="text-muted">Loading trophies...</p>
+    } @else if (loadError(); as error) {
+      <app-load-error [message]="error" (retry)="loadAchievements()" />
     } @else {
       <section class="showcase-panel" aria-label="Showcase">
         <div class="showcase-panel-head">

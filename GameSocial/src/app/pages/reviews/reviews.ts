@@ -13,6 +13,7 @@ import { ReviewSheet } from '../../shared/review-sheet/review-sheet';
 import { formatTimeAgo } from '../../shared/clip-format';
 import { ReviewCard } from './review-card/review-card';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { LoadError } from '../../shared/load-error/load-error';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 const PAGE_SIZE = 10;
@@ -48,7 +49,7 @@ const BUCKET_COLORS: Record<string, string> = {
  */
 @Component({
   selector: 'app-reviews',
-  imports: [ImgFallback, ReviewCard, ReviewSheet],
+  imports: [ImgFallback, ReviewCard, ReviewSheet, LoadError],
   templateUrl: './reviews.html',
   styleUrl: './reviews.scss',
 })
@@ -65,6 +66,7 @@ export class Reviews implements OnInit {
   protected readonly hasMore = signal(false);
   protected readonly isLoadingFeed = signal(true);
   protected readonly isLoadingMore = signal(false);
+  protected readonly loadError = signal<string | null>(null);
 
   protected readonly tabs = REVIEW_TABS;
   protected readonly tab = signal<ReviewTab>('games');
@@ -79,6 +81,7 @@ export class Reviews implements OnInit {
 
   /** The latest feed request — a tab/filter switch cancels it. */
   private feedRequest?: Subscription;
+  private summaryRequest?: Subscription;
 
   protected readonly isReviewSheetOpen = signal(false);
   protected readonly preselectedGameId = signal<number | null>(null);
@@ -203,7 +206,9 @@ export class Reviews implements OnInit {
   }
 
   private loadSummary(): void {
-    this.reviewService.getSummary(this.gameFilter()).subscribe({
+    // A quick ?game= change: the previous game's summary must not land on this one.
+    this.summaryRequest?.unsubscribe();
+    this.summaryRequest = this.reviewService.getSummary(this.gameFilter()).subscribe({
       next: (summary) => this.summary.set(summary),
       error: () => this.summary.set(null),
     });
@@ -216,6 +221,10 @@ export class Reviews implements OnInit {
     });
   }
 
+  protected retryLoad(): void {
+    this.loadPosts(1);
+  }
+
   private loadPosts(page: number, append = false): void {
     const loadingSignal = append ? this.isLoadingMore : this.isLoadingFeed;
     if (!append) {
@@ -224,6 +233,7 @@ export class Reviews implements OnInit {
       this.feedRequest?.unsubscribe();
       this.posts.set([]);
       this.hasMore.set(false);
+      this.loadError.set(null);
     }
     loadingSignal.set(true);
     this.feedRequest = this.postService
@@ -235,7 +245,14 @@ export class Reviews implements OnInit {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load reviews.')),
+        error: (err: unknown) => {
+          if (append) {
+            this.notificationService.error(extractApiErrorMessage(err, 'Failed to load reviews.'));
+          } else {
+            // A failed first page must not read as "No reviews match yet".
+            this.loadError.set('Error loading reviews.');
+          }
+        },
       });
   }
 }

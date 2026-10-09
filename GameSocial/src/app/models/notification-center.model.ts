@@ -12,7 +12,8 @@ export type NotificationTypeName =
   | 'SquadJoinRequested'
   | 'SquadJoinApproved'
   | 'ContentRemoved'
-  | 'ReportResolved';
+  | 'ReportResolved'
+  | 'AchievementUnlocked';
 
 /**
  * Domain.Responses.NotificationResponse. Likes, "useful" votes and join requests coalesce into one unread row:

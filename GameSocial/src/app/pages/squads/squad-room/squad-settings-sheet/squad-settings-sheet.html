@@ -36,6 +36,33 @@
             [formField]="generalForm.name" />
         </div>
 
+        <!-- Oda başlığının arkasındaki geniş kapak; yoksa ana oyunun kapağı görünür. -->
+        <div>
+          <span class="settings-label">Kapak görseli</span>
+          <div class="banner-field">
+            <span class="banner-preview" [class.busy]="isUploadingBanner()">
+              @if (bannerUrl() || bannerFallback(); as src) {
+                <img [src]="src" alt="" />
+              }
+              @if (!bannerUrl()) {
+                <span class="banner-note">{{ bannerFallback() ? 'Oyunun kapağı' : 'Kapak yok' }}</span>
+              }
+            </span>
+            @if (canManage()) {
+              <div class="banner-actions">
+                <label class="btn btn-secondary btn-sm" [class.disabled]="isUploadingBanner()">
+                  <input type="file" accept="image/png,image/jpeg,image/webp" class="visually-hidden" [disabled]="isUploadingBanner()" (change)="onBannerPicked($event)" />
+                  {{ isUploadingBanner() ? 'Yükleniyor…' : bannerUrl() ? 'Değiştir' : 'Kapak yükle' }}
+                </label>
+                @if (bannerUrl()) {
+                  <button type="button" class="link-danger" [disabled]="isUploadingBanner()" (click)="removeBanner()">Kaldır</button>
+                }
+              </div>
+            }
+          </div>
+          <p class="banner-hint">Geniş bir görsel seç (ör. 1920×640). JPEG, PNG ya da WebP, en fazla 8 MB.</p>
+        </div>
+
         <app-settings-games-picker [(games)]="selectedGames" [canManage]="canManage()" />
 
         <fieldset class="settings-fieldset">

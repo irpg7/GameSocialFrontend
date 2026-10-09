@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 /** Domain.Responses.XpAwardResponse — the server's real XP amounts. */
 export interface XpAwardModel {
-  key: 'clip' | 'review' | 'screenshots' | 'devlog' | 'interaction';
+  key: 'clip' | 'review' | 'screenshots' | 'devlog' | 'interaction' | 'trophy';
   label: string;
   amount: number;
 }

@@ -58,7 +58,7 @@ import { TrackDrag } from './track-drag';
  * `post`, `variant`, `rankLabel` ('CLIP'), `squadName`, `commentCount`,
  * `commentsActive`, `autoplay` (play as soon as a new clip loads), `startAt`
  * (seconds, applied when a clip loads), `hotMoments` (markers), `hasPrev` /
- * `hasNext` (full), `theater` (full, ▭ pressed state).
+ * `hasNext` (full), `theater` (full, ▭ pressed state), `expandInPlace` (inline: ⛶ opens the overlay, not the page).
  *
  * ## Outputs
  * `toggleComments`, `openFull` (kept for older callers), `ended`,
@@ -123,6 +123,8 @@ export class ClipStage {
   hasPrev = input(false);
   hasNext = input(false);
   theater = input(false);
+  /** inline: ⛶ opens the in-app fullscreen overlay instead of the Clip Player page (squad chat keeps the user in the room). */
+  expandInPlace = input(false);
 
   toggleComments = output<void>();
   /** Kept for callers from before the in-app overlay; the stage no longer emits it itself. */
@@ -350,6 +352,15 @@ export class ClipStage {
     const message = await shareClip(this.post());
     if (message) {
       this.notificationService.success(message);
+    }
+  }
+
+  /** inline ⛶: the Clip Player page, or the in-app overlay when the host keeps the user in place. */
+  protected expand(): void {
+    if (this.expandInPlace()) {
+      this.toggleFullscreen();
+    } else {
+      this.openClipPage();
     }
   }
 

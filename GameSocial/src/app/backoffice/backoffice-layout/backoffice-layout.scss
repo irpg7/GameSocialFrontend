@@ -77,3 +77,47 @@
   overflow-y: auto;
   padding: $spacing-xl $spacing-2xl;
 }
+
+// Phones / narrow windows: the sidebar turns into a top bar (brand + back link, then a scrolling row of
+// sections) and the content gets the full width.
+@media (max-width: 768px) {
+  .backoffice-wrapper {
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+  }
+
+  .backoffice-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    border-right: none;
+    border-bottom: 1px solid $color-border;
+  }
+
+  .backoffice-brand .backoffice-label {
+    display: inline;
+    margin-left: 6px;
+  }
+
+  .backoffice-nav {
+    order: 3;
+    flex-basis: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    .backoffice-nav-link {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+
+  .backoffice-content {
+    padding: $spacing-md;
+  }
+}

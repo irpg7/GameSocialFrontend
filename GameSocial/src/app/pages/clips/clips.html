@@ -31,6 +31,8 @@
           (ended)="onHeroEnded()" />
       } @else if (isLoadingFeed()) {
         <p class="clips-status">Klipler yükleniyor…</p>
+      } @else if (loadError(); as error) {
+        <app-load-error [message]="error" (retry)="retryLoad()" />
       } @else {
         <p class="clips-status">Henüz klip yok.</p>
       }

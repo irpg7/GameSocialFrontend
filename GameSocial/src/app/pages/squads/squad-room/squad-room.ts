@@ -23,6 +23,8 @@ import { SquadScreens } from './squad-screens/squad-screens';
 import { SquadPins } from './squad-pins/squad-pins';
 import { SquadRail } from './squad-rail/squad-rail';
 import { SquadSettingsSheet } from './squad-settings-sheet/squad-settings-sheet';
+import { SquadPinnedSheet } from './squad-pinned-sheet/squad-pinned-sheet';
+import { SquadClipViewer } from './squad-clip-viewer/squad-clip-viewer';
 import { SquadGuideSheet } from './squad-guide-sheet/squad-guide-sheet';
 import { HubSessionSheet } from '../hub/hub-session-sheet';
 import { PHONE_QUERY, mediaQuery } from '../../../shared/media-query';
@@ -80,6 +82,8 @@ type ComposerTarget = 'clip' | 'screenshots';
     SquadCreateSheet,
     SquadAddChannelSheet,
     SquadComposerSheet,
+    SquadClipViewer,
+    SquadPinnedSheet,
     LoadError,
   ],
   providers: [SquadRoomStore, SquadLibraryStore, SquadChatStore, SquadSessionsStore],
@@ -132,6 +136,9 @@ export class SquadRoom {
   protected readonly isSessionSheetOpen = signal(false);
   protected readonly composerTarget = signal<ComposerTarget | null>(null);
   protected readonly guideSheet = signal<{ guide: SquadGuideModel | null } | null>(null);
+  /** A squad clip playing in the room (Clips tab / guide item); `clips` is the list it steps through. */
+  protected readonly clipViewer = signal<{ postId: string; clips: PostModel[] } | null>(null);
+  protected readonly isPinsOpen = signal(false);
 
   constructor() {
     effect(() => {
@@ -193,7 +200,7 @@ export class SquadRoom {
     this.chat.react(request.message, request.emoji);
   }
 
-  /** SQUAD CLIP card / "Push to main feed →": clips open on the Clips page, screenshots in the Screens tab. */
+  /** SQUAD CLIP card's screenshots open the Screens tab (the chat plays clips in place itself). */
   openShared(shared: SharedPostPreviewModel): void {
     if (shared.postType === 'Clip') {
       this.openClip(shared.id);
@@ -202,8 +209,14 @@ export class SquadRoom {
     }
   }
 
-  openClip(postId: string): void {
-    this.router.navigate(['/clips'], { queryParams: { clip: postId } });
+  /** "Push to main feed →": the post's page in the main app. */
+  openPost(shared: SharedPostPreviewModel): void {
+    void this.router.navigate(['/posts', shared.id]);
+  }
+
+  /** Plays a squad clip in a sheet over the room instead of leaving for the Clips page. */
+  openClip(postId: string, clips: PostModel[] = []): void {
+    this.clipViewer.set({ postId, clips });
   }
 
   openGuideItem(item: SquadGuideItemModel): void {

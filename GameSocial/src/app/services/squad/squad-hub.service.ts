@@ -131,6 +131,18 @@ export class SquadHubService {
     return this.http.post<{ iconUrl: string }>(`${this.apiUrl}/${squadId}/icon`, form);
   }
 
+  /** Founder/admin only; multipart field "banner", JPEG/PNG/WebP ≤ 8 MB. The room header's wide cover. */
+  uploadBanner(squadId: string, file: File): Observable<{ bannerUrl: string | null }> {
+    const form = new FormData();
+    form.append('banner', file, file.name);
+    return this.http.post<{ bannerUrl: string | null }>(`${this.apiUrl}/${squadId}/banner`, form);
+  }
+
+  /** Founder/admin only; the room falls back to the main game's cover. */
+  removeBanner(squadId: string): Observable<{ bannerUrl: string | null }> {
+    return this.http.delete<{ bannerUrl: string | null }>(`${this.apiUrl}/${squadId}/banner`);
+  }
+
   /** Settings game picker: library first, then popular, then new. */
   getGameOptions(q?: string, take = 40): Observable<SquadGameOptionsModel> {
     const params: Record<string, string | number> = { take };

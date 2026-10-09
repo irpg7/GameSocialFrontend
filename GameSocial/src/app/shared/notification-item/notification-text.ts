@@ -54,6 +54,8 @@ export function describeNotification(n: AppNotification): NotificationText {
       };
     case 'ReportResolved':
       return { actor: null, text: 'We reviewed your report and took action. Thanks for flagging it.', quote: null };
+    case 'AchievementUnlocked':
+      return { actor: null, text: `You unlocked ${n.text ? `the “${n.text}” trophy` : 'a trophy'}.`, quote: null };
   }
 }
 
@@ -62,6 +64,8 @@ export function notificationLink(n: AppNotification): string[] | null {
   switch (n.type) {
     case 'Followed':
       return n.actorId ? ['/profile', n.actorId] : null;
+    case 'AchievementUnlocked':
+      return ['/trophies'];
     case 'SquadInvited':
       return ['/squads'];
     case 'SquadJoinRequested':

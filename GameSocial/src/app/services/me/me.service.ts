@@ -71,4 +71,16 @@ export class MeService {
   heartbeat(activity?: string): Observable<void> {
     return this.http.post<void>('/api/users/me/heartbeat', { activity: activity ?? null });
   }
+
+  /** Onboarding finished or skipped: it is not shown again (on any device). */
+  completeOnboarding(): Observable<void> {
+    return this.http.post<void>('/api/users/me/onboarding/complete', {}).pipe(
+      tap(() => {
+        const current = this.meState();
+        if (current) {
+          this.meState.set({ ...current, needsOnboarding: false });
+        }
+      }),
+    );
+  }
 }

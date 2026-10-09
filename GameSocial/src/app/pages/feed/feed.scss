@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/chips';
 
 // The design's onFeed layout: 212 / 660 / 288 with a 26px gutter. Only the
 // center column scrolls — both rails stay put. The page fills the shell's
@@ -90,4 +91,33 @@
 
 .load-more {
   align-self: center;
+}
+
+// Shortcut chips for the side columns hidden on narrow screens (feed.html): "Your progress" once the right
+// rail goes (≤ 1240px), plus "Following" and "Games" once the left sidebar goes (≤ 900px).
+.feed-quick {
+  display: none;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 12px;
+
+  .chip {
+    flex: none;
+    text-decoration: none;
+  }
+
+  .feed-quick-follow {
+    display: none;
+  }
+
+  @media (max-width: 1240px) {
+    display: flex;
+  }
+
+  @media (max-width: 900px) {
+    .feed-quick-follow {
+      display: inline-flex;
+    }
+  }
 }
