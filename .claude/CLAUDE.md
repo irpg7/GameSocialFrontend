@@ -3,8 +3,8 @@
 Angular 22 app in `GameSocial/` (run `ng`/`npm` commands there). Tavern (repo name GameSocial) is a social app for
 gamers: feed (photo / clip / review / devlog / poll posts), clips, reviews, trophies, squads (Discord-like rooms with
 channels and realtime chat). The UI calls it **Tavern**.
-Recent work and the reasoning behind it: `CHANGELOG.md` (repo root). Read it before starting in an area you haven't
-touched this session.
+To catch up on an area, read its history: `git log --oneline -- <path>`, or `git log -S <symbol>`. Commit messages say what
+changed and why.
 
 ## Skills
 - Before writing or reviewing frontend code, load the `angular-developer` skill. It is Google's official skill from
@@ -13,9 +13,9 @@ touched this session.
 - The skill holds the general Angular guidance; this file only adds project rules, and where they differ this file wins.
 - Skip the skill's **testing** guides: no unit, harness, router or e2e tests, and no test files. Also skip its
   **Tailwind** guide, because this project styles with SCSS.
-- Never use dotnet-claude-kit skills or agents here (disabled for this repo in `.claude/settings.json`).
+- Never use the backend repo's .NET skills or agents here.
 - The backend is a separate repo next to this one: `../GameSocialBackend` (.NET 10, FastEndpoints, EF Core, SignalR).
-  When you touch it, follow its `CLAUDE.md` and use its dotnet-claude-kit skills.
+  When you touch it, follow its `.claude/CLAUDE.md` and use its .NET skills (in its `.claude/skills`).
 
 ## Local dev
 - `ng serve` (in `GameSocial/`) proxies `/api` (including SignalR hubs) and `/media` to `http://localhost:5234`
@@ -29,7 +29,7 @@ touched this session.
   later — don't reword existing text.
 - Designs come from the ARENA mockups (Claude Design); comments like `05-squad.html L22` / `expl.html 2a` point into
   them. Match designs closely — read every state, don't approximate.
-- After a meaningful change, add a line to `CHANGELOG.md` (newest first, 1–2 lines, what + why).
+- Commit only when the user asks. Commit messages say what changed and why; that history replaces a changelog.
 
 ## Angular rules for this codebase (v22)
 - Standalone only, and don't write `standalone: true`; OnPush is the default, don't set it.
