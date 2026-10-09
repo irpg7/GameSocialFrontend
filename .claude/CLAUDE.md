@@ -54,7 +54,8 @@ changed and why.
   `main-layout` via `NotificationCenterService.start()`. `notification-center` = in-app notifications + topbar badges;
   `notification/NotificationService` = toasts (different thing).
 - `models/*.model.ts` — mirror the backend's `Domain.Responses.*` (comments name the C# type). Enums are string unions.
-- `layout/` — `main-layout`, `topbar`, `notification-bell`, `toast-list`.
+- `layout/` — `main-layout`, `topbar`, `mobile-tab-bar`, `notification-bell`, `toast-list`. HTTP interceptors are in
+  `interceptors/`.
 - Current user: `AuthService.currentUser()` (JWT claims); full profile: `MeService.me()`.
 - Feature flags: `src/environments/environment*.ts` → `environment.features` (`squadVoice: false`). Update both files.
 
@@ -87,7 +88,7 @@ changed and why.
 
 ## Styling
 - Tokens in `src/styles/_variables.scss` (`$color-*`, radius scale, `$font-family-mono`); primitives in `src/styles.scss`
-  (`.card`, `.btn`, `.page-head`, `.section-head*`, `.mono`, `.visually-hidden`), `_form-controls.scss`, `_chips.scss`.
+  (`.card`, `.btn`, `.page-head`, `.section-head*`, `.mono`, `.visually-hidden`), `_form-controls.scss`, `_chips.scss`, `_panels.scss`.
   Reuse them; don't re-derive px values.
 - Palette: accent red + greys only (no yellow/indigo); avatars are rounded squares.
 - Component styles: 8 kB warning / 16 kB error budget. Split big components; phone styles go in a sibling
