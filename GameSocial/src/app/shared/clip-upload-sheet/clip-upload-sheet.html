@@ -47,15 +47,7 @@
       [formField]="clipForm.title" />
 
     <div class="cu-row">
-      <select class="cu-select cu-select-game" aria-label="Game" [formField]="clipForm.gameId">
-        <button><selectedcontent></selectedcontent></button>
-        @if (games().length === 0) {
-          <option value="">— Select a game —</option>
-        }
-        @for (game of games(); track game.id) {
-          <option [value]="'' + game.id">{{ game.name }}</option>
-        }
-      </select>
+      <app-game-picker class="cu-select cu-select-game" inputId="clip-upload-game" ariaLabel="Game" placeholder="— Select a game —" [formField]="clipForm.gameId" />
       <select class="cu-select cu-select-squad" [class.empty]="squadId() === null" aria-label="Tag a squad" [formField]="clipForm.squadId">
         <button><selectedcontent></selectedcontent></button>
         <option value="">＋ Tag a squad</option>

@@ -1,0 +1,228 @@
+@use '../../../../../../styles/variables' as *;
+@use '../settings-common' as *;
+
+.settings-members {
+  gap: 6px;
+}
+
+// ─── Üyeler ve roller ─────────────────────────────────────────────────────
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid $color-border;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background: $color-border-strong;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.member-identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 700;
+}
+
+.member-meta {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 500;
+  color: $color-text-hint;
+}
+
+.member-role {
+  margin-left: auto;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 10px;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 28px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: none;
+  @include focus-ring;
+
+  &.top {
+    background: rgba(225, 29, 46, 0.16);
+    color: $color-accent-light;
+  }
+}
+
+.member-role-static {
+  cursor: default;
+}
+
+.member-menu-wrap {
+  position: relative;
+  flex: none;
+}
+
+.member-more {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: $color-bg-tertiary;
+  color: $color-text-hint;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 28px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  display: block;
+  flex: none;
+  @include focus-ring;
+
+  &:hover {
+    color: $color-accent-light;
+  }
+}
+
+.member-more-placeholder {
+  visibility: hidden;
+}
+
+.member-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 2;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border-radius: 12px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border-strong;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+
+  button {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: $color-text-primary;
+    cursor: pointer;
+    @include focus-ring;
+
+    &:hover {
+      background: $color-bg-tertiary;
+    }
+
+    &.danger {
+      color: $color-accent-light;
+    }
+  }
+}
+
+.request-approve,
+.request-decline {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: none;
+  @include focus-ring;
+}
+
+.request-approve {
+  margin-left: auto;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
+}
+
+.request-decline {
+  background: $color-bg-tertiary;
+  border: none;
+  color: $color-text-secondary;
+}
+
+.invite-dashed {
+  margin-top: 4px;
+  padding: 10px 0;
+  border-radius: 13px;
+  border: 1px dashed $color-border-dashed;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-hint;
+  text-align: center;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}
+
+.invite-row {
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+
+  input {
+    height: 36px;
+    border-radius: 12px;
+    background: $color-bg-row;
+    font-size: 13px;
+  }
+}
+
+.invite-send {
+  flex: none;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: $color-accent-primary;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}

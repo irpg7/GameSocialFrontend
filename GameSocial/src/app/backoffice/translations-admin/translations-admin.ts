@@ -160,7 +160,7 @@ export class TranslationsAdmin implements OnInit {
             this.selectLanguage(languages[0].code);
           }
         },
-        error: () => this.notificationService.error('Failed to load languages.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load languages.')),
       });
   }
 
@@ -176,7 +176,7 @@ export class TranslationsAdmin implements OnInit {
             .sort((a, b) => a.key.localeCompare(b.key));
           this.rows.set(rows);
         },
-        error: () => this.notificationService.error('Failed to load translations.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load translations.')),
       });
   }
 }

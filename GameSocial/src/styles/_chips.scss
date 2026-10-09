@@ -1,0 +1,66 @@
+@use 'variables' as *;
+
+// Filter chips and the page-level filter row (Clips, Reviews, Trophies and the sheets).
+// Split out of _form-controls.scss so pages that only need chips don't pay for the
+// form rules in their component style budget. _form-controls.scss still includes it.
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+// The design's filter chip (identical on Clips, Reviews, Trophies and inside
+// the sheets): 8/13 padding, 12px radius, and a *solid* red when selected —
+// not the tinted outline the app used to draw.
+.chip {
+  border: 1px solid $color-border;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-family: $font-family-primary;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 14px;
+  padding: 8px 13px;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, color $transition-speed-fast;
+
+  &.active {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  &:hover:not(.active) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+}
+
+// The design puts a thin rule between a filter group and the sort chip
+// that follows it.
+.chip-divider {
+  width: 1px;
+  height: 24px;
+  background-color: $color-border;
+  margin: 0 4px;
+}
+
+// The design's page-level filter row: a horizontal band of .chip filters with
+// an optional trailing action pushed to the right. Previously duplicated
+// verbatim in reviews.scss and trophies.scss (both used these exact values).
+.filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+// Trailing action inside a .filter-row (the design's "＋ Upload clip" /
+// "＋ Add screens" buttons sit flush right of the filters).
+.filter-row-action {
+  margin-left: auto;
+}

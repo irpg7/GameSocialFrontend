@@ -24,11 +24,14 @@ export class SquadMessageSheet {
   canPin = input(false);
   /** Server: only a captain or the author may unpin. */
   canUnpin = input(false);
+  /** Başkasının mesajı → "Mesajı bildir". */
+  canReport = input(false);
 
   react = output<string>();
   togglePin = output<void>();
   copy = output<void>();
   viewProfile = output<void>();
+  report = output<void>();
   closed = output<void>();
 
   protected readonly reactions = SQUAD_REACTIONS;

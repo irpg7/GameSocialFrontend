@@ -5,6 +5,7 @@ import { PostService } from '../../../services/post/post.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { clipVideo, formatClock, formatCount } from '../../../shared/clip-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
 
 /**
  * One card in the Clips page "Up next" rail, from Gamer Feed.dc.html's
@@ -118,9 +119,9 @@ export class ClipQueueCard {
         this.likeCount.set(result.likeCount);
         this.isTogglingLike.set(false);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.isTogglingLike.set(false);
-        this.notificationService.error('Failed to update like. Please try again.');
+        this.notificationService.error(extractApiErrorMessage(err, 'Failed to update like. Please try again.'));
       },
     });
   }
@@ -136,9 +137,9 @@ export class ClipQueueCard {
         this.saved.set(result.saved);
         this.isTogglingSave.set(false);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.isTogglingSave.set(false);
-        this.notificationService.error('Kaydetme başarısız oldu.');
+        this.notificationService.error(extractApiErrorMessage(err, 'Kaydetme başarısız oldu.'));
       },
     });
   }

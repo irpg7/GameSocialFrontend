@@ -78,3 +78,21 @@
   padding: $spacing-xs $spacing-md;
   font-size: 0.82rem;
 }
+
+// Heading + server-side search above a paged table.
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
+.admin-search {
+  width: min(280px, 100%);
+}

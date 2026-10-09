@@ -1,6 +1,8 @@
 import { Service, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, tap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { MeModel, PresenceStatusName } from '../../models/me.model';
 
 /**
@@ -21,8 +23,28 @@ export class MeService {
   private meState = signal<MeModel | null>(null);
   readonly me = this.meState.asReadonly();
 
+  constructor() {
+    // Never show the previous account's profile after a logout or account switch.
+    inject(AuthService)
+      .sessionEnded$.pipe(takeUntilDestroyed())
+      .subscribe(() => this.meState.set(null));
+  }
+
   refresh(): Observable<MeModel> {
     return this.http.get<MeModel>('/api/users/me').pipe(tap((me) => this.meState.set(me)));
+  }
+
+  /** Replaces `me` with a fresh copy an account call returned (e.g. PUT users/me/profile). */
+  set(me: MeModel): void {
+    this.meState.set(me);
+  }
+
+  /** Applies a partial change an account call confirmed (avatar, pending email, …). */
+  patch(changes: Partial<MeModel>): void {
+    const current = this.meState();
+    if (current) {
+      this.meState.set({ ...current, ...changes });
+    }
   }
 
   /** Account menu status row ("değiştir" cycles it). Optimistically updates `me`. */
@@ -32,6 +54,14 @@ export class MeService {
       this.meState.set({ ...current, presenceStatus: status });
     }
     return this.http.put<void>('/api/users/me/status', { status });
+  }
+
+  /** Undoes `setStatus`'s optimistic update when the request fails. */
+  revertStatus(status: PresenceStatusName): void {
+    const current = this.meState();
+    if (current) {
+      this.meState.set({ ...current, presenceStatus: status });
+    }
   }
 
   /**

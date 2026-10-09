@@ -1,114 +1,3 @@
-<!-- One comment row — the design's fhComments item: avatar, author, LV, @stamp, age, text, ▲ n, Yanıtla. -->
-<ng-template #commentRow let-comment let-reply="reply">
-  <div class="cm" [class.cm-pinned]="comment.isPinned" [class.cm-is-reply]="reply">
-    <a [routerLink]="['/profile', comment.userId]" class="cm-avatar" [attr.aria-label]="comment.username">
-      <img [appImg]="comment.authorAvatarUrl" fallback="avatar" alt="" />
-    </a>
-    <div class="cm-body">
-      <div class="cm-meta">
-        <a [routerLink]="['/profile', comment.userId]" class="cm-author">{{ comment.username }}</a>
-        <span class="cm-lv">LV {{ comment.authorLevel }}</span>
-        @if (comment.isPinned) {
-          <span class="cm-dev">◆ YAPIMCI</span>
-        }
-        @if (comment.timestampSeconds != null && isClipCard()) {
-          <button type="button" class="cm-stamp" [attr.aria-label]="'Klipte ' + clock(comment.timestampSeconds) + ' anına git'" (click)="seekComment(comment)">&#64;{{ clock(comment.timestampSeconds) }}</button>
-        }
-        <span class="cm-ago">{{ ago(comment.createdAt) }}@if (comment.editedAt) { · düzenlendi }</span>
-        @if (isOwnComment(comment) || isOwnPost()) {
-          <button type="button" class="cm-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
-        }
-      </div>
-      @if (editingCommentId() === comment.id) {
-        <div class="cm-reply-form">
-          <input
-            type="text"
-            maxlength="1000"
-            [value]="editCommentBody()"
-            (input)="editCommentBody.set($any($event.target).value)"
-            (keydown.enter)="saveEditComment(comment)"
-            (keydown.escape)="cancelEditComment()"
-            aria-label="Yorumu düzenle" />
-          <button type="button" class="btn btn-primary btn-sm" [disabled]="!editCommentBody().trim()" (click)="saveEditComment(comment)">Kaydet</button>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEditComment()">Vazgeç</button>
-        </div>
-      } @else {
-        <div class="cm-text">{{ comment.body }}</div>
-      }
-      <div class="cm-actions">
-        <button type="button" class="cm-vote" [class.active]="comment.isVotedByCurrentUser" [attr.aria-pressed]="comment.isVotedByCurrentUser" (click)="voteComment(comment)">▲ {{ count(comment.voteCount) }}</button>
-        <button type="button" class="cm-reply" [attr.aria-expanded]="replyingTo() === comment.id" (click)="startReply(comment)">
-          Yanıtla
-        </button>
-        @if (isOwnComment(comment) && editingCommentId() !== comment.id) {
-          <button type="button" class="cm-reply" (click)="startEditComment(comment)">Düzenle</button>
-        }
-        @if (!reply && comment.replyCount > 0) {
-          <button type="button" class="cm-reply" [attr.aria-expanded]="replyThreads()[comment.id]?.open ?? false" (click)="toggleReplies(comment)">
-            @if (replyThreads()[comment.id]?.open) { Yanıtları gizle } @else { <span class="cm-reply-count">{{ comment.replyCount }}</span> yanıt }
-          </button>
-        }
-      </div>
-      @if (replyingTo() === comment.id) {
-        <div class="cm-reply-form">
-          <input
-            type="text"
-            [value]="replyBody()"
-            (input)="replyBody.set($any($event.target).value)"
-            (keydown.enter)="submitReply(comment)"
-            [placeholder]="comment.username + ' kullanıcısına yanıt ver'"
-            aria-label="Yanıt" />
-          <button type="button" class="btn btn-primary btn-sm" [disabled]="!replyBody().trim() || isSubmittingComment()" (click)="submitReply(comment)">Gönder</button>
-        </div>
-      }
-      @if (!reply && replyThreads()[comment.id]; as t) {
-        @if (t.open) {
-          <div class="cm-replies">
-            @if (t.loading && t.items.length === 0) {
-              <p class="thread-status">Yanıtlar yükleniyor…</p>
-            }
-            @for (r of t.items; track r.id) {
-              <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: r, reply: true }" />
-            }
-          </div>
-        }
-      }
-    </div>
-  </div>
-</ng-template>
-
-<!-- The full thread under every non-featured card. -->
-<ng-template #thread>
-  <div class="thread">
-    @if (isLoadingComments() && comments().length === 0) {
-      <p class="thread-status">Loading comments...</p>
-    }
-    @for (comment of comments(); track comment.id) {
-      <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
-    }
-    @if (comments().length === 0 && !isLoadingComments()) {
-      <p class="thread-status">No comments yet. Be the first to comment.</p>
-    }
-    @if (hasMoreComments()) {
-      <button type="button" class="thread-more" [disabled]="isLoadingComments()" (click)="loadMoreComments()">
-        {{ isLoadingComments() ? 'Loading...' : 'Load more comments' }}
-      </button>
-    }
-    <div class="thread-form">
-      <textarea
-        #commentInput
-        rows="1"
-        [value]="newCommentBody()"
-        (input)="newCommentBody.set($any($event.target).value)"
-        placeholder="Write a comment..."
-        aria-label="Write a comment"></textarea>
-      <button type="button" class="btn btn-primary btn-sm" [disabled]="!newCommentBody().trim() || isSubmittingComment()" (click)="submitComment()">
-        {{ isSubmittingComment() ? 'Posting...' : 'Comment' }}
-      </button>
-    </div>
-  </div>
-</ng-template>
-
 <!-- ··· menu shared by every card head. -->
 <ng-template #moreMenu>
   <div class="more">
@@ -117,11 +6,19 @@
       <div class="more-pop" role="menu" (click)="$event.stopPropagation()">
         <button type="button" role="menuitem" class="more-item" (click)="toggleSave(); menuOpen.set(false)">{{ saved() ? '◆ Saved' : '◇ Save' }}</button>
         <button type="button" role="menuitem" class="more-item" (click)="share()">↗ Copy link</button>
+        @if (canShare) {
+          <button type="button" role="menuitem" class="more-item" (click)="shareNative()">⇪ Share…</button>
+        }
         <a role="menuitem" class="more-item" [routerLink]="['/profile', post().userId]">◉ View profile</a>
         @if (isOwnPost()) {
           <button type="button" role="menuitem" class="more-item" (click)="startEdit()">✎ Edit post</button>
           <button type="button" role="menuitem" class="more-item more-danger" [disabled]="isDeleting()" (click)="deletePost()">
             {{ confirmingDelete() ? 'Click again to delete' : '✕ Delete post' }}
+          </button>
+        } @else {
+          <button type="button" role="menuitem" class="more-item" (click)="reportPost()">⚑ Report post</button>
+          <button type="button" role="menuitem" class="more-item more-danger" (click)="blockAuthor()">
+            {{ confirmingBlock() ? 'Click again to block' : '⊘ Block @' + post().username }}
           </button>
         }
       </div>
@@ -143,21 +40,14 @@
       (toggleComments)="toggleComments()" />
 
     @if (isCommentsOpen()) {
-      <div class="hero-thread">
-        <div class="hero-thread-head">
-          <span class="label">Öne çıkan yorumlar</span>
-          <button type="button" class="hero-thread-all" (click)="openClipComments()">Tüm {{ commentLabel() }} yorumu gör →</button>
-        </div>
-        @if (isLoadingComments() && comments().length === 0) {
-          <p class="thread-status">Yorumlar yükleniyor…</p>
-        }
-        @for (comment of featuredComments(); track comment.id) {
-          <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
-        }
-        @if (comments().length === 0 && !isLoadingComments()) {
-          <p class="thread-status">Henüz yorum yok.</p>
-        }
-      </div>
+      <app-post-comments
+        variant="featured"
+        [postId]="post().id"
+        [isOwnPost]="isOwnPost()"
+        [totalLabel]="commentLabel()"
+        (countChange)="onCommentCountChange($event)"
+        (seek)="seekClip($event)"
+        (openAll)="openClipComments()" />
     }
   </article>
 } @else if (isDevlogCard()) {
@@ -246,7 +136,7 @@
       <div class="bar bar-devlog">
         <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
         <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
-        <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
+        <button type="button" class="bar-btn" (click)="canShare ? shareNative() : share()">↗ Share</button>
         <div class="bar-end">
           <button type="button" class="outline-btn outline-btn-lg" (click)="reportBug()">Report a bug</button>
           @if (devlog.testBranchUrl) {
@@ -255,7 +145,7 @@
         </div>
       </div>
       @if (isCommentsOpen()) {
-        <ng-container *ngTemplateOutlet="thread" />
+        <app-post-comments [postId]="post().id" [isOwnPost]="isOwnPost()" (countChange)="onCommentCountChange($event)" />
       }
     </article>
   }
@@ -287,7 +177,7 @@
           <div class="rv-actions">
             <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [attr.aria-label]="'Useful · ' + likeCount()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
             <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
-            <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
+            <button type="button" class="pill-btn" (click)="canShare ? shareNative() : share()">↗ Share</button>
             @if (!isOwnPost()) {
               <button type="button" class="outline-btn outline-btn-lg rv-rate" (click)="addRating()">Add your rating</button>
             }
@@ -295,7 +185,7 @@
         </div>
       </div>
       @if (isCommentsOpen()) {
-        <ng-container *ngTemplateOutlet="thread" />
+        <app-post-comments [postId]="post().id" [isOwnPost]="isOwnPost()" (countChange)="onCommentCountChange($event)" />
       }
     </article>
   }
@@ -325,11 +215,11 @@
     <div class="bar">
       <button type="button" class="bar-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
       <button type="button" class="bar-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
-      <button type="button" class="bar-btn" (click)="share()">↗ Share</button>
+      <button type="button" class="bar-btn" (click)="canShare ? shareNative() : share()">↗ Share</button>
       <button type="button" class="outline-btn" [class.saved]="saved()" [attr.aria-pressed]="saved()" (click)="toggleSave()">{{ saved() ? '◆ Saved' : '◇ Save all' }}</button>
     </div>
     @if (isCommentsOpen()) {
-      <ng-container *ngTemplateOutlet="thread" />
+      <app-post-comments [postId]="post().id" [isOwnPost]="isOwnPost()" (countChange)="onCommentCountChange($event)" />
     }
     @if (viewerIndex() !== null) {
       <app-photo-viewer
@@ -402,10 +292,10 @@
     <div class="rv-actions">
       <button type="button" class="pill-btn" [class.active]="liked()" [attr.aria-pressed]="liked()" [disabled]="isTogglingLike() || isOwnPost()" [attr.title]="isOwnPost() ? 'You can\'t vote on your own post' : null" (click)="toggleLike()">▲ <span class="mono">{{ likeLabel() }}</span></button>
       <button type="button" class="pill-btn" [class.on]="isCommentsOpen()" [attr.aria-expanded]="isCommentsOpen()" (click)="toggleComments()">💬 <span class="mono">{{ commentLabel() }}</span></button>
-      <button type="button" class="pill-btn" (click)="share()">↗ Share</button>
+      <button type="button" class="pill-btn" (click)="canShare ? shareNative() : share()">↗ Share</button>
     </div>
     @if (isCommentsOpen()) {
-      <ng-container *ngTemplateOutlet="thread" />
+      <app-post-comments [postId]="post().id" [isOwnPost]="isOwnPost()" (countChange)="onCommentCountChange($event)" />
     }
   </article>
 }

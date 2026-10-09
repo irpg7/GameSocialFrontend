@@ -15,4 +15,19 @@ export interface AdminUserModel {
   isPremium: boolean;
   createdAt: string;
   permissions: string[];
+  /** Site-wide ban currently in force (`banEndsAt` null = permanent). */
+  isBanned: boolean;
+  banEndsAt?: string | null;
+  banReason?: string | null;
+}
+
+/** Query for GET /api/users (backoffice, paged, max 100 per page). */
+export interface AdminUserListQuery {
+  /** Matches username or email. */
+  search?: string;
+  developerRequestsOnly?: boolean;
+  /** Only accounts with a ban in force. */
+  bannedOnly?: boolean;
+  page?: number;
+  pageSize?: number;
 }

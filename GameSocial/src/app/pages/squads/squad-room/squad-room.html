@@ -1,11 +1,13 @@
-@if (isLoading() && !squad()) {
+@if (room.isLoading() && !room.squad()) {
   <p class="room-status">Squad yükleniyor…</p>
-} @else if (notFound()) {
+} @else if (room.loadError(); as error) {
+  <app-load-error [message]="error" (retry)="retryLoad()" />
+} @else if (room.notFound()) {
   <div class="card room-empty">
     <p class="text-muted">Squad bulunamadı ya da erişimin yok.</p>
     <a routerLink="/squads" class="btn btn-secondary mt-md">Squad'lara dön</a>
   </div>
-} @else if (squad(); as squad) {
+} @else if (room.squad(); as squad) {
   <!-- onSquad: sidebar | (banner + tabs) | rail, full-bleed under the topbar -->
   <div class="room">
     <!-- Telefonda sidebar ☰ çekmecesidir (squad-sidebar.mobile.scss); karartma burada. -->
@@ -13,24 +15,24 @@
       [drawerOpen]="isPhone() && isDrawerOpen()"
       (closeDrawer)="isDrawerOpen.set(false)"
       (squadPicked)="isDrawerOpen.set(false)"
-      [squads]="mySquads()"
+      [squads]="room.mySquads()"
       [activeSquadId]="squad.id"
-      [channels]="channels()"
-      [activeChannelId]="activeChannelId()"
-      [activity]="activity()"
-      [canAddChannel]="isManager()"
-      [canUseVoice]="isVoiceEnabled && isMember()"
-      [sessions]="sessions()"
-      [busySessionId]="busySessionId()"
-      [currentUserId]="currentUserId()"
-      [canManageSessions]="isManager()"
+      [channels]="room.channels()"
+      [activeChannelId]="chat.activeChannelId()"
+      [activity]="room.activity()"
+      [canAddChannel]="room.isManager()"
+      [canUseVoice]="isVoiceEnabled && room.isMember()"
+      [sessions]="voice.sessions()"
+      [busySessionId]="voice.busySessionId()"
+      [currentUserId]="room.currentUserId()"
+      [canManageSessions]="room.isManager()"
       (channelPicked)="pickChannel($event)"
       (createSquad)="openCreateSquad()"
       (addChannel)="openAddChannel()"
-      (startSession)="openSessionSheet()"
-      (sessionToggled)="toggleSession($event)"
-      (sessionStarted)="startSessionNow($event)"
-      (sessionEnded)="endSession($event)" />
+      (startSession)="isSessionSheetOpen.set(true)"
+      (sessionToggled)="voice.toggle($event)"
+      (sessionStarted)="voice.startNow($event)"
+      (sessionEnded)="voice.end($event)" />
 
     @if (isPhone() && isDrawerOpen()) {
       <!-- Fare/dokunma kolaylığı: kapatma çekmecedeki ✕ ve Escape ile de var. -->
@@ -41,8 +43,8 @@
       @if (isPhone()) {
         <app-squad-room-header
           [squad]="squad"
-          [onlineCount]="onlineCount()"
-          [channelName]="activeChannel()?.name"
+          [onlineCount]="room.onlineCount()"
+          [channelName]="chat.activeChannel()?.name"
           [drawerOpen]="isDrawerOpen()"
           (openDrawer)="isDrawerOpen.set(true)"
           (openMembers)="isMembersOpen.set(true)"
@@ -50,8 +52,8 @@
       } @else {
         <app-squad-banner
           [squad]="squad"
-          [canPost]="isMember()"
-          [onlineCount]="onlineCount()"
+          [canPost]="room.isMember()"
+          [onlineCount]="room.onlineCount()"
           (postToSquad)="openComposer('clip')"
           (openSettings)="openSettings()" />
       }
@@ -61,66 +63,66 @@
           <!-- 05-squad.html L102: pill tabs with glyphs and monospace counts -->
           <div class="tab-row" role="tablist" aria-label="Squad bölümleri">
             <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'chat'" [attr.aria-selected]="activeTab() === 'chat'" (click)="selectTab('chat')">💬 Chat</button>
-            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'clips'" [attr.aria-selected]="activeTab() === 'clips'" (click)="selectTab('clips')">▶ Clips <span class="tab-count mono">{{ library().clipCount }}</span></button>
-            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'screens'" [attr.aria-selected]="activeTab() === 'screens'" (click)="selectTab('screens')">▣ Screens <span class="tab-count mono">{{ library().screenCount }}</span></button>
-            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'pinned'" [attr.aria-selected]="activeTab() === 'pinned'" (click)="selectTab('pinned')">◫ <span class="tab-long">Pinned guides</span><span class="tab-short">Guides</span> <span class="tab-count mono">{{ library().guideCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'clips'" [attr.aria-selected]="activeTab() === 'clips'" (click)="selectTab('clips')">▶ Clips <span class="tab-count mono">{{ library.counts().clipCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'screens'" [attr.aria-selected]="activeTab() === 'screens'" (click)="selectTab('screens')">▣ Screens <span class="tab-count mono">{{ library.counts().screenCount }}</span></button>
+            <button type="button" class="tab" role="tab" [class.active]="activeTab() === 'pinned'" [attr.aria-selected]="activeTab() === 'pinned'" (click)="selectTab('pinned')">◫ <span class="tab-long">Pinned guides</span><span class="tab-short">Guides</span> <span class="tab-count mono">{{ library.counts().guideCount }}</span></button>
             <span class="tab-library">{{ squad.name }} library</span>
           </div>
 
           @if (activeTab() === 'chat') {
             <app-squad-chat
-              [channelName]="activeChannel()?.name"
-              [messages]="messages()"
-              [levels]="levelsByUserId()"
-              [isMember]="isMember()"
-              [isLoading]="isLoadingMessages()"
-              [hasMore]="hasMoreMessages()"
-              [isSending]="isSendingMessage()"
+              [channelName]="chat.activeChannel()?.name"
+              [messages]="chat.messages()"
+              [levels]="room.levelsByUserId()"
+              [isMember]="room.isMember()"
+              [isLoading]="chat.isLoading()"
+              [hasMore]="chat.hasMore()"
+              [isSending]="chat.isSending()"
               [currentAvatarUrl]="currentAvatarUrl()"
-              [typingUsers]="typingUsers()"
-              (send)="sendMessage($event)"
-              (loadEarlier)="loadEarlierMessages()"
+              [typingUsers]="chat.typingUsers()"
+              (send)="chat.send($event)"
+              (loadEarlier)="chat.loadEarlier()"
               (react)="react($event)"
-              (typing)="onTyping()"
+              (typing)="chat.typingPing()"
               (openShared)="openShared($event)"
-              (messageActions)="actionMessage.set($event)"
+              (messageActions)="openMessageActions($event)"
               (attachClip)="openComposer('clip')"
               (attachScreens)="openComposer('screenshots')" />
           }
 
           @if (activeTab() === 'clips') {
             <app-squad-clips
-              [posts]="clipPosts()"
+              [posts]="library.clipPosts()"
               [games]="squad.games"
-              [isLoading]="isLoadingClips()"
-              [canPost]="isMember()"
-              [activeGameId]="clipGameId()"
-              [sort]="clipSort()"
-              (gamePicked)="setClipGame($event)"
-              (sortPicked)="setClipSort($event)"
+              [isLoading]="library.isLoadingClips()"
+              [canPost]="room.isMember()"
+              [activeGameId]="library.clipGameId()"
+              [sort]="library.clipSort()"
+              (gamePicked)="library.setClipGame($event)"
+              (sortPicked)="library.setClipSort($event)"
               (upload)="openComposer('clip')"
               (openClip)="openClip($event.id)" />
           }
 
           @if (activeTab() === 'screens') {
             <app-squad-screens
-              [posts]="screenPosts()"
+              [posts]="library.screenPosts()"
               [games]="squad.games"
-              [totalCount]="library().screenCount"
-              [filteredCount]="filteredScreenCount()"
-              [isLoading]="isLoadingScreens()"
-              [canPost]="isMember()"
-              [activeGameId]="screenGameId()"
-              (gamePicked)="setScreenGame($event)"
+              [totalCount]="library.counts().screenCount"
+              [filteredCount]="library.filteredScreenCount()"
+              [isLoading]="library.isLoadingScreens()"
+              [canPost]="room.isMember()"
+              [activeGameId]="library.screenGameId()"
+              (gamePicked)="library.setScreenGame($event)"
               (add)="openComposer('screenshots')" />
           }
 
           @if (activeTab() === 'pinned') {
             <app-squad-pins
-              [guides]="guides()"
-              [isLoading]="isLoadingGuides()"
-              [canCreate]="isMember()"
-              [channelName]="channels()[0]?.name ?? 'genel'"
+              [guides]="library.guides()"
+              [isLoading]="library.isLoadingGuides()"
+              [canCreate]="room.isMember()"
+              [channelName]="room.channels()[0]?.name ?? 'genel'"
               (openGuide)="guideSheet.set({ guide: $event })"
               (createGuide)="guideSheet.set({ guide: null })" />
           }
@@ -128,11 +130,11 @@
 
         @if (!isPhone()) {
           <app-squad-rail
-            [roster]="activeMembers()"
-            [leaderboard]="leaderboard()"
-            [currentUserId]="currentUserId()"
-            [rosterError]="rosterError()"
-            [leaderboardError]="leaderboardError()"
+            [roster]="room.activeMembers()"
+            [leaderboard]="room.leaderboard()"
+            [currentUserId]="room.currentUserId()"
+            [rosterError]="room.rosterError()"
+            [leaderboardError]="room.leaderboardError()"
             (invite)="openSettings()" />
         }
       </div>
@@ -141,11 +143,11 @@
 
   @if (isPhone() && isMembersOpen()) {
     <app-squad-members-sheet
-      [roster]="activeMembers()"
-      [leaderboard]="leaderboard()"
-      [currentUserId]="currentUserId()"
-      [rosterError]="rosterError()"
-      [leaderboardError]="leaderboardError()"
+      [roster]="room.activeMembers()"
+      [leaderboard]="room.leaderboard()"
+      [currentUserId]="room.currentUserId()"
+      [rosterError]="room.rosterError()"
+      [leaderboardError]="room.leaderboardError()"
       (invite)="openMembersInvite()"
       (closed)="isMembersOpen.set(false)" />
   }
@@ -153,28 +155,29 @@
   @if (actionMessage(); as message) {
     <app-squad-message-sheet
       [message]="message"
-      [canReact]="isMember()"
-      [canPin]="isMember()"
+      [canReact]="room.isMember()"
+      [canPin]="room.isMember()"
       [canUnpin]="canUnpin(message)"
+      [canReport]="message.userId !== room.currentUserId() && message.kind !== 'Event'"
       (react)="reactFromSheet(message, $event)"
       (togglePin)="togglePinFromSheet(message)"
       (copy)="copyFromSheet(message)"
       (viewProfile)="viewProfileFromSheet(message)"
-      (closed)="actionMessage.set(null)" />
+      (report)="reportFromSheet(message)"
+      (closed)="closeMessageActions()" />
   }
 
   @if (isSettingsOpen()) {
     <app-squad-settings-sheet
       [squad]="squad"
-      [members]="members()"
-      [games]="games()"
-      [isCaptain]="isCaptain()"
-      [currentUserId]="currentUserId()"
+      [members]="room.members()"
+      [isCaptain]="room.isCaptain()"
+      [currentUserId]="room.currentUserId()"
       (saved)="onSettingsSaved($event)"
       (membersChanged)="onMembersChanged()"
-      (iconChanged)="reloadSquad()"
+      (iconChanged)="room.reloadSquad()"
       (left)="onLeftSquad()"
-      (closed)="closeSettings()" />
+      (closed)="isSettingsOpen.set(false)" />
   }
 
   @if (guideSheet(); as sheet) {
@@ -182,8 +185,8 @@
       [squadId]="squad.id"
       [guide]="sheet.guide"
       [games]="squad.games"
-      [canManage]="isManager()"
-      [currentUserId]="currentUserId()"
+      [canManage]="room.isManager()"
+      [currentUserId]="room.currentUserId()"
       (saved)="onGuideSaved()"
       (deleted)="onGuideSaved()"
       (openItem)="openGuideItem($event)"
@@ -191,14 +194,11 @@
   }
 
   @if (composerTarget(); as target) {
-    <app-sheet-modal title="Post to squad" [subtitle]="'Goes to ' + squad.name" (closed)="closeComposer()">
-      <app-post-composer
-        [games]="games()"
-        [preselectedSquadId]="squad.id"
-        [lockedSquadName]="squad.name"
-        [initialTab]="target"
-        (posted)="onPosted($event)" />
-    </app-sheet-modal>
+    <app-squad-composer-sheet
+      [squad]="squad"
+      [initialTab]="target"
+      (posted)="onPosted($event)"
+      (closed)="composerTarget.set(null)" />
   }
 
   @if (isVoiceEnabled && isSessionSheetOpen()) {
@@ -206,29 +206,10 @@
   }
 
   @if (isAddChannelOpen()) {
-    <app-sheet-modal title="Kanal ekle" subtitle="Kanallar squad'ın kliplerini ve sohbetini ayrı tutar" (closed)="closeAddChannel()">
-      <div class="form-group">
-        <label for="new-channel-name">Kanal adı</label>
-        <input
-          id="new-channel-name"
-          type="text"
-          [formField]="channelNameField"
-          placeholder="builds"
-          (keydown.enter)="$event.preventDefault(); addChannel()">
-      </div>
-      @if (addChannelError()) {
-        <p class="form-error">{{ addChannelError() }}</p>
-      }
-      <div class="composer-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeAddChannel()">Vazgeç</button>
-        <button type="button" class="btn btn-primary" [disabled]="isAddingChannel()" (click)="addChannel()">
-          {{ isAddingChannel() ? 'Ekleniyor…' : 'Kanal ekle' }}
-        </button>
-      </div>
-    </app-sheet-modal>
+    <app-squad-add-channel-sheet [squadId]="squad.id" (created)="onChannelCreated($event)" (closed)="isAddChannelOpen.set(false)" />
   }
 }
 
 @if (isCreateSquadOpen()) {
-  <app-squad-create-sheet (created)="onSquadCreated($event)" (closed)="closeCreateSquad()" />
+  <app-squad-create-sheet (created)="onSquadCreated($event)" (closed)="isCreateSquadOpen.set(false)" />
 }

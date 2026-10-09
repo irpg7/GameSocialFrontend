@@ -19,6 +19,7 @@ import {
   rarityLabel,
 } from '../../shared/trophy-tile/trophy-format';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 /**
  * "Where XP comes from" — the design lists these four, in this order, with
@@ -213,7 +214,7 @@ export class Trophies implements OnInit {
           }),
         );
       },
-      error: () => this.notificationService.error('Failed to update showcase. Please try again.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update showcase. Please try again.')),
     });
   }
 

@@ -1,0 +1,130 @@
+<!-- One comment row — the design's fhComments item: avatar, author, LV, @stamp, age, text, ▲ n, Yanıtla. -->
+<ng-template #commentRow let-comment let-reply="reply">
+  <div class="cm" [class.cm-pinned]="comment.isPinned" [class.cm-is-reply]="reply">
+    <a [routerLink]="['/profile', comment.userId]" class="cm-avatar" [attr.aria-label]="comment.username">
+      <img [appImg]="comment.authorAvatarUrl" fallback="avatar" alt="" />
+    </a>
+    <div class="cm-body">
+      <div class="cm-meta">
+        <a [routerLink]="['/profile', comment.userId]" class="cm-author">{{ comment.username }}</a>
+        <span class="cm-lv">LV {{ comment.authorLevel }}</span>
+        @if (comment.isPinned) {
+          <span class="cm-dev">◆ YAPIMCI</span>
+        }
+        @if (comment.timestampSeconds != null && isFeatured()) {
+          <button type="button" class="cm-stamp" [attr.aria-label]="'Klipte ' + clock(comment.timestampSeconds) + ' anına git'" (click)="seek.emit(comment.timestampSeconds)">&#64;{{ clock(comment.timestampSeconds) }}</button>
+        }
+        <span class="cm-ago">{{ ago(comment.createdAt) }}@if (comment.editedAt) { · düzenlendi }</span>
+        @if (isOwnComment(comment) || isOwnPost()) {
+          <button type="button" class="cm-delete" aria-label="Delete comment" (click)="deleteComment(comment)">&times;</button>
+        }
+      </div>
+      @if (editingCommentId() === comment.id) {
+        <div class="cm-reply-form">
+          <input
+            type="text"
+            maxlength="1000"
+            [value]="editCommentBody()"
+            (input)="editCommentBody.set($any($event.target).value)"
+            (keydown.enter)="saveEditComment(comment)"
+            (keydown.escape)="cancelEditComment()"
+            aria-label="Yorumu düzenle" />
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="!editCommentBody().trim()" (click)="saveEditComment(comment)">Kaydet</button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEditComment()">Vazgeç</button>
+        </div>
+      } @else {
+        <div class="cm-text">{{ comment.body }}</div>
+      }
+      <div class="cm-actions">
+        <button type="button" class="cm-vote" [class.active]="comment.isVotedByCurrentUser" [attr.aria-pressed]="comment.isVotedByCurrentUser" (click)="voteComment(comment)">▲ {{ count(comment.voteCount) }}</button>
+        <button type="button" class="cm-reply" [attr.aria-expanded]="replyingTo() === comment.id" (click)="startReply(comment)">
+          Yanıtla
+        </button>
+        @if (isOwnComment(comment) && editingCommentId() !== comment.id) {
+          <button type="button" class="cm-reply" (click)="startEditComment(comment)">Düzenle</button>
+        }
+        @if (!isOwnComment(comment)) {
+          <button type="button" class="cm-reply" (click)="reportComment(comment)">Report</button>
+        }
+        @if (!reply && comment.replyCount > 0) {
+          <button type="button" class="cm-reply" [attr.aria-expanded]="replyThreads()[comment.id]?.open ?? false" (click)="toggleReplies(comment)">
+            @if (replyThreads()[comment.id]?.open) { Yanıtları gizle } @else { <span class="cm-reply-count">{{ comment.replyCount }}</span> yanıt }
+          </button>
+        }
+      </div>
+      @if (replyingTo() === comment.id) {
+        <div class="cm-reply-form">
+          <input
+            type="text"
+            [value]="replyBody()"
+            (input)="replyBody.set($any($event.target).value)"
+            (keydown.enter)="submitReply(comment)"
+            [placeholder]="comment.username + ' kullanıcısına yanıt ver'"
+            aria-label="Yanıt" />
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="!replyBody().trim() || isSubmitting()" (click)="submitReply(comment)">Gönder</button>
+        </div>
+      }
+      @if (!reply && replyThreads()[comment.id]; as t) {
+        @if (t.open) {
+          <div class="cm-replies">
+            @if (t.loading && t.items.length === 0) {
+              <p class="thread-status">Yanıtlar yükleniyor…</p>
+            }
+            @for (r of t.items; track r.id) {
+              <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: r, reply: true }" />
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+</ng-template>
+
+@if (isFeatured()) {
+  <!-- Clip card: "Öne çıkan yorumlar" (D219–244). -->
+  <div class="hero-thread">
+    <div class="hero-thread-head">
+      <span class="label">Öne çıkan yorumlar</span>
+      <button type="button" class="hero-thread-all" (click)="openAll.emit()">Tüm {{ totalLabel() }} yorumu gör →</button>
+    </div>
+    @if (isLoading() && comments().length === 0) {
+      <p class="thread-status">Yorumlar yükleniyor…</p>
+    }
+    @for (comment of featuredComments(); track comment.id) {
+      <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
+    }
+    @if (comments().length === 0 && !isLoading()) {
+      <p class="thread-status">Henüz yorum yok.</p>
+    }
+  </div>
+} @else {
+  <!-- The full thread under every other card. -->
+  <div class="thread">
+    @if (isLoading() && comments().length === 0) {
+      <p class="thread-status">Loading comments...</p>
+    }
+    @for (comment of comments(); track comment.id) {
+      <ng-container *ngTemplateOutlet="commentRow; context: { $implicit: comment }" />
+    }
+    @if (comments().length === 0 && !isLoading()) {
+      <p class="thread-status">No comments yet. Be the first to comment.</p>
+    }
+    @if (hasMore()) {
+      <button type="button" class="thread-more" [disabled]="isLoading()" (click)="loadMore()">
+        {{ isLoading() ? 'Loading...' : 'Load more comments' }}
+      </button>
+    }
+    <div class="thread-form">
+      <textarea
+        #commentInput
+        rows="1"
+        [value]="newCommentBody()"
+        (input)="newCommentBody.set($any($event.target).value)"
+        placeholder="Write a comment..."
+        aria-label="Write a comment"></textarea>
+      <button type="button" class="btn btn-primary btn-sm" [disabled]="!newCommentBody().trim() || isSubmitting()" (click)="submitComment()">
+        {{ isSubmitting() ? 'Posting...' : 'Comment' }}
+      </button>
+    </div>
+  </div>
+}

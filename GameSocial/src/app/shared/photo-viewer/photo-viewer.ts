@@ -1,18 +1,9 @@
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  afterNextRender,
-  computed,
-  inject,
-  input,
-  linkedSignal,
-  output,
-  viewChild,
-} from '@angular/core';
+import { Component, OnDestroy, computed, input, linkedSignal, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PostMediaModel } from '../../models/post.model';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { BackdropClose } from '../overlay/backdrop-close';
+import { DialogFocus } from '../overlay/dialog-focus';
 
 /**
  * The `phViewer` state of `Gamer Feed.dc.html`'s photo post card: a full-screen
@@ -28,18 +19,15 @@ import { ImgFallback } from '../../shared/img-fallback/img-fallback';
  */
 @Component({
   selector: 'app-photo-viewer',
-  imports: [ImgFallback, RouterLink],
+  imports: [ImgFallback, RouterLink, BackdropClose, DialogFocus],
   templateUrl: './photo-viewer.html',
   styleUrl: './photo-viewer.scss',
   host: {
-    '(document:keydown.escape)': 'closed.emit()',
     '(document:keydown.arrowleft)': 'prev()',
     '(document:keydown.arrowright)': 'next()',
   },
 })
 export class PhotoViewer implements OnDestroy {
-  private readonly hostRef = inject<ElementRef<HTMLElement>>(ElementRef);
-
   photos = input.required<PostMediaModel[]>();
   /** Tile the viewer was opened from; re-opening on another tile re-seeds the position. */
   startIndex = input.required<number>();
@@ -55,8 +43,6 @@ export class PhotoViewer implements OnDestroy {
 
   closed = output<void>();
 
-  private readonly closeRef = viewChild.required<ElementRef<HTMLButtonElement>>('closeButton');
-  private readonly previouslyFocused = document.activeElement as HTMLElement | null;
 
   protected readonly current = linkedSignal(() => this.startIndex());
 
@@ -73,13 +59,12 @@ export class PhotoViewer implements OnDestroy {
 
   constructor() {
     // The lightbox covers the page, so the feed behind it must not scroll away under it.
+    // Focus, the Tab trap and Escape are handled by `appDialog`.
     document.body.classList.add('photo-viewer-open');
-    afterNextRender(() => this.closeRef().nativeElement.focus());
   }
 
   ngOnDestroy(): void {
     document.body.classList.remove('photo-viewer-open');
-    this.previouslyFocused?.focus();
   }
 
   protected prev(): void {
@@ -94,34 +79,5 @@ export class PhotoViewer implements OnDestroy {
 
   protected select(index: number): void {
     this.current.set(index);
-  }
-
-  /** A click on the backdrop itself (never on the chrome inside it) dismisses the viewer. */
-  protected onBackdrop(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
-      this.closed.emit();
-    }
-  }
-
-  /** Keeps Tab inside the lightbox while it is open. */
-  protected onKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Tab') {
-      return;
-    }
-    const focusable = Array.from(this.hostRef.nativeElement.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
-      (element) => element.offsetParent !== null,
-    );
-    if (focusable.length === 0) {
-      return;
-    }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
   }
 }

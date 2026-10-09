@@ -1,0 +1,282 @@
+@use '../../../../../styles/variables' as *;
+@use '../composer-common' as common;
+@use '../composer-sheet';
+
+// DevLog identity card: tinted box, DEVELOPER badge.
+.identity-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: rgba($color-accent-primary, 0.08);
+  border: 1px solid $color-accent-border;
+  flex-wrap: wrap;
+}
+
+.identity-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: $color-border-strong;
+  flex: none;
+  object-fit: cover;
+}
+
+.identity-text {
+  min-width: 0;
+}
+
+.identity-name-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.identity-name {
+  font: 700 13px/17px $font-family-primary;
+  color: $color-text-primary;
+}
+
+.dev-badge {
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: $color-accent-primary;
+  color: #fff;
+  font: 800 9px/11px $font-family-mono;
+}
+
+.identity-meta {
+  font: 500 11px/15px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.devlog-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.devlog-number {
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: $color-accent-tint;
+  font: 800 10px/13px $font-family-mono;
+  color: $color-accent-light;
+}
+
+input.mono-field,
+select.mono-field,
+select.game-field {
+  @include common.sheet-input;
+  width: auto;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+input.mono-field,
+select.mono-field {
+  font: 700 11px/34px $font-family-mono;
+}
+
+input.mono-field {
+  width: 130px;
+  text-transform: uppercase;
+}
+
+select.mono-field-muted {
+  color: $color-text-secondary;
+}
+
+select.game-field {
+  min-width: 140px;
+  font: 600 12px/34px $font-family-primary;
+}
+
+textarea.sheet-body-field {
+  @include common.sheet-input;
+  min-height: 96px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  font: 500 14px/22px $font-family-primary;
+  resize: vertical;
+}
+
+// Patch lines: 26×32 status glyph + 34px field.
+.patch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.patch-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.patch-glyph {
+  width: 26px;
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: $color-text-tertiary;
+  font: 700 13px/1 $font-family-primary;
+
+  &.patch-glyph-done {
+    color: $color-accent-light;
+  }
+}
+
+button.patch-glyph {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-tertiary;
+    outline: none;
+  }
+}
+
+input.patch-input {
+  @include common.sheet-input;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font: 500 12px/34px $font-family-primary;
+}
+
+.patch-add {
+  flex: 1;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 10px;
+  border: 1px dashed $color-border-dashed;
+  background: none;
+  font: 600 12px/34px $font-family-primary;
+  color: $color-text-tertiary;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-accent-primary;
+    color: $color-text-secondary;
+    outline: none;
+  }
+}
+
+.attach-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.attach-chip {
+  padding: 9px 13px;
+  border-radius: 11px;
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
+  font: 700 12px/13px $font-family-primary;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-border-dashed;
+    outline: none;
+  }
+
+  &.active {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+  }
+}
+
+// Preview of the card's media band: 2:1 clip beside stacked before/after.
+.media-band {
+  display: flex;
+  gap: 3px;
+  height: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.band-clip {
+  flex: 2;
+  position: relative;
+  background: $color-bg-tertiary;
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.band-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(10, 10, 12, 0.75);
+  font: 700 10px/12px $font-family-mono;
+  color: $color-text-primary;
+}
+
+.band-remove {
+  @include common.media-remove;
+}
+
+.band-pair {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.band-shot {
+  flex: 1;
+  position: relative;
+  background: $color-bg-tertiary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.band-caption {
+  position: relative;
+  font: 600 10px/1 $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.band-shot img + .band-remove + .band-caption {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: rgba(10, 10, 12, 0.75);
+  color: $color-text-primary;
+}

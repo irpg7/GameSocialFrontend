@@ -25,14 +25,29 @@
   width: 72px;
   height: 72px;
   border-radius: 22px;
+  overflow: hidden;
   background-color: $color-bg-tertiary;
-  color: $color-text-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.8rem;
   flex-shrink: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.profile-studio {
+  color: $color-text-secondary;
+  font-size: 0.9rem;
+}
+
+.profile-bio {
+  margin: $spacing-xs 0 0;
+  color: $color-text-body;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .profile-info {
@@ -164,5 +179,64 @@
 .profile-showcase-empty {
   font-size: 13px;
   line-height: 19px;
+  color: $color-text-tertiary;
+}
+
+.badge-banned {
+  color: $color-accent-light;
+  background-color: $color-accent-tint;
+  border: 1px solid $color-accent-border;
+  text-transform: none;
+}
+
+// ··· next to Follow: report / block.
+.profile-more {
+  position: relative;
+}
+
+.profile-more-btn {
+  padding-inline: 12px;
+}
+
+.profile-more-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 200px;
+  padding: 6px;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.profile-more-item {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: $color-text-body;
+  font: 600 12px/16px $font-family-primary;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-tertiary;
+    color: $color-text-primary;
+  }
+
+  &.danger {
+    color: $color-accent-light;
+  }
+}
+
+.profile-activity-note {
+  margin: 0;
+  font-size: 0.85rem;
   color: $color-text-tertiary;
 }

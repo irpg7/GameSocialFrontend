@@ -1,0 +1,129 @@
+<div class="search-page">
+  <div class="page-head">
+    <div>
+      <h1>Search</h1>
+      <p class="page-sub">{{ query() ? 'Results for “' + query() + '”' : 'Type in the header search to find players, games, squads and posts.' }}</p>
+    </div>
+  </div>
+
+  @if (query()) {
+    <div class="search-tabs" role="tablist" aria-label="Result type">
+      @for (tab of tabs; track tab.value) {
+        <button
+          type="button"
+          role="tab"
+          class="chip"
+          [class.active]="type() === tab.value"
+          [attr.aria-selected]="type() === tab.value"
+          (click)="selectTab(tab.value)">{{ tab.label }}</button>
+      }
+    </div>
+  }
+
+  @if (isLoading()) {
+    <p class="status" role="status">Searching...</p>
+  } @else if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="retry()" />
+  } @else if (result(); as r) {
+    @if (isEmpty()) {
+      <p class="status empty">No matches.</p>
+    }
+
+    @if (r.players.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Players', tab: 'Players' }" />
+      }
+      <ul class="grid">
+        @for (p of r.players; track p.userId) {
+          <li>
+            <a class="tile" [routerLink]="['/profile', p.userId]">
+              <span class="tile-img"><img [appImg]="p.avatarUrl" fallback="avatar" alt="" /></span>
+              <span class="tile-name">{{ p.username }}</span>
+              <span class="lv">LV {{ p.level }}</span>
+              @if (p.isDeveloper) { <span class="dev">DEV</span> }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (r.games.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Games', tab: 'Games' }" />
+      }
+      <ul class="grid">
+        @for (g of r.games; track g.id) {
+          <li>
+            <a class="tile" routerLink="/feed" [queryParams]="{ game: g.id }">
+              <span class="tile-img"><img [appImg]="g.coverImageUrl" fallback="game" alt="" /></span>
+              <span class="tile-name">{{ g.name }}</span>
+              @if (g.isFollowed) { <span class="tile-meta">Following</span> }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (r.squads.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Squads', tab: 'Squads' }" />
+      }
+      <ul class="grid">
+        @for (s of r.squads; track s.id) {
+          <li>
+            <!-- Members go straight to the room; others to the squads hub, searching for it. -->
+            <a
+              class="tile"
+              [routerLink]="s.isMember ? ['/squads', s.id] : ['/squads']"
+              [queryParams]="s.isMember ? null : { q: s.name }">
+              <span class="tile-img"><img [appImg]="s.iconUrl" fallback="squad" alt="" /></span>
+              <span class="tile-name">{{ s.name }}</span>
+              <span class="tile-meta">{{ s.memberCount }}/{{ s.maxMembers }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (r.clips.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Clips', tab: 'Clips' }" />
+      }
+      @for (clip of r.clips; track clip.id) {
+        <app-post-card [post]="clip" />
+      }
+    }
+
+    @if (r.reviews.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Reviews', tab: 'Reviews' }" />
+      }
+      @for (review of r.reviews; track review.id) {
+        <app-post-card [post]="review" />
+      }
+    }
+
+    @if (r.posts.length > 0) {
+      @if (type() === 'All') {
+        <ng-container *ngTemplateOutlet="groupHead; context: { label: 'Posts', tab: 'Posts' }" />
+      }
+      @for (post of r.posts; track post.id) {
+        <app-post-card [post]="post" />
+      }
+    }
+
+    @if (type() !== 'All' && r.hasMore) {
+      <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+        {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+      </button>
+    }
+  }
+</div>
+
+<ng-template #groupHead let-label="label" let-tab="tab">
+  <div class="section-head">
+    <span class="section-head-label">{{ label }}</span>
+    <span class="section-head-rule"></span>
+    <button type="button" class="see-all" (click)="selectTab(tab)">See all</button>
+  </div>
+</ng-template>

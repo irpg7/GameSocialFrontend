@@ -156,7 +156,6 @@
 
 @if (isReviewSheetOpen()) {
   <app-review-sheet
-    [games]="games()"
     [preselectedGameId]="preselectedGameId()"
     (closed)="isReviewSheetOpen.set(false)"
     (posted)="onReviewPosted($event)" />

@@ -8,6 +8,12 @@
 export interface MeModel {
   id: string;
   username: string;
+  /** Account settings: the sign-in address, and a new one waiting for its confirmation link. */
+  email: string;
+  pendingEmail?: string | null;
+  bio?: string | null;
+  /** When the username may change again (null/absent = now). */
+  usernameChangeAvailableAt?: string | null;
   xp: number;
   level: number;
   xpToNextLevel: number;
@@ -32,7 +38,19 @@ export interface MeModel {
   reviewedGameIds: number[];
   /** Developer account requested at sign-up, waiting for an admin. */
   developerRequested: boolean;
+  /** Settings → Privacy. */
+  allowMessagesFrom: MessagePermissionName;
+  showOnlineStatus: boolean;
+  profileActivityVisibility: ActivityVisibilityName;
+  /** People I blocked — the squad chat folds their messages. */
+  blockedUserIds: string[];
 }
+
+/** Domain.Enums.MessagePermission — who can send me direct messages. */
+export type MessagePermissionName = 'Everyone' | 'Following' | 'Nobody';
+
+/** Domain.Enums.ActivityVisibility — who sees the post/clip/review lists on my profile. */
+export type ActivityVisibilityName = 'Public' | 'Followers';
 
 /** Domain.Enums.PresenceStatus. */
 export type PresenceStatusName = 'Online' | 'Invisible' | 'DoNotDisturb';

@@ -1,0 +1,19 @@
+@use '../../../../../styles/variables' as *;
+
+.form-error {
+  margin-top: $spacing-sm;
+  font-size: 0.9rem;
+  color: $color-accent-primary;
+}
+
+// Cancel on the left, the action on the right (the design's sheet footers).
+.composer-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+
+  > :last-child {
+    margin-left: auto;
+  }
+}

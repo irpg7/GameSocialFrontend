@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormField, form } from '@angular/forms/signals';
 import { Observable, Subscription, catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, of, skip } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
@@ -58,6 +58,7 @@ export class Squads implements OnInit {
   private hubService = inject(SquadHubService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal<string | null>(null);
@@ -142,6 +143,12 @@ export class Squads implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    // `/squads?q=` — the global search's squad results open the hub on that search.
+    const query = this.route.snapshot.queryParamMap.get('q')?.trim();
+    if (query) {
+      this.searchQuery.set(query);
+      this.loadDiscover(true);
+    }
   }
 
   protected load(): void {

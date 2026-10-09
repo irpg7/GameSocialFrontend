@@ -127,6 +127,17 @@
   }
 }
 
+.hs-report {
+  background: transparent;
+  border: none;
+  color: $color-text-tertiary;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-accent-light;
+  }
+}
+
 .hs-cancel {
   background: transparent;
   border: 1px solid $color-border-strong;

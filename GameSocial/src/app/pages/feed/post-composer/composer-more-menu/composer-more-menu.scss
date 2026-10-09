@@ -1,0 +1,125 @@
+@use '../../../../../styles/variables' as *;
+
+.more-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 41;
+  width: 280px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 14px;
+  background: $color-bg-sheet;
+  border: 1px solid $color-border-strong;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.more-label {
+  margin: 6px 8px 4px;
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: $color-text-secondary;
+  font: 600 13px/17px $font-family-primary;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $color-bg-row;
+    color: $color-text-primary;
+    outline: none;
+  }
+
+  &.more-item-dev {
+    color: $color-accent-light;
+  }
+}
+
+.more-glyph {
+  width: 18px;
+  text-align: center;
+}
+
+.more-empty {
+  margin: 2px 10px 6px;
+  font: 500 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+}
+
+.draft-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+
+  &:hover {
+    background: $color-bg-row;
+  }
+}
+
+.draft-type {
+  flex: none;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: $color-bg-tertiary;
+  font: 700 9px/11px $font-family-mono;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+}
+
+.draft-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 12px/16px $font-family-primary;
+  color: $color-text-primary;
+}
+
+.draft-btn {
+  flex: none;
+  height: 26px;
+  min-width: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid $color-border;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font: 700 11px/1 $font-family-primary;
+  cursor: pointer;
+
+  &.draft-btn-primary {
+    background: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

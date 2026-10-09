@@ -10,6 +10,7 @@ import { PostModel } from '../../../models/post.model';
 import { SquadModel } from '../../../models/squad.model';
 import { PagedResult } from '../../../models/paged-result.model';
 import { PostCard } from '../../feed/post-card/post-card';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
 
 /** Which account-menu list this route renders (route `data.mode`). */
 export type MyPostListMode = 'saved' | 'clips' | 'reviews';
@@ -94,7 +95,7 @@ export class MyPostList {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: () => this.notificationService.error('Failed to load posts.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load posts.')),
       });
   }
 

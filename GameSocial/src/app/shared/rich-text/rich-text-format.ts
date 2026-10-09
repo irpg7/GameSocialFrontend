@@ -112,19 +112,3 @@ export function parseRichText(source: string | null | undefined): RichBlock[] {
   }
   return blocks;
 }
-
-/** True when the body contains at least one ||spoiler||. */
-export function hasSpoilers(source: string | null | undefined): boolean {
-  return /\|\|[\s\S]+?\|\|/.test(source ?? '');
-}
-
-/** Formatting stripped, spoilers masked — for previews, meta descriptions, truncation. */
-export function richTextToPlain(source: string | null | undefined): string {
-  return (source ?? '')
-    .replace(/\|\|(?:[^|:]{1,60}::)?[\s\S]+?\|\|/g, '▨ spoiler')
-    .replace(/\*\*([\s\S]+?)\*\*/g, '$1')
-    .replace(/__([\s\S]+?)__/g, '$1')
-    .replace(/\*([^*\n]+?)\*/g, '$1')
-    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
-    .replace(/^\s*[-•>]\s?/gm, '');
-}

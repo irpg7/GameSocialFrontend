@@ -1,0 +1,88 @@
+<app-sheet-modal
+  title="New poll"
+  subtitle="Two to six options, and a deadline people can see"
+  (closed)="closed.emit()">
+  <div class="sheet-stack">
+    <input
+      class="sheet-headline"
+      id="poll-question"
+      type="text"
+      aria-label="Question"
+      [formField]="pollForm.question"
+      placeholder="Ask the feed something…">
+
+    <div class="option-list">
+      @for (option of pollForm.options; track $index; let i = $index) {
+        <div class="option-row">
+          <span class="option-index" aria-hidden="true">{{ i + 1 }}</span>
+          <input
+            #pollOptionInput
+            class="option-input"
+            type="text"
+            [attr.aria-label]="'Option ' + (i + 1)"
+            [formField]="option"
+            [placeholder]="'Option ' + (i + 1)">
+          <button type="button" class="option-remove" [attr.aria-label]="'Remove option ' + (i + 1)" (click)="removeOption(i)">✕</button>
+        </div>
+      }
+      @if (options().length < maxPollOptions) {
+        <div class="option-row">
+          <span class="option-index" aria-hidden="true">{{ options().length + 1 }}</span>
+          <input
+            class="option-input option-input-ghost"
+            type="text"
+            aria-label="Add an option"
+            [attr.maxlength]="maxPollOptionLength"
+            placeholder="Add an option"
+            (input)="onGhostOptionInput($event)">
+        </div>
+        <button type="button" class="dashed-add" (click)="addOption()">＋ Add option (up to {{ maxPollOptions }})</button>
+      }
+    </div>
+
+    <div>
+      <p class="section-label" id="poll-duration-label">Open for</p>
+      <div class="duration-row" role="radiogroup" aria-labelledby="poll-duration-label">
+        @for (d of pollDurations; track d.key) {
+          <button
+            type="button"
+            role="radio"
+            class="duration-chip"
+            [class.active]="state().duration === d.key"
+            [attr.aria-checked]="state().duration === d.key"
+            (click)="setDuration(d.key)">{{ d.label }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="split-row">
+      <app-game-picker class="sheet-field field-select" inputId="poll-game" ariaLabel="Game (optional)" noneLabel="Any game" [formField]="pollForm.gameId" />
+
+      <div class="switch-box">
+        <span class="switch-label" id="poll-hide-label">Hide results until you vote</span>
+        <button
+          type="button"
+          role="switch"
+          class="switch"
+          aria-labelledby="poll-hide-label"
+          [class.on]="state().hideResults"
+          [attr.aria-checked]="state().hideResults"
+          (click)="toggleHideResults()"><span class="switch-knob"></span></button>
+      </div>
+    </div>
+
+    @if (shownError(); as error) {
+      <p class="form-error" role="alert">{{ error }}</p>
+    }
+  </div>
+
+  <div class="sheet-footer">
+    <button type="button" class="footer-btn footer-cancel" (click)="closed.emit()">Cancel</button>
+    <button type="button" class="footer-btn footer-draft" [disabled]="isSavingDraft() || isSubmitting()" (click)="submit(true)">
+      {{ isSavingDraft() ? 'Saving…' : 'Save draft' }}
+    </button>
+    <button type="button" class="footer-btn footer-primary" [disabled]="isSubmitting() || isSavingDraft()" (click)="submit(false)">
+      {{ isSubmitting() ? 'Posting…' : 'Post poll' }}
+    </button>
+  </div>
+</app-sheet-modal>

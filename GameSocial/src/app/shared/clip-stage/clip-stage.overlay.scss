@@ -1,0 +1,206 @@
+@use '../../../styles/variables' as *;
+
+// Split from clip-stage.scss (style budget): the in-app fullscreen overlay's chrome.
+
+// ─── Fullscreen overlay (06-fullscreen-player.html) ──────────────────────
+.ov-hit {
+  bottom: 120px;
+}
+
+.ov-head {
+  position: absolute;
+  left: 28px;
+  top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  max-width: calc(100% - 260px);
+}
+
+.ov-tag {
+  padding: 6px 10px;
+  border-radius: 9px;
+  background-color: rgba(10, 10, 12, 0.7);
+  font-family: $font-family-mono;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 700;
+  color: $color-text-primary;
+  white-space: nowrap;
+}
+
+.ov-title {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-author {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.ov-exit {
+  position: absolute;
+  right: 26px;
+  top: 24px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 12px;
+  background-color: rgba(10, 10, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 12px;
+  line-height: 32px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: $color-accent-primary;
+  }
+}
+
+.ov-play {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: none;
+  background-color: $color-accent-primary;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 46px rgba(225, 29, 46, 0.45);
+  cursor: pointer;
+}
+
+.ov-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 36px 28px 20px;
+  background: linear-gradient(180deg, rgba(6, 6, 8, 0), rgba(6, 6, 8, 0.92));
+
+  .stage-scrub {
+    margin-top: 0;
+    height: 16px;
+  }
+
+  .stage-track {
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .stage-buffered {
+    display: none;
+  }
+
+  .stage-knob {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.ov-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.ov-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: $color-text-primary;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.ov-btn-mute {
+  font-size: 13px;
+}
+
+.ov-btn-close {
+  height: 34px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.ov-time {
+  font-family: $font-family-mono;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 4px;
+
+  span {
+    color: $color-text-hint;
+  }
+}
+
+.ov-pill {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: $color-text-primary;
+  font-size: 12px;
+  line-height: 34px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.ov-speed {
+  margin-left: auto;
+  font-family: $font-family-mono;
+}
+
+.ov-vote {
+  padding: 0 13px;
+  font-family: $font-family-primary;
+
+  &.active {
+    background-color: $color-accent-primary;
+    color: #fff;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}

@@ -1,0 +1,159 @@
+<app-sheet-modal
+  title="New DevLog"
+  subtitle="Goes to everyone following the game, not just your followers"
+  (closed)="closed.emit()">
+  <div class="sheet-stack">
+    <div class="identity-card">
+      <img class="identity-avatar" [appImg]="avatarUrl()" fallback="avatar" alt="" />
+      <div class="identity-text">
+        <div class="identity-name-row">
+          <span class="identity-name">{{ studioName() }}</span>
+          <span class="dev-badge">◆ DEVELOPER</span>
+        </div>
+        <div class="identity-meta">
+          @if (gameName(); as name) {
+            Posting as the {{ name }} team · {{ followerLabel() }} followers will be notified
+          } @else {
+            Pick a game — everyone following it sees this DevLog
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="devlog-tag-row">
+      @if (sequence(); as seq) {
+        <span class="devlog-number">DEVLOG #{{ seq.sequence }}</span>
+      }
+      <input
+        class="mono-field"
+        type="text"
+        [formField]="devlogForm.buildTag"
+        aria-label="Build tag"
+        placeholder="BUILD 0.9.5">
+      <select class="mono-field mono-field-muted field-select" aria-label="Branch" [formField]="devlogForm.branchTag">
+        <button><selectedcontent></selectedcontent></button>
+        @for (branch of branchTags; track branch) {
+          <option [value]="branch">{{ branch }}</option>
+        }
+      </select>
+      <app-game-picker
+        class="game-field field-select"
+        inputId="devlog-game"
+        ariaLabel="Game"
+        noneLabel="Pick a game"
+        [filter]="ownedGamesFilter"
+        emptyHint="No game is linked to your developer account."
+        [formField]="devlogForm.gameId" />
+    </div>
+    @if (ownedGameCount() === 0) {
+      <p class="text-muted">No game is linked to your developer account yet. Ask an admin to assign your studio's game.</p>
+    }
+
+    @if (fields().branchTag === 'TEST BRANCH') {
+      <input
+        class="sheet-field"
+        type="url"
+        aria-label="Test branch link (optional)"
+        [formField]="devlogForm.testBranchUrl"
+        placeholder="Test branch link for “Join the test branch” (optional)">
+    }
+
+    <input
+      class="sheet-headline"
+      id="devlog-title"
+      type="text"
+      aria-label="Headline"
+      [formField]="devlogForm.title"
+      placeholder="Headline — what changed this week?">
+
+    <app-rich-text-toolbar [target]="devlogBodyEl" (changed)="setBody($event)" />
+    <textarea
+      #devlogBodyEl
+      class="sheet-body-field"
+      id="devlog-body"
+      aria-label="Body"
+      [formField]="devlogForm.body"
+      placeholder="Tell people what you did and what you are still stuck on. Short is fine."></textarea>
+
+    <div>
+      <p class="section-label">Patch lines</p>
+      <div class="patch-list">
+        @for (line of patchLines(); track $index; let i = $index) {
+          <div class="patch-row">
+            <button
+              type="button"
+              class="patch-glyph"
+              [class.patch-glyph-done]="line.status !== PatchLineStatus.Investigating"
+              [attr.aria-label]="patchStatusLabel(line.status) + ' — change status'"
+              [title]="patchStatusLabel(line.status)"
+              (click)="cyclePatchStatus(i)">{{ line.status === PatchLineStatus.Investigating ? '◷' : '✓' }}</button>
+            <input
+              #patchInput
+              class="patch-input"
+              type="text"
+              [attr.aria-label]="'Patch line ' + (i + 1)"
+              [formField]="devlogForm.patchLines[i].text"
+              (keydown)="onPatchKeydown($event, i)"
+              [placeholder]="line.status === PatchLineStatus.Investigating ? 'What are you still investigating?' : 'What shipped or got fixed?'">
+          </div>
+        }
+        <div class="patch-row">
+          <span class="patch-glyph" aria-hidden="true">＋</span>
+          <button type="button" class="patch-add" (click)="addPatchLine()">Add a line — shipped, fixed or investigating</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="attach-row">
+      <button type="button" class="attach-chip" [class.active]="!!media().clip" (click)="browseClip()">▶ Attach in-engine clip</button>
+      <button type="button" class="attach-chip" [class.active]="!!media().before || !!media().after" (click)="browseBeforeAfter()">▣ Before / after</button>
+      <button type="button" class="attach-chip" (click)="openBugThread()">◷ Open a bug thread</button>
+      <input #devlogVideoInput class="visually-hidden" type="file" tabindex="-1" accept="video/mp4,video/quicktime,video/webm" (change)="onClipSelected($event)">
+      <input #devlogPhotoInput class="visually-hidden" type="file" tabindex="-1" multiple accept="image/jpeg,image/png,image/webp" (change)="onPhotosSelected($event)">
+    </div>
+
+    @if (media().clip || media().before || media().after) {
+      <div class="media-band">
+        @if (media().clip; as clip) {
+          <div class="band-clip">
+            <video [src]="clip.previewUrl" muted></video>
+            <span class="band-badge">IN ENGINE</span>
+            <button type="button" class="band-remove" aria-label="Remove in-engine clip" (click)="removeMedia('clip')">✕</button>
+          </div>
+        }
+        @if (media().before || media().after) {
+          <div class="band-pair">
+            <div class="band-shot">
+              @if (media().before; as before) {
+                <img [src]="before.previewUrl" alt="Before" />
+                <button type="button" class="band-remove" aria-label="Remove before image" (click)="removeMedia('before')">✕</button>
+              }
+              <span class="band-caption">before</span>
+            </div>
+            <div class="band-shot">
+              @if (media().after; as after) {
+                <img [src]="after.previewUrl" alt="After" />
+                <button type="button" class="band-remove" aria-label="Remove after image" (click)="removeMedia('after')">✕</button>
+              }
+              <span class="band-caption">after</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (shownError(); as error) {
+      <p class="form-error" role="alert">{{ error }}</p>
+    }
+  </div>
+
+  <div class="sheet-footer">
+    <button type="button" class="footer-btn footer-cancel" (click)="closed.emit()">Cancel</button>
+    <button type="button" class="footer-btn footer-draft" [disabled]="isSavingDraft() || isSubmitting()" (click)="submit(true)">
+      {{ isSavingDraft() ? 'Saving…' : 'Save draft' }}
+    </button>
+    <button type="button" class="footer-btn footer-primary" [disabled]="isSubmitting() || isSavingDraft()" (click)="submit(false)">
+      {{ isSubmitting() ? 'Publishing…' : 'Publish DevLog' }}
+    </button>
+  </div>
+</app-sheet-modal>

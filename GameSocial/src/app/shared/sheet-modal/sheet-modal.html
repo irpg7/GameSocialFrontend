@@ -1,5 +1,13 @@
-<div class="sheet-backdrop" (click)="closed.emit()">
-  <div class="sheet-panel" role="dialog" aria-modal="true" [attr.aria-label]="title()" (click)="$event.stopPropagation()">
+<div class="sheet-backdrop" appBackdropClose (backdropClose)="closed.emit()">
+  <div
+    class="sheet-panel"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title()"
+    appDialog
+    dialogInitialFocus="input, textarea, select, [role=tab]"
+    (dialogEscape)="closed.emit()"
+    (click)="$event.stopPropagation()">
     <div class="sheet-header">
       <div class="sheet-heading">
         <h3>{{ title() }}</h3>

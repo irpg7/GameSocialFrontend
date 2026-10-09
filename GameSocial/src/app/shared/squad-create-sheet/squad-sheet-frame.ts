@@ -1,4 +1,6 @@
-import { Component, ElementRef, afterNextRender, inject, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
+import { BackdropClose } from '../overlay/backdrop-close';
+import { DialogFocus } from '../overlay/dialog-focus';
 
 let nextFrameId = 0;
 
@@ -13,14 +15,18 @@ let nextFrameId = 0;
  */
 @Component({
   selector: 'app-squad-sheet-frame',
+  imports: [BackdropClose, DialogFocus],
   template: `
-    <div class="frame-scrim" (click)="closed.emit()">
+    <div class="frame-scrim" appBackdropClose (backdropClose)="closed.emit()">
       <div
         class="frame-panel"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="titleId"
         [style.width.px]="width()"
+        appDialog
+        [dialogInitialFocus]="initialFocus"
+        (dialogEscape)="closed.emit()"
         (click)="$event.stopPropagation()">
         <div class="frame-head">
           <ng-content select="[sheet-icon]" />
@@ -37,27 +43,14 @@ let nextFrameId = 0;
     </div>
   `,
   styleUrl: './squad-sheet-frame.scss',
-  host: {
-    '(document:keydown.escape)': 'closed.emit()',
-  },
 })
 export class SquadSheetFrame {
-  private host = inject<ElementRef<HTMLElement>>(ElementRef);
-
   title = input.required<string>();
   subtitle = input<string | undefined>(undefined);
   width = input(620);
   closed = output<void>();
 
   protected readonly titleId = `squad-sheet-title-${nextFrameId++}`;
-
-  constructor() {
-    // Move focus into the dialog so keyboard users land inside it.
-    afterNextRender(() => {
-      const first = this.host.nativeElement.querySelector<HTMLElement>(
-        '.frame-panel input, .frame-panel textarea, .frame-panel select, .frame-panel [role=tab], .frame-panel button:not(.frame-close)',
-      );
-      (first ?? this.host.nativeElement.querySelector<HTMLElement>('.frame-close'))?.focus();
-    });
-  }
+  /** Keyboard users land on the first field, else the first action, else the close button. */
+  protected readonly initialFocus = ['input, textarea, select, [role=tab]', 'button:not(.frame-close)', '.frame-close'];
 }

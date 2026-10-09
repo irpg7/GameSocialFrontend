@@ -4,7 +4,7 @@
   </aside>
 
   <main class="feed-col feed-col-center">
-    <app-post-composer [games]="games()" (posted)="onPosted($event)" />
+    <app-post-composer (posted)="onPosted($event)" />
 
     @if (!filter()) {
       @if (featured(); as hero) {

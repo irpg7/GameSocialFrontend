@@ -1,0 +1,28 @@
+<div class="more-backdrop" (click)="closed.emit()"></div>
+<div class="more-menu" role="menu" aria-label="More post types" (keydown.escape)="closed.emit()">
+  <p class="more-label">Post types</p>
+  <button type="button" role="menuitem" class="more-item" (click)="picked.emit('clip')"><span class="more-glyph">▶</span>Clip</button>
+  <button type="button" role="menuitem" class="more-item" (click)="picked.emit('screenshots')"><span class="more-glyph">▣</span>Screenshots</button>
+  <button type="button" role="menuitem" class="more-item" (click)="picked.emit('review')"><span class="more-glyph">★</span>Review</button>
+  <button type="button" role="menuitem" class="more-item" (click)="picked.emit('poll')"><span class="more-glyph">▤</span>Poll</button>
+  @if (isDevlogAllowed()) {
+    <button type="button" role="menuitem" class="more-item more-item-dev" (click)="picked.emit('devlog')"><span class="more-glyph">◆</span>DevLog</button>
+  }
+
+  <p class="more-label">Drafts</p>
+  @if (isLoading() && drafts().length === 0) {
+    <p class="more-empty">Loading…</p>
+  } @else if (loadFailed()) {
+    <p class="more-empty" role="alert">Could not load your drafts.</p>
+  } @else if (drafts().length === 0) {
+    <p class="more-empty">No drafts — “Save draft” in a sheet keeps one here.</p>
+  }
+  @for (draft of drafts(); track draft.id) {
+    <div class="draft-row">
+      <span class="draft-type">{{ draft.postType }}</span>
+      <span class="draft-title">{{ draftLabel(draft) }}</span>
+      <button type="button" class="draft-btn draft-btn-primary" [disabled]="busyId() === draft.id" (click)="publish(draft)">Publish</button>
+      <button type="button" class="draft-btn" [disabled]="busyId() === draft.id" [attr.aria-label]="'Delete draft ' + draftLabel(draft)" (click)="remove(draft)">✕</button>
+    </div>
+  }
+</div>

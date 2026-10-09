@@ -1,0 +1,303 @@
+@use '../../../styles/variables' as *;
+
+// Split from clip-stage.scss (style budget): the `full` variant's chrome.
+
+// ─── Full player (Clip Player.dc.html) ───────────────────────────────────
+:host(.variant-full) {
+  .fp-hit {
+    bottom: 96px;
+    top: 56px;
+  }
+
+  .stage-play {
+    top: 50%;
+  }
+
+  .stage-knob {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.fp-top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 26px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
+}
+
+.fp-quality {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-family: $font-family-mono;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fp-more-wrap,
+.fp-quality-wrap {
+  position: relative;
+}
+
+.fp-more-wrap {
+  margin-left: auto;
+}
+
+.fp-more {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background-color: rgba(10, 10, 12, 0.66);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(10, 10, 12, 0.92);
+  }
+}
+
+.fp-menu {
+  position: absolute;
+  z-index: 5;
+  width: 156px;
+  padding: 6px;
+  border-radius: 12px;
+  background-color: rgba(16, 16, 20, 0.97);
+  border: 1px solid $color-border-strong;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fp-menu-more {
+  top: 36px;
+  right: 0;
+  width: 190px;
+}
+
+.fp-menu-quality {
+  bottom: 44px;
+  right: -40px;
+}
+
+.fp-menu-label {
+  padding: 6px 9px 4px;
+  font-family: $font-family-mono;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.fp-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: $color-text-primary;
+  font-family: $font-family-mono;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.fp-menu-more .fp-menu-item {
+  font-family: $font-family-primary;
+}
+
+.fp-check {
+  color: $color-accent-light;
+}
+
+.fp-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 34px 16px 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85) 60%);
+
+  .stage-scrub {
+    margin-top: 0;
+  }
+}
+
+.stage-preview {
+  position: absolute;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+  visibility: hidden;
+
+  &.visible {
+    visibility: visible;
+  }
+}
+
+.stage-preview-frame {
+  display: block;
+  width: 132px;
+  height: 74px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background-color: #000;
+  object-fit: cover;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+}
+
+.stage-preview-time {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background-color: rgba(10, 10, 12, 0.94);
+  font-family: $font-family-mono;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fp-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sc-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: $color-text-primary;
+  font-family: $font-family-primary;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &.active {
+    color: $color-accent-light;
+    background-color: rgba(225, 29, 46, 0.16);
+  }
+}
+
+.sc-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.sc-text {
+  width: auto;
+  padding: 0 10px;
+  font-family: $font-family-mono;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sc-volume {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 2px;
+}
+
+.sc-volbar {
+  width: 74px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sc-voltrack {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sc-volfill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 99px;
+  background-color: #fff;
+  pointer-events: none;
+}
+
+.sc-volknob {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: #fff;
+  pointer-events: none;
+}
+
+.sc-time {
+  font-family: $font-family-mono;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 6px;
+  white-space: nowrap;
+
+  span {
+    color: $color-text-hint;
+  }
+}
+
+.sc-spacer {
+  flex: 1 1 20px;
+}

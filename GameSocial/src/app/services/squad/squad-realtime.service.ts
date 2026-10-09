@@ -1,5 +1,6 @@
 import { Service, inject, signal } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, Subject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { PresenceName, SquadMessageModel } from '../../models/squad.model';
@@ -18,6 +19,12 @@ export interface SquadPinChangedEvent {
   channelId: string;
   messageId: string;
   isPinned: boolean;
+}
+
+export interface SquadMessageRemovedEvent {
+  squadId: string;
+  channelId: string;
+  messageId: string;
 }
 
 export interface SquadTypingEvent {
@@ -62,6 +69,7 @@ export class SquadRealtimeService {
   private readonly typingSubject = new Subject<SquadTypingEvent>();
   private readonly presenceSubject = new Subject<SquadPresenceEvent>();
   private readonly removedSubject = new Subject<{ squadId: string }>();
+  private readonly messageRemovedSubject = new Subject<SquadMessageRemovedEvent>();
 
   readonly messageCreated$: Observable<SquadMessageModel> = this.messageCreatedSubject.asObservable();
   readonly reactionChanged$: Observable<SquadReactionChangedEvent> = this.reactionChangedSubject.asObservable();
@@ -71,6 +79,13 @@ export class SquadRealtimeService {
   readonly presence$: Observable<SquadPresenceEvent> = this.presenceSubject.asObservable();
   /** You were removed, banned or left from another tab — the server already dropped you from the room group. */
   readonly removedFromSquad$: Observable<{ squadId: string }> = this.removedSubject.asObservable();
+  /** A moderator removed a message — drop it from the open channel. */
+  readonly messageRemoved$: Observable<SquadMessageRemovedEvent> = this.messageRemovedSubject.asObservable();
+
+  constructor() {
+    // Logout or an account switch: the hub connection still speaks for the previous user.
+    this.authService.sessionEnded$.pipe(takeUntilDestroyed()).subscribe(() => void this.disconnect());
+  }
 
   /** Joins the squad's group (leaving any previous one). Never throws — realtime is best-effort. */
   async enter(squadId: string): Promise<void> {
@@ -92,6 +107,26 @@ export class SquadRealtimeService {
     if (squadId && this.connection?.state === HubConnectionState.Connected) {
       try {
         await this.connection.invoke('LeaveSquad', squadId);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /**
+   * Stops the hub connection and forgets it, so the next `enter()` builds a fresh one with the
+   * current user's token. Event streams stay open — subscribers simply hear nothing until then.
+   */
+  async disconnect(): Promise<void> {
+    const connection = this.connection;
+    this.connection = null;
+    this.starting = null;
+    this.currentSquadId = null;
+    this.lastTypingAt = 0;
+    this.isConnected.set(false);
+    if (connection) {
+      try {
+        await connection.stop();
       } catch {
         // ignore
       }
@@ -126,7 +161,7 @@ export class SquadRealtimeService {
 
     if (!this.connection) {
       this.connection = new HubConnectionBuilder()
-        .withUrl('/api/hubs/squads', { accessTokenFactory: () => this.authService.getToken() ?? '' })
+        .withUrl('/api/hubs/squads', { accessTokenFactory: () => this.authService.getFreshToken() })
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Warning)
         .build();
@@ -138,6 +173,9 @@ export class SquadRealtimeService {
       this.connection.on('typing', (event: SquadTypingEvent) => this.typingSubject.next(event));
       this.connection.on('presence', (event: SquadPresenceEvent) => this.presenceSubject.next(event));
       this.connection.on('removedFromSquad', (event: { squadId: string }) => this.removedSubject.next(event));
+      this.connection.on('messageRemoved', (event: SquadMessageRemovedEvent) => this.messageRemovedSubject.next(event));
+      // Site-wide ban: the server ends every session and closes this connection right after.
+      this.connection.on('sessionEnded', () => this.authService.expireSession());
 
       this.connection.onreconnecting(() => this.isConnected.set(false));
       this.connection.onreconnected(() => {
@@ -149,10 +187,21 @@ export class SquadRealtimeService {
       this.connection.onclose(() => this.isConnected.set(false));
     }
 
-    this.starting = this.connection
+    const connection = this.connection;
+    const starting = connection
       .start()
-      .then(() => this.isConnected.set(true))
-      .finally(() => (this.starting = null));
-    return this.starting;
+      .then(() => {
+        // disconnect() may have dropped this connection while it was starting.
+        if (this.connection === connection) {
+          this.isConnected.set(true);
+        }
+      })
+      .finally(() => {
+        if (this.starting === starting) {
+          this.starting = null;
+        }
+      });
+    this.starting = starting;
+    return starting;
   }
 }

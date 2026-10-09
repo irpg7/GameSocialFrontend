@@ -340,6 +340,38 @@
   }
 }
 
+// ─── Engellenen kullanıcının katlanmış mesajı / kaldırılmış paylaşım ─────────
+.folded-row {
+  flex: none;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px dashed $color-border-dashed;
+  border-radius: 12px;
+  font-size: 12px;
+  color: $color-text-tertiary;
+}
+
+.folded-show {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: $color-text-secondary;
+  font: 700 12px/16px $font-family-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-text-primary;
+  }
+}
+
+.message-unavailable {
+  font-style: italic;
+  color: $color-text-tertiary;
+}
+
 // ─── Başarı satırı (L238–242) ───────────────────────────────────────────────
 .event-row {
   flex: none;

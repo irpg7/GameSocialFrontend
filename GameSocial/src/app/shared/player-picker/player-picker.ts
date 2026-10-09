@@ -159,12 +159,13 @@ export class PlayerPicker {
 
   constructor() {
     this.followService
-      .getFollowedUsers()
+      // The first page of who you follow (A–Z); anyone beyond it is still found by the player search.
+      .getFollowedUsers({ pageSize: 100 })
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: (users) =>
+        next: (page) =>
           this.friends.set(
-            users
+            page.items
               .map((u) => ({ userId: u.userId, username: u.username, avatarUrl: u.avatarUrl, isFollowed: true }))
               .sort((a, b) => a.username.localeCompare(b.username)),
           ),

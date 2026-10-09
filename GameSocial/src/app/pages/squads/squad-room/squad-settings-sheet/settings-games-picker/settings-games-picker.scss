@@ -1,0 +1,226 @@
+@use '../../../../../../styles/variables' as *;
+@use '../settings-common' as *;
+
+:host {
+  display: block;
+}
+
+// ─── Games ────────────────────────────────────────────────────────────────
+.game-chips {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.game-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 12px;
+  border-radius: 11px;
+  background: rgba(225, 29, 46, 0.16);
+  border: 1px solid rgba(225, 29, 46, 0.5);
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.game-chip-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  line-height: 12px;
+  font-weight: 700;
+  color: $color-accent-light;
+  opacity: 0.7;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.game-add {
+  padding: 7px 12px;
+  border-radius: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px dashed $color-border-dashed;
+  color: $color-text-hint;
+  @include focus-ring;
+
+  &.open {
+    background: #22222b;
+    color: $color-text-primary;
+  }
+}
+
+.game-picker {
+  margin-top: 9px;
+  border-radius: 14px;
+  background: $color-bg-row;
+  border: 1px solid #2c2c36;
+  overflow: hidden;
+}
+
+.game-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-bottom: 1px solid $color-border;
+  color: $color-text-hint;
+  font-size: 13px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    font-size: 13px;
+    font-weight: 500;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 700;
+    color: $color-text-hint;
+    cursor: pointer;
+    @include focus-ring;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+  }
+}
+
+.game-picker-results {
+  max-height: 196px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px;
+}
+
+.game-result {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 11px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  @include focus-ring;
+
+  &:hover {
+    background: $color-bg-tertiary;
+  }
+
+  &.added {
+    cursor: default;
+
+    .game-result-name,
+    .game-result-mark {
+      color: $color-text-hint;
+    }
+  }
+}
+
+.game-result-cover {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: $color-border-strong;
+  flex: none;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.game-result-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-result-name {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: $color-text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-result-meta {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-hint;
+}
+
+.game-result-mark {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.game-picker-empty {
+  margin: 0;
+  padding: 14px 10px;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+  color: $color-text-hint;
+  text-align: center;
+}
+
+.game-suggest {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: $color-accent-light;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.game-picker-foot {
+  margin: 0;
+  padding: 9px 12px;
+  border-top: 1px solid $color-border;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: $color-text-hint;
+}

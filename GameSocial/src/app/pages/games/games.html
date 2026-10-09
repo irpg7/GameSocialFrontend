@@ -15,9 +15,13 @@
     </label>
   </div>
 
-  @if (filteredGames().length > 0) {
+  @if (isLoading()) {
+    <p class="no-results text-muted" role="status">Loading games…</p>
+  } @else if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="load()" />
+  } @else if (!isEmpty()) {
     <div class="games-grid">
-      @for (game of filteredGames(); track game.id) {
+      @for (game of games(); track game.id) {
         <div class="game-card">
           <div class="game-cover">
             <img [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
@@ -26,7 +30,7 @@
             <h3>{{ game.name }}</h3>
             <span class="game-slug">{{ game.slug }}</span>
           </div>
-          @let following = isFollowing(game);
+          @let following = !!game.isFollowed;
           <button
             type="button"
             class="btn"
@@ -38,9 +42,18 @@
         </div>
       }
     </div>
+    @if (hasMore()) {
+      <button type="button" class="btn btn-secondary load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+        {{ isLoadingMore() ? 'Loading...' : 'Load more' }}
+      </button>
+    }
+  } @else if (resultsQuery()) {
+    <div class="no-results">
+      <p class="text-muted">No games found for "<strong>{{ resultsQuery() }}</strong>"</p>
+    </div>
   } @else {
     <div class="no-results">
-      <p class="text-muted">No games found for "<strong>{{ searchQuery() }}</strong>"</p>
+      <p class="text-muted">No games in the catalogue yet.</p>
     </div>
   }
 </div>

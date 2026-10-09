@@ -1,13 +1,11 @@
 import { Component, Injector, OnDestroy, OnInit, afterNextRender, computed, inject, output, signal } from '@angular/core';
 import { FormField, form, maxLength } from '@angular/forms/signals';
-import { SelectControl } from '../select-control';
 import { Observable, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { SquadService } from '../../services/squad/squad.service';
 import { SquadHubService } from '../../services/squad/squad-hub.service';
-import { GameService } from '../../services/game/game.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { JoinPolicyName, SquadModel } from '../../models/squad.model';
-import { GameModel } from '../../models/game.model';
+import { GamePicker } from '../game-picker/game-picker';
 import { extractApiErrorMessage } from '../api-error.util';
 import { SquadSheetFrame } from './squad-sheet-frame';
 import { PlayerOption, PlayerPicker } from '../player-picker/player-picker';
@@ -55,21 +53,19 @@ interface SquadDraft {
  */
 @Component({
   selector: 'app-squad-create-sheet',
-  imports: [FormField, SelectControl, SquadSheetFrame, PlayerPicker],
+  imports: [FormField, SquadSheetFrame, PlayerPicker, GamePicker],
   templateUrl: './squad-create-sheet.html',
   styleUrl: './squad-create-sheet.scss',
 })
 export class SquadCreateSheet implements OnInit, OnDestroy {
   private squadService = inject(SquadService);
   private hubService = inject(SquadHubService);
-  private gameService = inject(GameService);
   private notificationService = inject(NotificationService);
   private injector = inject(Injector);
 
   created = output<SquadModel>();
   closed = output<void>();
 
-  protected readonly games = signal<GameModel[]>([]);
 
   /**
    * Name, purpose, main game and join policy (Signal Forms). `primaryGameId` is the select's
@@ -118,10 +114,6 @@ export class SquadCreateSheet implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.gameService.getGames().subscribe({
-      next: (games) => this.games.set(games),
-      error: () => void 0,
-    });
     this.restoreDraft();
   }
 

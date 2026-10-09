@@ -1,4 +1,6 @@
-import { Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
+import { Component, input, output } from '@angular/core';
+import { BackdropClose } from '../overlay/backdrop-close';
+import { DialogFocus } from '../overlay/dialog-focus';
 
 /**
  * Phone bottom sheet — the mobile counterpart of `sheet-modal`: a scrim plus a panel that rises from
@@ -6,20 +8,22 @@ import { Component, ElementRef, afterNextRender, input, output, viewChild } from
  * shows a side panel or a hover strip: the squad room's members sheet and message actions.
  *
  * Like `sheet-modal`, the parent owns visibility (wrap usage in an `@if`). Focus moves into the panel
- * when it opens; Escape and the scrim close it.
+ * and stays there (`appDialog`); Escape (top-most sheet only) and a click on the scrim close it.
  */
 @Component({
   selector: 'app-bottom-sheet',
+  imports: [BackdropClose, DialogFocus],
   template: `
-    <div class="bs-backdrop" (click)="closed.emit()">
+    <div class="bs-backdrop" appBackdropClose (backdropClose)="closed.emit()">
       <section
-        #panel
         class="bs-panel"
         [class.bs-tall]="tall()"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="title()"
         tabindex="-1"
+        appDialog
+        (dialogEscape)="closed.emit()"
         (click)="$event.stopPropagation()">
         <span class="bs-grab" aria-hidden="true"></span>
         @if (!hideHeader()) {
@@ -35,9 +39,6 @@ import { Component, ElementRef, afterNextRender, input, output, viewChild } from
     </div>
   `,
   styleUrl: './bottom-sheet.scss',
-  host: {
-    '(document:keydown.escape)': 'closed.emit()',
-  },
 })
 export class BottomSheet {
   title = input.required<string>();
@@ -46,10 +47,4 @@ export class BottomSheet {
   /** Action sheets show their own preview instead of a title row; the title stays as the dialog's label. */
   hideHeader = input(false);
   closed = output<void>();
-
-  private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
-
-  constructor() {
-    afterNextRender(() => this.panel().nativeElement.focus());
-  }
 }

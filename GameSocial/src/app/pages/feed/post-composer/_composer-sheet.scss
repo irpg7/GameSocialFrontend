@@ -1,0 +1,90 @@
+@use '../../../../styles/variables' as *;
+@use 'composer-common' as common;
+
+// Chrome shared by the Poll and DevLog sheets (08-sheets L145-242).
+
+.sheet-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-error {
+  @include common.form-error;
+  margin: 0;
+}
+
+input.sheet-headline {
+  @include common.sheet-input;
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 12px;
+  font: 800 16px/44px $font-family-primary;
+}
+
+input.sheet-field,
+select.sheet-field {
+  @include common.sheet-input;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  font: 600 13px/38px $font-family-primary;
+}
+
+.section-label {
+  margin: 0 0 8px;
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+// Footer: Cancel (outlined) · Save draft (pushed right) · primary.
+.sheet-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.footer-btn {
+  padding: 11px 16px;
+  border-radius: 13px;
+  font: 700 13px/14px $font-family-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.footer-cancel {
+  background: none;
+  border: 1px solid $color-border-strong;
+  color: $color-text-secondary;
+}
+
+.footer-draft {
+  margin-left: auto;
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
+  color: $color-text-primary;
+}
+
+.footer-primary {
+  padding: 11px 20px;
+  background: $color-accent-primary;
+  border: 1px solid $color-accent-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-secondary;
+  }
+}

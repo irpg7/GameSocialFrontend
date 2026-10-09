@@ -1,0 +1,66 @@
+<div
+  class="composer-panel"
+  [class.drag-over]="isDragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="isDragging.set(false)"
+  (drop)="onDrop($event)">
+  <div class="screenshot-grid">
+    @for (entry of files(); track entry.previewUrl; let i = $index) {
+      <div class="screenshot-thumb">
+        <img [src]="entry.previewUrl" alt="Screenshot preview" />
+        <button type="button" class="screenshot-remove" aria-label="Remove photo" (click)="remove(i)">&times;</button>
+      </div>
+    }
+    @if (files().length < maxScreenshots) {
+      <button
+        type="button"
+        class="screenshot-add"
+        [attr.aria-label]="'Add screenshots (' + files().length + '/' + maxScreenshots + ')'"
+        (click)="browse()">＋</button>
+    }
+  </div>
+  <input
+    #screenshotsInput
+    class="visually-hidden"
+    id="composer-ss-files"
+    type="file"
+    tabindex="-1"
+    accept="image/jpeg,image/png,image/webp"
+    multiple
+    [disabled]="files().length >= maxScreenshots"
+    (change)="onFilesSelected($event)">
+
+  <input
+    class="field-box"
+    id="composer-ss-caption"
+    type="text"
+    [formField]="fields().caption"
+    placeholder="Caption — where is this, any filters?"
+    aria-label="Caption">
+
+  <div class="tag-row" role="group" aria-label="Tags">
+    @for (tag of presetTags; track tag) {
+      <button type="button" class="tag-chip" [class.active]="hasTag(tag)" [attr.aria-pressed]="hasTag(tag)" (click)="toggleTag(tag)">{{ tag }}</button>
+    }
+    @for (tag of customTags(); track tag) {
+      <button type="button" class="tag-chip active" [attr.aria-label]="'Remove tag ' + tag" (click)="toggleTag(tag)">{{ tag }} ✕</button>
+    }
+    @if (isAddingTag()) {
+      <input
+        #tagInput
+        class="tag-chip-input"
+        type="text"
+        aria-label="New tag"
+        placeholder="tag"
+        [formField]="tagForm.newTag"
+        (keydown.enter)="$event.preventDefault(); commitTag()"
+        (keydown.escape)="cancelTag()"
+        (blur)="commitTag()">
+    } @else {
+      <button type="button" class="tag-chip tag-chip-add" (click)="startAddingTag()">＋ tag</button>
+    }
+    @if (preselectedSquadId()) {
+      <span class="tag-chip squad-locked-chip">{{ lockedSquadName() ?? 'This squad' }}</span>
+    }
+  </div>
+</div>

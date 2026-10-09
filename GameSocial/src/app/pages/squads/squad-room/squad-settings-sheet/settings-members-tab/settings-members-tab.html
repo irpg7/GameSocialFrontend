@@ -1,0 +1,107 @@
+<div class="settings-panel settings-members" role="tabpanel">
+  @if (canManage() && joinRequests().length > 0) {
+    <div class="settings-label">Onay bekleyenler</div>
+    @for (request of joinRequests(); track request.userId) {
+      <div class="member-row">
+        <span class="member-avatar" aria-hidden="true">
+          <img [appImg]="request.avatarUrl" fallback="avatar" alt="" />
+        </span>
+        <span class="member-identity">
+          <span class="member-name">{{ request.username }}</span>
+          <span class="member-meta">Beklemede</span>
+        </span>
+        <button type="button" class="request-approve" [disabled]="busyUserId() !== null" (click)="decideRequest(request, true)">Onayla</button>
+        <button type="button" class="request-decline" [disabled]="busyUserId() !== null" (click)="decideRequest(request, false)">Reddet</button>
+        <button type="button" class="request-decline" [disabled]="busyUserId() !== null" [attr.aria-label]="request.username + ' kullanıcısını yasakla'" (click)="banUser(request.userId, request.username)">Yasakla</button>
+      </div>
+    }
+    <div class="settings-label settings-label-gap">Üyeler</div>
+  }
+
+  @for (member of activeMembers(); track member.userId) {
+    <div class="member-row">
+      <span class="member-avatar" aria-hidden="true">
+        <img [appImg]="member.avatarUrl" fallback="avatar" alt="" />
+      </span>
+      <span class="member-identity">
+        <span class="member-name">{{ member.username }}{{ isSelf(member.userId) ? ' (sen)' : '' }}</span>
+        <span class="member-meta">{{ memberMeta(member) }}</span>
+      </span>
+
+      @if (canCycleRole(member)) {
+        <button
+          type="button"
+          class="member-role"
+          [class.top]="member.role !== 'Member'"
+          [disabled]="busyUserId() !== null"
+          [attr.aria-label]="member.username + ' rolü: ' + roleLabels[member.role] + ' — değiştir'"
+          (click)="cycleRole(member)">{{ roleLabels[member.role] }}</button>
+      } @else {
+        <span class="member-role member-role-static" [class.top]="member.role !== 'Member'">{{ roleLabels[member.role] }}</span>
+      }
+
+      @if (hasMenu(member)) {
+        <span class="member-menu-wrap">
+          <button
+            type="button"
+            class="member-more"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="menuUserId() === member.userId"
+            [attr.aria-label]="member.username + ' için seçenekler'"
+            (click)="toggleMenu(member.userId)">···</button>
+          @if (menuUserId() === member.userId) {
+            <span class="member-menu" role="menu">
+              @if (isFounder()) {
+                <button type="button" role="menuitem" (click)="makeFounder(member)">Kurucu yap</button>
+              }
+              @if (canRemove(member)) {
+                <button type="button" role="menuitem" class="danger" (click)="removeMember(member)">Squad’dan çıkar</button>
+                <button type="button" role="menuitem" class="danger" (click)="banUser(member.userId, member.username)">Yasakla</button>
+              }
+            </span>
+          }
+        </span>
+      } @else {
+        <span class="member-more member-more-placeholder" aria-hidden="true"></span>
+      }
+    </div>
+  }
+
+  @if (canManage() && bans().length > 0) {
+    <div class="settings-label settings-label-gap">Yasaklılar</div>
+    @for (ban of bans(); track ban.userId) {
+      <div class="member-row">
+        <span class="member-avatar" aria-hidden="true">
+          <img [appImg]="ban.avatarUrl" fallback="avatar" alt="" />
+        </span>
+        <span class="member-identity">
+          <span class="member-name">{{ ban.username }}</span>
+          <span class="member-meta">Yasaklı</span>
+        </span>
+        <button type="button" class="request-approve" [disabled]="busyUserId() !== null" (click)="unban(ban)">Yasağı kaldır</button>
+      </div>
+    }
+  }
+
+  @if (canManage()) {
+    @if (isInviteOpen()) {
+      <div class="invite-row">
+        <label class="visually-hidden" for="settings-invite">Kullanıcı adı</label>
+        <input
+          id="settings-invite"
+          type="text"
+          [formField]="inviteField"
+          (keydown.enter)="$event.preventDefault(); invite()"
+          placeholder="Kullanıcı adı ile davet et" />
+        <button type="button" class="invite-send" [disabled]="isInviting()" (click)="invite()">
+          {{ isInviting() ? 'Gönderiliyor…' : 'Davet et' }}
+        </button>
+      </div>
+      @if (inviteError(); as error) {
+        <p class="settings-error" role="alert">{{ error }}</p>
+      }
+    } @else {
+      <button type="button" class="invite-dashed" (click)="openInvite()">＋ Oyuncu davet et</button>
+    }
+  }
+</div>

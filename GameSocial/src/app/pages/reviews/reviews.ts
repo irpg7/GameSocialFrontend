@@ -2,18 +2,18 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
 import { PostListFilters, PostService } from '../../services/post/post.service';
-import { GameService } from '../../services/game/game.service';
 import { ReviewService } from '../../services/review/review.service';
 import { FollowService } from '../../services/follow/follow.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { XpAwardsService } from '../../services/config/xp-awards.service';
 import { PostModel } from '../../models/post.model';
-import { GAME_GENRES, GameModel } from '../../models/game.model';
+import { GAME_GENRES } from '../../models/game.model';
 import { ReviewSummaryModel, ReviewWaitingGameModel, TrustedReviewerModel } from '../../models/review.model';
 import { ReviewSheet } from '../../shared/review-sheet/review-sheet';
 import { formatTimeAgo } from '../../shared/clip-format';
 import { ReviewCard } from './review-card/review-card';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 const PAGE_SIZE = 10;
 const LONG_PLAYTIME_HOURS = 20;
@@ -54,14 +54,12 @@ const BUCKET_COLORS: Record<string, string> = {
 })
 export class Reviews implements OnInit {
   private postService = inject(PostService);
-  private gameService = inject(GameService);
   private reviewService = inject(ReviewService);
   private followService = inject(FollowService);
   private notificationService = inject(NotificationService);
   private xpAwards = inject(XpAwardsService);
   private route = inject(ActivatedRoute);
 
-  protected readonly games = signal<GameModel[]>([]);
   protected readonly posts = signal<PostModel[]>([]);
   protected readonly page = signal(1);
   protected readonly hasMore = signal(false);
@@ -109,11 +107,6 @@ export class Reviews implements OnInit {
     this.loadPosts(1);
     this.loadSummary();
     this.loadWaiting();
-
-    this.gameService.getGames().subscribe({
-      next: (games) => this.games.set(games),
-      error: () => void 0,
-    });
 
     this.reviewService.getTrustedReviewers(1, 3).subscribe({
       next: (result) => this.trustedReviewers.set(result.items),
@@ -165,7 +158,7 @@ export class Reviews implements OnInit {
           list.map((r) => (r.userId === reviewer.userId ? { ...r, isFollowedByCurrentUser: result.following } : r)),
         );
       },
-      error: () => this.notificationService.error('Failed to update follow status.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update follow status.')),
     });
   }
 
@@ -242,7 +235,7 @@ export class Reviews implements OnInit {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: () => this.notificationService.error('Failed to load reviews.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load reviews.')),
       });
   }
 }

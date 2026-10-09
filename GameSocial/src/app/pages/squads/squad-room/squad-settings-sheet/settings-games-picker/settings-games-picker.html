@@ -1,0 +1,66 @@
+<div class="settings-label-row">
+  <span class="settings-label settings-label-inline" id="settings-games-label">Ana oyunlar</span>
+  <span class="settings-label-hint">en fazla {{ maxGames }} oyun</span>
+  <span class="settings-count">{{ games().length }}/{{ maxGames }}</span>
+</div>
+<div class="game-chips" role="group" aria-labelledby="settings-games-label">
+  @for (game of games(); track game.id) {
+    <span class="game-chip">
+      {{ game.name }}
+      @if (canManage()) {
+        <button type="button" class="game-chip-remove" [attr.aria-label]="game.name + ' oyununu kaldır'" (click)="remove(game.id)">✕</button>
+      }
+    </span>
+  }
+  @if (canManage() && canAdd()) {
+    <button
+      type="button"
+      class="game-add"
+      [class.open]="isOpen()"
+      [attr.aria-expanded]="isOpen()"
+      (click)="toggle()">＋ Oyun ekle</button>
+  }
+</div>
+
+@if (isOpen()) {
+  <div class="game-picker">
+    <div class="game-picker-search">
+      <span aria-hidden="true">⌕</span>
+      <label class="visually-hidden" for="settings-game-search">Kütüphanede ara</label>
+      <input
+        id="settings-game-search"
+        type="text"
+        [formField]="queryField"
+        [placeholder]="'Kütüphanede ara — ' + total() + ' oyun'" />
+      <button type="button" aria-label="Oyun seçiciyi kapat" (click)="toggle()">✕</button>
+    </div>
+
+    <div class="game-picker-results" [attr.aria-busy]="isLoading()">
+      @for (option of options(); track option.id) {
+        <button
+          type="button"
+          class="game-result"
+          [class.added]="isSelected(option.id)"
+          [attr.aria-disabled]="isSelected(option.id) || !canAdd()"
+          (click)="add(option)">
+          <span class="game-result-cover">
+            <img [appImg]="option.coverImageUrl" fallback="game" alt="" />
+          </span>
+          <span class="game-result-body">
+            <span class="game-result-name">{{ option.name }}</span>
+            <span class="game-result-meta">{{ meta(option) }}</span>
+          </span>
+          <span class="game-result-mark">{{ isSelected(option.id) ? 'eklendi' : '＋' }}</span>
+        </button>
+      } @empty {
+        @if (!isLoading()) {
+          <p class="game-picker-empty">
+            Eşleşen oyun yok — <button type="button" class="game-suggest" (click)="suggest()">yeni oyun öner</button>
+          </p>
+        }
+      }
+    </div>
+
+    <p class="game-picker-foot">Kütüphanenden oynadıkların üstte listelenir</p>
+  </div>
+}

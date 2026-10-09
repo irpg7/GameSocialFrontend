@@ -236,8 +236,33 @@ ul {
   padding: 4px 10px;
   margin: 0;
 
-  a {
+  a,
+  .follow-retry {
     color: $color-accent-light;
+  }
+
+  .follow-retry {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+
+.follow-more {
+  margin: 6px 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 600 12px/16px $font-family-primary;
+  color: $color-text-tertiary;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover:not(:disabled) {
+    color: $color-text-primary;
   }
 }
 

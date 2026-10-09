@@ -31,3 +31,10 @@ export interface FollowedUserModel {
 export interface FollowedGameModel extends GameModel {
   newPostCount: number;
 }
+
+/** Query for GET /api/games/followed and /api/users/followed (paged, max 100 per page). */
+export interface FollowedListQuery {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}

@@ -2,10 +2,10 @@
   <section class="side-follow" aria-label="What you follow">
     <div class="follow-tabs" role="tablist">
       <button type="button" role="tab" class="follow-tab" [class.active]="activeTab() === 'games'" [attr.aria-selected]="activeTab() === 'games'" (click)="selectTab('games')">
-        Games <span class="follow-tab-count">{{ followedGames().length }}</span>
+        Games <span class="follow-tab-count">{{ gamesTotal() }}</span>
       </button>
       <button type="button" role="tab" class="follow-tab" [class.active]="activeTab() === 'people'" [attr.aria-selected]="activeTab() === 'people'" (click)="selectTab('people')">
-        People <span class="follow-tab-count">{{ followedUsers().length }}</span>
+        People <span class="follow-tab-count">{{ peopleTotal() }}</span>
       </button>
     </div>
 
@@ -20,7 +20,9 @@
     </label>
 
     @if (activeTab() === 'games') {
-      @if (filteredGames().length > 0) {
+      @if (gamesFailed()) {
+        <p class="follow-empty" role="alert">Could not load your games. <button type="button" class="follow-retry" (click)="loadGames()">Try again</button></p>
+      } @else if (filteredGames().length > 0) {
         <ul class="follow-list">
           @for (game of filteredGames(); track game.id) {
             <li>
@@ -60,7 +62,9 @@
         <p class="follow-empty"><a routerLink="/games">Browse all games</a></p>
       }
     } @else {
-      @if (filteredPeople().length > 0) {
+      @if (peopleFailed()) {
+        <p class="follow-empty" role="alert">Could not load the people you follow. <button type="button" class="follow-retry" (click)="loadPeople()">Try again</button></p>
+      } @else if (filteredPeople().length > 0) {
         <ul class="follow-list">
           @for (person of filteredPeople(); track person.userId) {
             <li>
@@ -82,10 +86,18 @@
         <p class="follow-empty">{{ followedUsers().length ? 'No one matches.' : 'You aren\'t following anyone yet.' }}</p>
       }
     }
+    @if (canShowMore()) {
+      <button type="button" class="follow-more" [disabled]="isLoadingMoreFollows()" (click)="showMore()">
+        {{ isLoadingMoreFollows() ? 'Loading...' : 'Show more' }}
+      </button>
+    }
   </section>
 
   <section aria-labelledby="side-squads-label">
     <div class="side-label" id="side-squads-label">Squads</div>
+    @if (squadsFailed()) {
+      <p class="follow-empty" role="alert">Could not load your squads. <button type="button" class="follow-retry" (click)="loadSquads()">Try again</button></p>
+    }
     <ul class="squads-list">
       @for (squad of mySquads(); track squad.id) {
         <li>

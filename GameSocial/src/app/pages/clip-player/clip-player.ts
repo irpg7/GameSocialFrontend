@@ -16,6 +16,7 @@ import { ClipAutoplayService } from '../../shared/clip-autoplay.service';
 import { clipVideo, formatAgoLong, formatClock, formatCount, formatViews } from '../../shared/clip-format';
 import { ClipRailComments } from '../clips/clip-rail-comments/clip-rail-comments';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 type QueueSource = 'hot' | 'following' | 'new';
 
@@ -259,7 +260,7 @@ export class ClipPlayer implements OnInit {
           }
           this.following.set(result.following);
         },
-        error: () => this.notificationService.error('Takip güncellenemedi.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Takip güncellenemedi.')),
       });
   }
 
@@ -277,7 +278,7 @@ export class ClipPlayer implements OnInit {
           this.liked.set(result.liked);
           this.likeCount.set(result.likeCount);
         },
-        error: () => this.notificationService.error('Failed to update like. Please try again.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update like. Please try again.')),
       });
   }
 
@@ -295,7 +296,7 @@ export class ClipPlayer implements OnInit {
           this.saved.set(result.saved);
           this.notificationService.success(result.saved ? 'Sonra izle listesine eklendi.' : 'Sonra izle listesinden çıkarıldı.');
         },
-        error: () => this.notificationService.error('Kaydetme başarısız oldu.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Kaydetme başarısız oldu.')),
       });
   }
 

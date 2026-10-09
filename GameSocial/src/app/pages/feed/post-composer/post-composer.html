@@ -40,32 +40,12 @@
           (click)="toggleMoreMenu()">···</button>
 
         @if (isMoreMenuOpen()) {
-          <div class="more-backdrop" (click)="closeMoreMenu()"></div>
-          <div class="more-menu" role="menu" aria-label="More post types" (keydown.escape)="closeMoreMenu()">
-            <p class="more-label">Post types</p>
-            <button type="button" role="menuitem" class="more-item" (click)="selectTab('clip')"><span class="more-glyph">▶</span>Clip</button>
-            <button type="button" role="menuitem" class="more-item" (click)="selectTab('screenshots')"><span class="more-glyph">▣</span>Screenshots</button>
-            <button type="button" role="menuitem" class="more-item" (click)="openReviewSheet()"><span class="more-glyph">★</span>Review</button>
-            <button type="button" role="menuitem" class="more-item" (click)="openSheetFor('poll')"><span class="more-glyph">▤</span>Poll</button>
-            @if (isDevlogAllowed()) {
-              <button type="button" role="menuitem" class="more-item more-item-dev" (click)="openSheetFor('devlog')"><span class="more-glyph">◆</span>DevLog</button>
-            }
-
-            <p class="more-label">Drafts</p>
-            @if (isLoadingDrafts() && drafts().length === 0) {
-              <p class="more-empty">Loading…</p>
-            } @else if (drafts().length === 0) {
-              <p class="more-empty">No drafts — “Save draft” in a sheet keeps one here.</p>
-            }
-            @for (draft of drafts(); track draft.id) {
-              <div class="draft-row">
-                <span class="draft-type">{{ draft.postType }}</span>
-                <span class="draft-title">{{ draftLabel(draft) }}</span>
-                <button type="button" class="draft-btn draft-btn-primary" [disabled]="draftBusyId() === draft.id" (click)="publishDraft(draft)">Publish</button>
-                <button type="button" class="draft-btn" [disabled]="draftBusyId() === draft.id" [attr.aria-label]="'Delete draft ' + draftLabel(draft)" (click)="deleteDraft(draft)">✕</button>
-              </div>
-            }
-          </div>
+          <app-composer-more-menu
+            [isDevlogAllowed]="isDevlogAllowed()"
+            (picked)="onMenuPick($event)"
+            (posted)="posted.emit($event)"
+            (problem)="showProblem($event)"
+            (closed)="isMoreMenuOpen.set(false)" />
         }
       </div>
 
@@ -76,151 +56,21 @@
   </div>
 
   @if (selectedTab() === 'clip') {
-    <div class="composer-panel">
-      <div class="panel-row">
-        <div
-          class="dropzone"
-          [class.drag-over]="isDraggingClip()"
-          [class.has-file]="!!previewUrl()"
-          role="button"
-          tabindex="0"
-          aria-label="Drop your clip or browse for a video file"
-          (click)="triggerClipBrowse()"
-          (keydown.enter)="triggerClipBrowse()"
-          (keydown.space)="$event.preventDefault(); triggerClipBrowse()"
-          (dragover)="onDragOverClip($event)"
-          (dragleave)="onDragLeaveClip()"
-          (drop)="onDropClip($event)">
-          @if (previewUrl(); as preview) {
-            <video class="dropzone-preview" [src]="preview" muted></video>
-            <button type="button" class="dropzone-remove" aria-label="Remove video" (click)="clearFile($event)">&times;</button>
-          } @else {
-            <span class="dropzone-label">Drop your clip or browse</span>
-            <span class="dropzone-hint">MP4 · up to 60s · auto-trims</span>
-          }
-          <input
-            #fileInput
-            class="visually-hidden"
-            id="composer-file"
-            type="file"
-            tabindex="-1"
-            accept="video/mp4,video/quicktime,video/webm"
-            (click)="$event.stopPropagation()"
-            (change)="onFileSelected($event)">
-        </div>
-
-        <div class="panel-fields">
-          <input
-            class="field-box"
-            id="composer-caption"
-            type="text"
-            [formField]="composerForm.caption"
-            placeholder="Title — what happens in it?"
-            aria-label="Title">
-
-          <div class="field-row">
-            <select class="field-box field-select" id="composer-game" aria-label="Game" [formField]="composerForm.gameId">
-              <button><selectedcontent></selectedcontent></button>
-              <option value="">Pick a game</option>
-              @for (game of games(); track game.id) {
-                <option [value]="game.id">{{ game.name }}</option>
-              }
-            </select>
-
-            @if (preselectedSquadId()) {
-              <span class="field-box squad-locked">{{ lockedSquadName() ?? 'This squad' }}</span>
-            } @else {
-              <select
-                class="field-box field-select"
-                [class.is-placeholder]="squadId() === null"
-                id="composer-squad"
-                aria-label="Tag a squad (optional)"
-                [formField]="composerForm.squadId">
-                <button><selectedcontent></selectedcontent></button>
-                <option value="">＋ Tag squad</option>
-                @for (squad of mySquads(); track squad.id) {
-                  <option [value]="squad.id">{{ squad.name }}</option>
-                }
-              </select>
-            }
-          </div>
-        </div>
-      </div>
-
-      <p class="xp-hint">
-        <span>Posting a clip is worth</span>
-        <span class="xp-value">+{{ clipXp() }} XP</span>
-      </p>
-    </div>
+    <app-composer-clip-panel
+      [fields]="sharedForm"
+      [mySquads]="mySquads()"
+      [preselectedSquadId]="preselectedSquadId()"
+      [lockedSquadName]="lockedSquadName()"
+      [(clip)]="clip" />
   }
 
   @if (selectedTab() === 'screenshots') {
-    <div
-      class="composer-panel"
-      [class.drag-over]="isDraggingScreenshots()"
-      (dragover)="onDragOverScreenshots($event)"
-      (dragleave)="onDragLeaveScreenshots()"
-      (drop)="onDropScreenshots($event)">
-      <div class="screenshot-grid">
-        @for (entry of screenshotFiles(); track entry.previewUrl; let i = $index) {
-          <div class="screenshot-thumb">
-            <img [src]="entry.previewUrl" alt="Screenshot preview" />
-            <button type="button" class="screenshot-remove" aria-label="Remove photo" (click)="removeScreenshot(i)">&times;</button>
-          </div>
-        }
-        @if (screenshotFiles().length < maxScreenshots) {
-          <button
-            type="button"
-            class="screenshot-add"
-            [attr.aria-label]="'Add screenshots (' + screenshotFiles().length + '/' + maxScreenshots + ')'"
-            (click)="triggerScreenshotBrowse()">＋</button>
-        }
-      </div>
-      <input
-        #screenshotsInput
-        class="visually-hidden"
-        id="composer-ss-files"
-        type="file"
-        tabindex="-1"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        [disabled]="screenshotFiles().length >= maxScreenshots"
-        (change)="onScreenshotFilesSelected($event)">
-
-      <input
-        class="field-box"
-        id="composer-ss-caption"
-        type="text"
-        [formField]="composerForm.caption"
-        placeholder="Caption — where is this, any filters?"
-        aria-label="Caption">
-
-      <div class="tag-row" role="group" aria-label="Tags">
-        @for (tag of presetScreenshotTags; track tag) {
-          <button type="button" class="tag-chip" [class.active]="hasTag(tag)" [attr.aria-pressed]="hasTag(tag)" (click)="toggleTag(tag)">{{ tag }}</button>
-        }
-        @for (tag of customScreenshotTags(); track tag) {
-          <button type="button" class="tag-chip active" [attr.aria-label]="'Remove tag ' + tag" (click)="toggleTag(tag)">{{ tag }} ✕</button>
-        }
-        @if (isAddingTag()) {
-          <input
-            #tagInput
-            class="tag-chip-input"
-            type="text"
-            aria-label="New tag"
-            placeholder="tag"
-            [formField]="composerForm.newTag"
-            (keydown.enter)="$event.preventDefault(); commitTag()"
-            (keydown.escape)="cancelTag()"
-            (blur)="commitTag()">
-        } @else {
-          <button type="button" class="tag-chip tag-chip-add" (click)="startAddingTag()">＋ tag</button>
-        }
-        @if (preselectedSquadId()) {
-          <span class="tag-chip squad-locked-chip">{{ lockedSquadName() ?? 'This squad' }}</span>
-        }
-      </div>
-    </div>
+    <app-composer-screenshots-panel
+      [fields]="sharedForm"
+      [preselectedSquadId]="preselectedSquadId()"
+      [lockedSquadName]="lockedSquadName()"
+      [(state)]="screenshots"
+      (problem)="showProblem($event)" />
   }
 
   @if (errorMessage() && openSheet() === null) {
@@ -232,263 +82,26 @@
 </div>
 
 @if (isReviewSheetOpen()) {
-  <app-review-sheet [games]="games()" (closed)="isReviewSheetOpen.set(false)" (posted)="onReviewPosted($event)" />
+  <app-review-sheet (closed)="isReviewSheetOpen.set(false)" (posted)="onReviewPosted($event)" />
 }
 
 @if (openSheet() === 'poll') {
-  <app-sheet-modal
-    title="New poll"
-    subtitle="Two to six options, and a deadline people can see"
-    (closed)="closeSheet()">
-    <div class="sheet-stack">
-      <input
-        class="sheet-headline"
-        id="poll-question"
-        type="text"
-        aria-label="Question"
-        [formField]="composerForm.pollQuestion"
-        placeholder="Ask the feed something…">
-
-      <div class="option-list">
-        @for (option of composerForm.pollOptions; track $index; let i = $index) {
-          <div class="option-row">
-            <span class="option-index" aria-hidden="true">{{ i + 1 }}</span>
-            <input
-              #pollOptionInput
-              class="option-input"
-              type="text"
-              [attr.aria-label]="'Option ' + (i + 1)"
-              [formField]="option"
-              [placeholder]="'Option ' + (i + 1)">
-            <button type="button" class="option-remove" [attr.aria-label]="'Remove option ' + (i + 1)" (click)="removePollOption(i)">✕</button>
-          </div>
-        }
-        @if (pollOptions().length < maxPollOptions) {
-          <div class="option-row">
-            <span class="option-index" aria-hidden="true">{{ pollOptions().length + 1 }}</span>
-            <input
-              class="option-input option-input-ghost"
-              type="text"
-              aria-label="Add an option"
-              [attr.maxlength]="maxPollOptionLength"
-              placeholder="Add an option"
-              (input)="onGhostOptionInput($event)">
-          </div>
-          <button type="button" class="dashed-add" (click)="addPollOption()">＋ Add option (up to {{ maxPollOptions }})</button>
-        }
-      </div>
-
-      <div>
-        <p class="section-label" id="poll-duration-label">Open for</p>
-        <div class="duration-row" role="radiogroup" aria-labelledby="poll-duration-label">
-          @for (d of pollDurations; track d.key) {
-            <button
-              type="button"
-              role="radio"
-              class="duration-chip"
-              [class.active]="pollDuration() === d.key"
-              [attr.aria-checked]="pollDuration() === d.key"
-              (click)="pollDuration.set(d.key)">{{ d.label }}</button>
-          }
-        </div>
-      </div>
-
-      <div class="split-row">
-        <select class="sheet-field field-select" id="poll-game" aria-label="Game (optional)" [formField]="composerForm.pollGameId">
-          <button><selectedcontent></selectedcontent></button>
-          <option value="">Any game</option>
-          @for (game of games(); track game.id) {
-            <option [value]="game.id">{{ game.name }}</option>
-          }
-        </select>
-
-        <div class="switch-box">
-          <span class="switch-label" id="poll-hide-label">Hide results until you vote</span>
-          <button
-            type="button"
-            role="switch"
-            class="switch"
-            aria-labelledby="poll-hide-label"
-            [class.on]="pollHideResults()"
-            [attr.aria-checked]="pollHideResults()"
-            (click)="pollHideResults.set(!pollHideResults())"><span class="switch-knob"></span></button>
-        </div>
-      </div>
-
-      @if (errorMessage()) {
-        <p class="form-error" role="alert">{{ errorMessage() }}</p>
-      }
-    </div>
-
-    <div class="sheet-footer">
-      <button type="button" class="footer-btn footer-cancel" (click)="closeSheet()">Cancel</button>
-      <button type="button" class="footer-btn footer-draft" [disabled]="isSavingDraft() || isSubmitting()" (click)="saveDraft()">
-        {{ isSavingDraft() ? 'Saving…' : 'Save draft' }}
-      </button>
-      <button type="button" class="footer-btn footer-primary" [disabled]="isSubmitting() || isSavingDraft()" (click)="submit()">
-        {{ isSubmitting() ? 'Posting…' : 'Post poll' }}
-      </button>
-    </div>
-  </app-sheet-modal>
+  <app-poll-sheet
+    [isSubmitting]="isSubmitting()"
+    [isSavingDraft]="isSavingDraft()"
+    [errorMessage]="errorMessage()"
+    [(state)]="poll"
+    (send)="send($event)"
+    (closed)="closeSheet()" />
 }
 
 @if (openSheet() === 'devlog') {
-  <app-sheet-modal
-    title="New DevLog"
-    subtitle="Goes to everyone following the game, not just your followers"
-    (closed)="closeSheet()">
-    <div class="sheet-stack">
-      <div class="identity-card">
-        <img class="identity-avatar" [appImg]="devlogAvatarUrl()" fallback="avatar" alt="" />
-        <div class="identity-text">
-          <div class="identity-name-row">
-            <span class="identity-name">{{ devlogStudioName() }}</span>
-            <span class="dev-badge">◆ DEVELOPER</span>
-          </div>
-          <div class="identity-meta">
-            @if (devlogGameName(); as gameName) {
-              Posting as the {{ gameName }} team · {{ devlogFollowerLabel() }} followers will be notified
-            } @else {
-              Pick a game — everyone following it sees this DevLog
-            }
-          </div>
-        </div>
-      </div>
-
-      <div class="devlog-tag-row">
-        @if (devlogSequence(); as seq) {
-          <span class="devlog-number">DEVLOG #{{ seq.sequence }}</span>
-        }
-        <input
-          class="mono-field"
-          type="text"
-          [formField]="composerForm.buildTag"
-          aria-label="Build tag"
-          placeholder="BUILD 0.9.5">
-        <select class="mono-field mono-field-muted field-select" aria-label="Branch" [formField]="composerForm.branchTag">
-          <button><selectedcontent></selectedcontent></button>
-          @for (branch of branchTags; track branch) {
-            <option [value]="branch">{{ branch }}</option>
-          }
-        </select>
-        <select class="game-field field-select" id="devlog-game" aria-label="Game" [formField]="composerForm.devlogGameId">
-          <button><selectedcontent></selectedcontent></button>
-          <option value="">Pick a game</option>
-          @for (game of devlogGames(); track game.id) {
-            <option [value]="game.id">{{ game.name }}</option>
-          }
-        </select>
-      </div>
-      @if (devlogGames().length === 0) {
-        <p class="text-muted">No game is linked to your developer account yet. Ask an admin to assign your studio's game.</p>
-      }
-
-      @if (branchTag() === 'TEST BRANCH') {
-        <input
-          class="sheet-field"
-          type="url"
-          aria-label="Test branch link (optional)"
-          [formField]="composerForm.testBranchUrl"
-          placeholder="Test branch link for “Join the test branch” (optional)">
-      }
-
-      <input
-        class="sheet-headline"
-        id="devlog-title"
-        type="text"
-        aria-label="Headline"
-        [formField]="composerForm.devlogTitle"
-        placeholder="Headline — what changed this week?">
-
-      <app-rich-text-toolbar [target]="devlogBodyEl" (changed)="setDevlogBody($event)" />
-      <textarea
-        #devlogBodyEl
-        class="sheet-body-field"
-        id="devlog-body"
-        aria-label="Body"
-        [formField]="composerForm.devlogBody"
-        placeholder="Tell people what you did and what you are still stuck on. Short is fine."></textarea>
-
-      <div>
-        <p class="section-label">Patch lines</p>
-        <div class="patch-list">
-          @for (line of patchLines(); track $index; let i = $index) {
-            <div class="patch-row">
-              <button
-                type="button"
-                class="patch-glyph"
-                [class.patch-glyph-done]="line.status !== PatchLineStatus.Investigating"
-                [attr.aria-label]="patchStatusLabel(line.status) + ' — change status'"
-                [title]="patchStatusLabel(line.status)"
-                (click)="cyclePatchStatus(i)">{{ line.status === PatchLineStatus.Investigating ? '◷' : '✓' }}</button>
-              <input
-                #patchInput
-                class="patch-input"
-                type="text"
-                [attr.aria-label]="'Patch line ' + (i + 1)"
-                [formField]="composerForm.patchLines[i].text"
-                (keydown)="onPatchKeydown($event, i)"
-                [placeholder]="line.status === PatchLineStatus.Investigating ? 'What are you still investigating?' : 'What shipped or got fixed?'">
-            </div>
-          }
-          <div class="patch-row">
-            <span class="patch-glyph" aria-hidden="true">＋</span>
-            <button type="button" class="patch-add" (click)="addPatchLine()">Add a line — shipped, fixed or investigating</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="attach-row">
-        <button type="button" class="attach-chip" [class.active]="!!devlogClip()" (click)="triggerDevlogClip()">▶ Attach in-engine clip</button>
-        <button type="button" class="attach-chip" [class.active]="!!devlogBefore() || !!devlogAfter()" (click)="triggerDevlogBeforeAfter()">▣ Before / after</button>
-        <button type="button" class="attach-chip" (click)="openBugThread()">◷ Open a bug thread</button>
-        <input #devlogVideoInput class="visually-hidden" type="file" tabindex="-1" accept="video/mp4,video/quicktime,video/webm" (change)="onDevlogClipSelected($event)">
-        <input #devlogPhotoInput class="visually-hidden" type="file" tabindex="-1" multiple accept="image/jpeg,image/png,image/webp" (change)="onDevlogPhotosSelected($event)">
-      </div>
-
-      @if (devlogClip() || devlogBefore() || devlogAfter()) {
-        <div class="media-band">
-          @if (devlogClip(); as clip) {
-            <div class="band-clip">
-              <video [src]="clip.previewUrl" muted></video>
-              <span class="band-badge">IN ENGINE</span>
-              <button type="button" class="band-remove" aria-label="Remove in-engine clip" (click)="removeDevlogMedia('clip')">✕</button>
-            </div>
-          }
-          @if (devlogBefore() || devlogAfter()) {
-            <div class="band-pair">
-              <div class="band-shot">
-                @if (devlogBefore(); as before) {
-                  <img [src]="before.previewUrl" alt="Before" />
-                  <button type="button" class="band-remove" aria-label="Remove before image" (click)="removeDevlogMedia('before')">✕</button>
-                }
-                <span class="band-caption">before</span>
-              </div>
-              <div class="band-shot">
-                @if (devlogAfter(); as after) {
-                  <img [src]="after.previewUrl" alt="After" />
-                  <button type="button" class="band-remove" aria-label="Remove after image" (click)="removeDevlogMedia('after')">✕</button>
-                }
-                <span class="band-caption">after</span>
-              </div>
-            </div>
-          }
-        </div>
-      }
-
-      @if (errorMessage()) {
-        <p class="form-error" role="alert">{{ errorMessage() }}</p>
-      }
-    </div>
-
-    <div class="sheet-footer">
-      <button type="button" class="footer-btn footer-cancel" (click)="closeSheet()">Cancel</button>
-      <button type="button" class="footer-btn footer-draft" [disabled]="isSavingDraft() || isSubmitting()" (click)="saveDraft()">
-        {{ isSavingDraft() ? 'Saving…' : 'Save draft' }}
-      </button>
-      <button type="button" class="footer-btn footer-primary" [disabled]="isSubmitting() || isSavingDraft()" (click)="submit()">
-        {{ isSubmitting() ? 'Publishing…' : 'Publish DevLog' }}
-      </button>
-    </div>
-  </app-sheet-modal>
+  <app-devlog-sheet
+    [isSubmitting]="isSubmitting()"
+    [isSavingDraft]="isSavingDraft()"
+    [errorMessage]="errorMessage()"
+    [(fields)]="devlogFields"
+    [(media)]="devlogMedia"
+    (send)="send($event)"
+    (closed)="closeSheet()" />
 }

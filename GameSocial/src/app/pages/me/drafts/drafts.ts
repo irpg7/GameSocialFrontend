@@ -5,6 +5,7 @@ import { MeService } from '../../../services/me/me.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { PostModel } from '../../../models/post.model';
 import { formatTimeAgo } from '../../../shared/clip-format';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
 
 const TYPE_GLYPH: Record<string, string> = { Clip: '▶', Screenshots: '▣', Review: '★', Poll: '▤', Devlog: '◆' };
 
@@ -59,7 +60,7 @@ export class Drafts {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (drafts) => this.drafts.set(drafts),
-        error: () => this.notificationService.error('Failed to load drafts.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load drafts.')),
       });
   }
 
@@ -82,7 +83,7 @@ export class Drafts {
           this.notificationService.success('Published.');
           this.meService.refresh().subscribe({ error: () => void 0 });
         },
-        error: () => this.notificationService.error('Failed to publish the draft.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to publish the draft.')),
       });
   }
 
@@ -96,7 +97,7 @@ export class Drafts {
           this.drafts.update((list) => list.filter((d) => d.id !== draft.id));
           this.meService.refresh().subscribe({ error: () => void 0 });
         },
-        error: () => this.notificationService.error('Failed to delete the draft.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to delete the draft.')),
       });
   }
 }

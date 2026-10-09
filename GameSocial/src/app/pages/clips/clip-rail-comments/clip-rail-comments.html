@@ -50,6 +50,9 @@
       @if (isOwn(comment) && editingId() !== comment.id) {
         <button type="button" class="rail-comment-reply" (click)="startEdit(comment)">Düzenle</button>
       }
+      @if (!isOwn(comment)) {
+        <button type="button" class="rail-comment-reply" (click)="report(comment)">Report</button>
+      }
       @if (!reply && comment.replyCount > 0) {
         <button type="button" class="rail-comment-reply rail-comment-thread" [attr.aria-expanded]="thread(comment.id)?.open ?? false" (click)="toggleReplies(comment)">
           {{ thread(comment.id)?.open ? 'Yanıtları gizle' : comment.replyCount + ' yanıt' }}

@@ -65,7 +65,7 @@ export class SettingsAdmin implements OnInit {
               isSaving: false,
             })),
           ),
-        error: () => this.notificationService.error('Failed to load settings.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load settings.')),
       });
   }
 }

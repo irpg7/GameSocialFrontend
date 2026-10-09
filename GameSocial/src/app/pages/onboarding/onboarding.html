@@ -20,19 +20,24 @@
       <h2>Takip etmek istediğin oyunları seç</h2>
       <p class="text-muted mb-lg">Seçtiğin türlere göre öneriler aşağıda. İstediğin kadar seç, sonra da değiştirebilirsin.</p>
 
-      @if (isLoadingGames()) {
+      @if (isLoadingGames() && games().length === 0) {
         <p class="text-muted">Loading games...</p>
-      } @else if (filteredGames().length === 0) {
+      } @else if (games().length === 0) {
         <p class="text-muted mb-lg">Bu türlerde henüz oyun yok.</p>
       } @else {
         <div class="chip-grid">
-          @for (game of filteredGames(); track game.id) {
+          @for (game of games(); track game.id) {
             <button type="button" class="chip game-chip" [class.selected]="isGameSelected(game)" (click)="toggleGame(game)">
               <span class="game-chip-icon">{{ game.name.charAt(0).toUpperCase() }}</span>
               {{ game.name }}
             </button>
           }
         </div>
+        @if (hasMoreGames()) {
+          <button type="button" class="btn btn-secondary more-games" [disabled]="isLoadingGames()" (click)="loadMoreGames()">
+            {{ isLoadingGames() ? 'Loading...' : 'Show more games' }}
+          </button>
+        }
       }
 
       <div class="onboarding-actions">

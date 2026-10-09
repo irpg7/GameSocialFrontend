@@ -42,4 +42,21 @@ export interface GameModel {
   /** The game's developer account — their comments pin as "◆ YAPIMCI YANITI". */
   developerUserId?: string;
   developerUsername?: string;
+  /** Whether the signed-in user follows this game (GET /api/games fills it). */
+  isFollowed?: boolean;
+}
+
+/** Query for GET /api/games (Application.Features.Games.List.ListGamesQuery) — paged, max 100 per page. */
+export interface GameListQuery {
+  search?: string;
+  genres?: GameGenreName[];
+  ids?: number[];
+  /** Only games this account is the verified developer of (devlog picker). */
+  ownedByMe?: boolean;
+  /** Leave out games you already reviewed (one review per game). */
+  notReviewedByMe?: boolean;
+  /** Games you follow first (pickers). */
+  followedFirst?: boolean;
+  page?: number;
+  pageSize?: number;
 }

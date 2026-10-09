@@ -48,16 +48,15 @@
 
     @if (isPickingGame() || !selectedGame()) {
       <label class="visually-hidden" for="review-game">Game</label>
-      <select id="review-game" class="rs-select" [formField]="gameField" (change)="onGameChanged()">
-        <button><selectedcontent></selectedcontent></button>
-        <option value="">— Select a game —</option>
-        @for (game of reviewableGames(); track game.id) {
-          <option [value]="'' + game.id">{{ game.name }}</option>
-        }
-      </select>
-      @if (reviewableGames().length === 0) {
-        <p class="rs-hint">You've reviewed every game in the catalogue. Edit an existing review from its ··· menu.</p>
-      }
+      <app-game-picker
+        class="rs-select"
+        inputId="review-game"
+        placeholder="Search a game to review"
+        noneLabel="— Select a game —"
+        [filter]="reviewableFilter"
+        emptyHint="You've reviewed every game in the catalogue. Edit an existing review from its ··· menu."
+        [formField]="gameField"
+        (picked)="onGameChanged()" />
     }
 
     <div class="rs-chips" role="radiogroup" aria-label="Play status">
@@ -84,6 +83,8 @@
       <div class="rs-clips" role="group" aria-label="Your clips">
         @if (isLoadingClips()) {
           <span class="rs-clips-note">Loading your clips…</span>
+        } @else if (clipsError(); as error) {
+          <span class="rs-clips-note" role="alert">{{ error }}</span>
         } @else if (myClips().length === 0) {
           <span class="rs-clips-note">You have no clips of this game yet.</span>
         } @else {

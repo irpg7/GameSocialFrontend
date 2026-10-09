@@ -1,25 +1,16 @@
-import { Component, OnInit, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
-import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { FormField, disabled, form, maxLength } from '@angular/forms/signals';
 import { SelectControl } from '../../../../shared/select-control';
-import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { SquadService } from '../../../../services/squad/squad.service';
 import { SquadHubService } from '../../../../services/squad/squad-hub.service';
 import { NotificationService } from '../../../../services/notification/notification.service';
-import {
-  JoinPolicyName,
-  MAX_SQUAD_GAMES,
-  SquadGameModel,
-  SquadMemberModel,
-  SquadModel,
-  SquadRoleName,
-} from '../../../../models/squad.model';
-import { SquadGameOptionModel, SquadJoinRequestModel } from '../../../../models/squad-hub.model';
-import { GameModel } from '../../../../models/game.model';
+import { JoinPolicyName, SquadGameModel, SquadMemberModel, SquadModel } from '../../../../models/squad.model';
 import { extractApiErrorMessage } from '../../../../shared/api-error.util';
 import { SquadSheetFrame } from '../../../../shared/squad-create-sheet/squad-sheet-frame';
 import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
-import { SquadBanModel } from '../../../../models/squad-ban.model';
+import { SettingsGamesPicker } from './settings-games-picker/settings-games-picker';
+import { SettingsMembersTab } from './settings-members-tab/settings-members-tab';
 
 type SettingsTab = 'general' | 'content' | 'members';
 type RuleKey = 'allowMemberUploads' | 'requireSpoilerTag' | 'requireMemberApproval' | 'weeklyDigest';
@@ -30,23 +21,15 @@ interface PrivacyOption {
   desc: string;
 }
 
-/** Turkish role labels — 07-squad-settings: Kurucu (fixed) / Yönetici / Üye. */
-export const SQUAD_ROLE_LABELS: Record<SquadRoleName, string> = {
-  Captain: 'Kurucu',
-  Admin: 'Yönetici',
-  Member: 'Üye',
-};
-
 const MAX_ICON_BYTES = 5 * 1024 * 1024;
-const numberFormat = new Intl.NumberFormat('en-US');
 
 /**
  * Squad settings — 07-squad-settings.html (`sqSettings`), 1:1: 600px sheet
  * with a 44px squad icon, three tabs (Genel / İçerik kuralları / Üyeler ve
- * roller), the searchable library game picker, the vertical "Katılım" radio
- * list, the content-rule switches, member rows with a cycling role pill and a
- * "···" menu, and a footer whose leave action becomes "Squad’ı devret ve
- * ayrıl" for the founder.
+ * roller), the vertical "Katılım" radio list, the content-rule switches and a
+ * footer whose leave action becomes "Squad’ı devret ve ayrıl" for the founder.
+ * The game picker (`settings-games-picker`) and the members tab
+ * (`settings-members-tab`) are their own components.
  *
  * Permissions mirror the server (Application/Features/Squads/Shared/SquadPermissions):
  * Kurucu + Yönetici edit settings, rules, invites and approve requests;
@@ -54,11 +37,11 @@ const numberFormat = new Intl.NumberFormat('en-US');
  */
 @Component({
   selector: 'app-squad-settings-sheet',
-  imports: [ImgFallback, FormField, SelectControl, SquadSheetFrame],
+  imports: [ImgFallback, FormField, SelectControl, SquadSheetFrame, SettingsGamesPicker, SettingsMembersTab],
   templateUrl: './squad-settings-sheet.html',
   styleUrl: './squad-settings-sheet.scss',
 })
-export class SquadSettingsSheet implements OnInit {
+export class SquadSettingsSheet {
   private squadService = inject(SquadService);
   private hubService = inject(SquadHubService);
   private notificationService = inject(NotificationService);
@@ -66,7 +49,6 @@ export class SquadSettingsSheet implements OnInit {
   squad = input.required<SquadModel>();
   members = input.required<SquadMemberModel[]>();
   /** Kept for the room's binding; the picker now loads its own library-ranked list. */
-  games = input<GameModel[]>([]);
   /** Legacy input — the sheet derives permissions from `squad().currentUserRole`. */
   isCaptain = input(false);
   currentUserId = input<string | undefined>(undefined);
@@ -80,8 +62,6 @@ export class SquadSettingsSheet implements OnInit {
   left = output<void>();
   closed = output<void>();
 
-  protected readonly maxGames = MAX_SQUAD_GAMES;
-  protected readonly roleLabels = SQUAD_ROLE_LABELS;
   protected readonly tab = signal<SettingsTab>('general');
   protected readonly tabs: { key: SettingsTab; label: string }[] = [
     { key: 'general', label: 'Genel' },
@@ -133,29 +113,6 @@ export class SquadSettingsSheet implements OnInit {
     { value: 'Hidden', label: 'Gizli', desc: 'Aranamaz, sadece kurucunun onayıyla eklenir' },
   ]);
 
-  // ─── Game picker ────────────────────────────────────────────────────────
-  protected readonly isGamePickerOpen = signal(false);
-  protected readonly gameQuery = signal('');
-  protected readonly gameQueryField = form(this.gameQuery);
-  protected readonly gameOptions = signal<SquadGameOptionModel[]>([]);
-  protected readonly gameTotal = signal(0);
-  protected readonly isLoadingGames = signal(false);
-
-  protected readonly canAddGame = computed(() => this.selectedGames().length < MAX_SQUAD_GAMES);
-
-  // ─── Members ────────────────────────────────────────────────────────────
-  protected readonly activeMembers = computed(() => this.members().filter((m) => m.status !== 'Pending'));
-  protected readonly joinRequests = signal<SquadJoinRequestModel[]>([]);
-  /** Kara liste — yasaklılar katılamaz, istek gönderemez, davet edilemez. */
-  protected readonly bans = signal<SquadBanModel[]>([]);
-  protected readonly menuUserId = signal<string | null>(null);
-  protected readonly busyUserId = signal<string | null>(null);
-  protected readonly isInviteOpen = signal(false);
-  protected readonly inviteUsername = signal('');
-  protected readonly inviteField = form(this.inviteUsername);
-  protected readonly isInviting = signal(false);
-  protected readonly inviteError = signal<string | null>(null);
-
   // ─── Footer ─────────────────────────────────────────────────────────────
   protected readonly isSaving = signal(false);
   protected readonly isUploadingIcon = signal(false);
@@ -167,7 +124,7 @@ export class SquadSettingsSheet implements OnInit {
   protected readonly isLeaving = signal(false);
 
   protected readonly otherActiveMembers = computed(() =>
-    this.activeMembers().filter((m) => m.userId !== this.currentUserId()),
+    this.members().filter((m) => m.status !== 'Pending' && m.userId !== this.currentUserId()),
   );
 
   protected readonly subtitle = computed(() => {
@@ -184,69 +141,7 @@ export class SquadSettingsSheet implements OnInit {
 
   protected readonly leaveLabel = computed(() => (this.isFounder() ? 'Squad’ı devret ve ayrıl' : 'Squad’dan ayrıl'));
 
-  constructor() {
-    toObservable(this.gameQuery)
-      .pipe(
-        debounceTime(200),
-        distinctUntilChanged(),
-        switchMap((q) => {
-          this.isLoadingGames.set(true);
-          return this.hubService.getGameOptions(q.trim() || undefined).pipe(finalize(() => this.isLoadingGames.set(false)));
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe({
-        next: (result) => {
-          this.gameOptions.set(result.items);
-          this.gameTotal.set(result.totalCount);
-        },
-        error: () => void 0,
-      });
-  }
-
-  ngOnInit(): void {
-    if (this.canManage()) {
-      this.loadJoinRequests();
-      this.loadBans();
-    }
-  }
-
   // ─── General ────────────────────────────────────────────────────────────
-  protected isGameSelected(gameId: number): boolean {
-    return this.selectedGames().some((g) => g.id === gameId);
-  }
-
-  protected gameMeta(option: SquadGameOptionModel): string {
-    if (option.kind === 'library') {
-      return option.hoursPlayed ? `Kütüphanende · ${option.hoursPlayed} sa` : 'Kütüphanende';
-    }
-    if (option.kind === 'new') {
-      return 'Yeni çıkan';
-    }
-    return `Popüler · ${compactCount(option.followerCount)} oyuncu`;
-  }
-
-  protected toggleGamePicker(): void {
-    this.isGamePickerOpen.update((open) => !open);
-    this.gameQuery.set('');
-  }
-
-  protected addGame(option: SquadGameOptionModel): void {
-    if (this.isGameSelected(option.id) || !this.canAddGame()) {
-      return;
-    }
-    this.selectedGames.update((games) => [...games, { id: option.id, name: option.name, coverImageUrl: option.coverImageUrl }]);
-    this.gameQuery.set('');
-  }
-
-  protected removeGame(gameId: number): void {
-    this.selectedGames.update((games) => games.filter((g) => g.id !== gameId));
-  }
-
-  protected suggestGame(): void {
-    this.notificationService.info('Oyun önerisi henüz desteklenmiyor.');
-  }
-
   protected onIconPicked(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -267,7 +162,7 @@ export class SquadSettingsSheet implements OnInit {
           this.iconUrl.set(iconUrl);
           this.iconChanged.emit(iconUrl);
         },
-        error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'İkon yüklenemedi.')),
+        error: (err: unknown) => this.errorMessage.set(extractApiErrorMessage(err, 'İkon yüklenemedi.')),
       });
   }
 
@@ -279,175 +174,9 @@ export class SquadSettingsSheet implements OnInit {
     this.rules.update((rules) => ({ ...rules, [key]: !rules[key] }));
   }
 
-  // ─── Members ────────────────────────────────────────────────────────────
-  protected isSelf(userId: string): boolean {
-    return userId === this.currentUserId();
-  }
-
-  protected memberMeta(member: SquadMemberModel): string {
-    const points = `${numberFormat.format(member.xp ?? 0)} puan`;
-    if (this.isSelf(member.userId)) {
-      return `${SQUAD_ROLE_LABELS[member.role]} · ${points}`;
-    }
-    if (member.presence === 'online' || member.presence === 'dnd') {
-      return `${member.currentActivity ? 'Oyunda' : 'Çevrimiçi'} · ${points}`;
-    }
-    if (member.lastSeenAt) {
-      return `${relativeTr(member.lastSeenAt)} · ${points}`;
-    }
-    return points;
-  }
-
-  /** The pill cycles Üye ↔ Yönetici; Kurucu is fixed. Only the founder changes roles. */
-  protected canCycleRole(member: SquadMemberModel): boolean {
-    return this.isFounder() && member.role !== 'Captain';
-  }
-
-  protected canRemove(member: SquadMemberModel): boolean {
-    if (this.isSelf(member.userId) || member.role === 'Captain') {
-      return false;
-    }
-    return this.isFounder() || (this.myRole() === 'Admin' && member.role === 'Member');
-  }
-
-  protected hasMenu(member: SquadMemberModel): boolean {
-    return this.canRemove(member) || (this.isFounder() && !this.isSelf(member.userId));
-  }
-
-  protected toggleMenu(userId: string): void {
-    this.menuUserId.update((current) => (current === userId ? null : userId));
-  }
-
-  protected cycleRole(member: SquadMemberModel): void {
-    if (!this.canCycleRole(member) || this.busyUserId()) {
-      return;
-    }
-    const next: SquadRoleName = member.role === 'Admin' ? 'Member' : 'Admin';
-    this.busyUserId.set(member.userId);
-    this.squadService
-      .changeMemberRole(this.squad().id, member.userId, next)
-      .pipe(finalize(() => this.busyUserId.set(null)))
-      .subscribe({
-        next: () => this.membersChanged.emit(),
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Rol değiştirilemedi.')),
-      });
-  }
-
-  protected removeMember(member: SquadMemberModel): void {
-    this.menuUserId.set(null);
-    if (this.busyUserId()) {
-      return;
-    }
-    this.busyUserId.set(member.userId);
-    this.squadService
-      .removeMember(this.squad().id, member.userId)
-      .pipe(finalize(() => this.busyUserId.set(null)))
-      .subscribe({
-        next: () => this.membersChanged.emit(),
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Üye çıkarılamadı.')),
-      });
-  }
-
-  /** "Yasakla" — üyeyi ya da bekleyen isteği kara listeye alır; tekrar katılamaz. */
-  protected banUser(userId: string, username: string): void {
-    this.menuUserId.set(null);
-    if (this.busyUserId()) {
-      return;
-    }
-    this.busyUserId.set(userId);
-    this.hubService
-      .banUser(this.squad().id, userId)
-      .pipe(finalize(() => this.busyUserId.set(null)))
-      .subscribe({
-        next: (ban) => {
-          this.bans.update((list) => [ban, ...list.filter((b) => b.userId !== ban.userId)]);
-          this.joinRequests.update((list) => list.filter((r) => r.userId !== userId));
-          this.notificationService.success(`${username} yasaklandı.`);
-          this.membersChanged.emit();
-        },
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Kullanıcı yasaklanamadı.')),
-      });
-  }
-
-  protected unban(ban: SquadBanModel): void {
-    if (this.busyUserId()) {
-      return;
-    }
-    this.busyUserId.set(ban.userId);
-    this.hubService
-      .unbanUser(this.squad().id, ban.userId)
-      .pipe(finalize(() => this.busyUserId.set(null)))
-      .subscribe({
-        next: () => this.bans.update((list) => list.filter((b) => b.userId !== ban.userId)),
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Yasak kaldırılamadı.')),
-      });
-  }
-
-  /** "Kurucu yap" — transfers the squad; you become Yönetici. */
-  protected makeFounder(member: SquadMemberModel): void {
-    this.menuUserId.set(null);
-    if (this.busyUserId()) {
-      return;
-    }
-    this.busyUserId.set(member.userId);
-    this.hubService
-      .transfer(this.squad().id, member.userId)
-      .pipe(finalize(() => this.busyUserId.set(null)))
-      .subscribe({
-        next: () => {
-          this.notificationService.success(`${member.username} artık kurucu.`);
-          this.membersChanged.emit();
-          this.saved.emit({ ...this.squad(), currentUserRole: 'Admin' });
-        },
-        error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'Squad devredilemedi.')),
-      });
-  }
-
-  protected openInvite(): void {
-    this.isInviteOpen.set(true);
-    this.inviteError.set(null);
-  }
-
-  protected invite(): void {
-    const username = this.inviteUsername().trim().replace(/^@/, '');
-    if (!username || this.isInviting()) {
-      return;
-    }
-    this.inviteError.set(null);
-    this.isInviting.set(true);
-    this.hubService
-      .invite(this.squad().id, username)
-      .pipe(finalize(() => this.isInviting.set(false)))
-      .subscribe({
-        next: () => {
-          this.notificationService.success(`${username} davet edildi.`);
-          this.inviteUsername.set('');
-        },
-        error: (err) => this.inviteError.set(extractApiErrorMessage(err, 'Davet gönderilemedi.')),
-      });
-  }
-
-  protected decideRequest(request: SquadJoinRequestModel, approve: boolean): void {
-    if (this.busyUserId()) {
-      return;
-    }
-    this.busyUserId.set(request.userId);
-    const call = approve
-      ? this.hubService.approveJoinRequest(this.squad().id, request.userId)
-      : this.hubService.declineJoinRequest(this.squad().id, request.userId);
-    call.pipe(finalize(() => this.busyUserId.set(null))).subscribe({
-      next: () => {
-        this.joinRequests.update((list) => list.filter((r) => r.userId !== request.userId));
-        if (approve) {
-          this.membersChanged.emit();
-        }
-      },
-      error: (err) => this.notificationService.error(extractApiErrorMessage(err, 'İstek işlenemedi.')),
-    });
-  }
-
-  protected initial(name: string): string {
-    return name.charAt(0).toUpperCase();
+  /** "Kurucu yap" in the members tab: you are Yönetici now. */
+  protected onTransferred(): void {
+    this.saved.emit({ ...this.squad(), currentUserRole: 'Admin' });
   }
 
   // ─── Footer ─────────────────────────────────────────────────────────────
@@ -480,7 +209,7 @@ export class SquadSettingsSheet implements OnInit {
           this.notificationService.success('Değişiklikler kaydedildi.');
           this.saved.emit(updated);
         },
-        error: (err) => this.errorMessage.set(extractApiErrorMessage(err, 'Ayarlar kaydedilemedi.')),
+        error: (err: unknown) => this.errorMessage.set(extractApiErrorMessage(err, 'Ayarlar kaydedilemedi.')),
       });
   }
 
@@ -511,7 +240,7 @@ export class SquadSettingsSheet implements OnInit {
         .pipe(finalize(() => this.isLeaving.set(false)))
         .subscribe({
           next: () => this.left.emit(),
-          error: (err) => {
+          error: (err: unknown) => {
             this.leaveStep.set('idle');
             this.errorMessage.set(extractApiErrorMessage(err, 'Squad’dan ayrılamadın.'));
           },
@@ -520,7 +249,7 @@ export class SquadSettingsSheet implements OnInit {
     if (mustTransfer && target) {
       this.hubService.transfer(squadId, target).subscribe({
         next: () => leave(),
-        error: (err) => {
+        error: (err: unknown) => {
           this.isLeaving.set(false);
           this.errorMessage.set(extractApiErrorMessage(err, 'Squad devredilemedi.'));
         },
@@ -529,39 +258,4 @@ export class SquadSettingsSheet implements OnInit {
       leave();
     }
   }
-
-  private loadBans(): void {
-    this.hubService.listBans(this.squad().id).subscribe({
-      next: (bans) => this.bans.set(bans),
-      error: () => void 0,
-    });
-  }
-
-  private loadJoinRequests(): void {
-    this.hubService.listJoinRequests(this.squad().id).subscribe({
-      next: (requests) => this.joinRequests.set(requests),
-      error: () => void 0,
-    });
-  }
-}
-
-/** 84000 → "84k", 1200 → "1.2k". */
-function compactCount(value: number): string {
-  if (value >= 1_000_000) return `${trimZero(value / 1_000_000)}M`;
-  if (value >= 1_000) return `${trimZero(value / 1_000)}k`;
-  return String(value);
-}
-
-function trimZero(value: number): string {
-  return value >= 10 ? Math.round(value).toString() : value.toFixed(1).replace(/\.0$/, '');
-}
-
-/** "2 dk önce", "5 sa önce", "3 gün önce". */
-function relativeTr(iso: string): string {
-  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (minutes < 1) return 'az önce';
-  if (minutes < 60) return `${minutes} dk önce`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} sa önce`;
-  return `${Math.round(hours / 24)} gün önce`;
 }

@@ -26,13 +26,12 @@
           placeholder="Squad name" />
 
         <label class="visually-hidden" for="squad-game">Main game</label>
-        <select id="squad-game" class="create-box create-game" [formField]="squadForm.primaryGameId">
-          <button><selectedcontent></selectedcontent></button>
-          <option value="">Main game — none</option>
-          @for (game of games(); track game.id) {
-            <option [value]="'' + game.id">Main game — {{ game.name }}</option>
-          }
-        </select>
+        <app-game-picker
+          class="create-box create-game"
+          inputId="squad-game"
+          placeholder="Search the main game"
+          noneLabel="Main game — none"
+          [formField]="squadForm.primaryGameId" />
       </div>
     </div>
 

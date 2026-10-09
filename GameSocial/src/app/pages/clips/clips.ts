@@ -12,6 +12,7 @@ import { ClipUploadSheet } from '../../shared/clip-upload-sheet/clip-upload-shee
 import { ClipAutoplayService } from '../../shared/clip-autoplay.service';
 import { ClipQueueCard } from './clip-queue-card/clip-queue-card';
 import { ClipRailComments } from './clip-rail-comments/clip-rail-comments';
+import { extractApiErrorMessage } from '../../shared/api-error.util';
 
 const PAGE_SIZE = 12;
 /** How deep "#N TODAY" ranks — one request for the day's hot list. */
@@ -267,7 +268,7 @@ export class Clips implements OnInit {
           this.hasMore.set(result.hasMore);
           this.totalCount.set(result.totalCount);
         },
-        error: () => this.notificationService.error('Klipler yüklenemedi.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Klipler yüklenemedi.')),
       });
   }
 }

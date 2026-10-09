@@ -24,6 +24,9 @@ import { NotificationService } from '../../services/notification/notification.se
 import { clipVideo, formatClock, formatCount, formatTimeAgo, formatViews } from '../clip-format';
 import { shareClip } from './clip-share';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../api-error.util';
+import { OverlayStack } from '../overlay/overlay-stack.service';
+import { TrackDrag } from './track-drag';
 
 /**
  * <app-clip-stage> — the one clip surface. A real <video> with the design's
@@ -78,9 +81,9 @@ const VIEW_AFTER_SECONDS = 3;
 
 @Component({
   selector: 'app-clip-stage',
-  imports: [ImgFallback, RouterLink, NgTemplateOutlet],
+  imports: [ImgFallback, RouterLink, NgTemplateOutlet, TrackDrag],
   templateUrl: './clip-stage.html',
-  styleUrls: ['./clip-stage.scss', './clip-stage.mobile.scss'],
+  styleUrls: ['./clip-stage.scss', './clip-stage.full.scss', './clip-stage.overlay.scss', './clip-stage.compact.scss', './clip-stage.mobile.scss'],
   host: {
     '[class.variant-feed]': "variant() === 'feed'",
     '[class.variant-hero]': "variant() === 'hero'",
@@ -99,6 +102,7 @@ export class ClipStage {
   private router = inject(Router);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   private destroyRef = inject(DestroyRef);
+  private overlays = inject(OverlayStack);
 
   post = input.required<PostModel>();
   variant = input<ClipStageVariant>('feed');
@@ -146,8 +150,7 @@ export class ClipStage {
   protected readonly moreMenuOpen = signal(false);
   protected readonly captionsOn = signal(false);
   protected readonly hasCaptions = signal(false);
-  private readonly scrubbing = signal(false);
-  private readonly volumeDragging = signal(false);
+  protected readonly scrubbing = signal(false);
   /** Metadata duration once known; falls back to the value the backend measured at upload. */
   private readonly loadedDuration = signal(0);
   /** Set when a new source should start playing as soon as it is ready. */
@@ -370,9 +373,9 @@ export class ClipStage {
         this.likeCount.set(result.likeCount);
         this.isTogglingLike.set(false);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.isTogglingLike.set(false);
-        this.notificationService.error('Failed to update like. Please try again.');
+        this.notificationService.error(extractApiErrorMessage(err, 'Failed to update like. Please try again.'));
       },
     });
   }
@@ -389,7 +392,7 @@ export class ClipStage {
       return;
     }
     // A modal sheet is open over the page — leave its keys alone.
-    if (!this.overlay() && document.querySelector('[aria-modal="true"]')) {
+    if (!this.overlay() && this.overlays.hasOpen()) {
       return;
     }
     switch (event.key) {
@@ -504,36 +507,17 @@ export class ClipStage {
   // ─── Scrub + volume bars ───────────────────────────────────────────────
   // Both bars are the design's own <div> tracks rather than <input type=range>:
   // the design draws a buffered range, markers, a hover bubble and a knob that
-  // a native range input can't express; pointer capture gives the drag feel.
+  // a native range input can't express; `appTrackDrag` (pointer capture) gives the drag feel.
   // Keyboard users get ←/→ on the stage and the slider role's arrow keys.
 
-  protected onScrubDown(event: PointerEvent): void {
-    const track = event.currentTarget as HTMLElement;
-    track.setPointerCapture(event.pointerId);
+  protected startScrub(ratio: number): void {
     this.scrubbing.set(true);
-    this.scrubTo(this.ratioFrom(track, event.clientX));
+    this.scrubTo(ratio);
   }
 
-  protected onScrubMove(event: PointerEvent): void {
-    const track = event.currentTarget as HTMLElement;
-    const ratio = this.ratioFrom(track, event.clientX);
+  protected onScrubHover(ratio: number): void {
     this.hoverRatio.set(ratio);
     this.updatePreview(ratio);
-    if (this.scrubbing()) {
-      this.scrubTo(ratio);
-    }
-  }
-
-  protected onScrubUp(event: PointerEvent): void {
-    const track = event.currentTarget as HTMLElement;
-    if (track.hasPointerCapture(event.pointerId)) {
-      track.releasePointerCapture(event.pointerId);
-    }
-    this.scrubbing.set(false);
-  }
-
-  protected onScrubLeave(): void {
-    this.hoverRatio.set(null);
   }
 
   protected onScrubKey(event: KeyboardEvent): void {
@@ -545,28 +529,6 @@ export class ClipStage {
     }
   }
 
-  protected onVolumeDown(event: PointerEvent): void {
-    const track = event.currentTarget as HTMLElement;
-    track.setPointerCapture(event.pointerId);
-    this.volumeDragging.set(true);
-    this.setVolume(this.ratioFrom(track, event.clientX));
-  }
-
-  protected onVolumeMove(event: PointerEvent): void {
-    if (!this.volumeDragging()) {
-      return;
-    }
-    this.setVolume(this.ratioFrom(event.currentTarget as HTMLElement, event.clientX));
-  }
-
-  protected onVolumeUp(event: PointerEvent): void {
-    const track = event.currentTarget as HTMLElement;
-    if (track.hasPointerCapture(event.pointerId)) {
-      track.releasePointerCapture(event.pointerId);
-    }
-    this.volumeDragging.set(false);
-  }
-
   protected onVolumeKey(event: KeyboardEvent): void {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault();
@@ -575,14 +537,14 @@ export class ClipStage {
     }
   }
 
-  private setVolume(ratio: number): void {
+  protected setVolume(ratio: number): void {
     const value = Math.min(1, Math.max(0, ratio));
     this.volume.set(value);
     this.muted.set(value === 0);
     this.videoRef().nativeElement.volume = value;
   }
 
-  private scrubTo(ratio: number): void {
+  protected scrubTo(ratio: number): void {
     const duration = this.duration();
     if (duration <= 0) {
       return;
@@ -608,13 +570,5 @@ export class ClipStage {
     } catch {
       // Not seekable yet — the frame catches up on the next move.
     }
-  }
-
-  private ratioFrom(element: HTMLElement, clientX: number): number {
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0) {
-      return 0;
-    }
-    return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
   }
 }

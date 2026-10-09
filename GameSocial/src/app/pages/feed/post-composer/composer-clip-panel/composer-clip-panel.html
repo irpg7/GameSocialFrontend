@@ -1,0 +1,70 @@
+<div class="composer-panel">
+  <div class="panel-row">
+    <div
+      class="dropzone"
+      [class.drag-over]="isDragging()"
+      [class.has-file]="!!clip()"
+      role="button"
+      tabindex="0"
+      aria-label="Drop your clip or browse for a video file"
+      (click)="browse()"
+      (keydown.enter)="browse()"
+      (keydown.space)="$event.preventDefault(); browse()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="isDragging.set(false)"
+      (drop)="onDrop($event)">
+      @if (clip(); as entry) {
+        <video class="dropzone-preview" [src]="entry.previewUrl" muted></video>
+        <button type="button" class="dropzone-remove" aria-label="Remove video" (click)="clearFile($event)">&times;</button>
+      } @else {
+        <span class="dropzone-label">Drop your clip or browse</span>
+        <span class="dropzone-hint">MP4 · up to 60s · auto-trims</span>
+      }
+      <input
+        #fileInput
+        class="visually-hidden"
+        id="composer-file"
+        type="file"
+        tabindex="-1"
+        accept="video/mp4,video/quicktime,video/webm"
+        (click)="$event.stopPropagation()"
+        (change)="onFileSelected($event)">
+    </div>
+
+    <div class="panel-fields">
+      <input
+        class="field-box"
+        id="composer-caption"
+        type="text"
+        [formField]="fields().caption"
+        placeholder="Title — what happens in it?"
+        aria-label="Title">
+
+      <div class="field-row">
+        <app-game-picker class="field-box field-select" inputId="composer-game" ariaLabel="Game" noneLabel="Pick a game" [formField]="fields().gameId" />
+
+        @if (preselectedSquadId()) {
+          <span class="field-box squad-locked">{{ lockedSquadName() ?? 'This squad' }}</span>
+        } @else {
+          <select
+            class="field-box field-select"
+            [class.is-placeholder]="isSquadPlaceholder()"
+            id="composer-squad"
+            aria-label="Tag a squad (optional)"
+            [formField]="fields().squadId">
+            <button><selectedcontent></selectedcontent></button>
+            <option value="">＋ Tag squad</option>
+            @for (squad of mySquads(); track squad.id) {
+              <option [value]="squad.id">{{ squad.name }}</option>
+            }
+          </select>
+        }
+      </div>
+    </div>
+  </div>
+
+  <p class="xp-hint">
+    <span>Posting a clip is worth</span>
+    <span class="xp-value">+{{ clipXp() }} XP</span>
+  </p>
+</div>

@@ -1,0 +1,107 @@
+@use '../../../../../styles/variables' as *;
+@use '../composer-common' as common;
+
+:host {
+  display: block;
+}
+
+.composer-panel {
+  @include common.composer-panel;
+}
+
+input.field-box {
+  @include common.field-box;
+}
+
+// Screenshots: 4 columns of 74px tiles, radius 12.
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.screenshot-thumb {
+  position: relative;
+  height: 74px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: $color-bg-tertiary;
+  border: 1px solid $color-border;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.screenshot-remove {
+  @include common.media-remove;
+}
+
+.screenshot-add {
+  height: 74px;
+  border-radius: 12px;
+  border: 1px dashed $color-border-dashed;
+  background: none;
+  color: $color-text-tertiary;
+  font: 700 16px/1 $font-family-primary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-accent-primary;
+    color: $color-accent-light;
+    outline: none;
+  }
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: $color-bg-tertiary;
+  font: 600 11px/13px $font-family-primary;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-border-dashed;
+    outline: none;
+  }
+
+  &.active {
+    background: $color-accent-tint;
+    color: $color-accent-light;
+  }
+
+  &.tag-chip-add {
+    background: none;
+    border: 1px dashed $color-border-dashed;
+    color: $color-text-tertiary;
+  }
+
+  &.squad-locked-chip {
+    cursor: default;
+    color: $color-accent-light;
+  }
+}
+
+input.tag-chip-input {
+  width: 110px;
+  height: 25px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px dashed $color-accent-primary;
+  background: none;
+  font: 600 11px/13px $font-family-primary;
+  color: $color-text-primary;
+}
