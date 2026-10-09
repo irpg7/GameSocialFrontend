@@ -9,6 +9,8 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { NotificationService } from '../../../services/notification/notification.service';
 import { formatAgoShortTr, formatClock, formatCount } from '../../../shared/clip-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
+import { extractApiErrorMessage } from '../../../shared/api-error.util';
+import { ReportService } from '../../../services/safety/report.service';
 
 interface ReplyThread {
   open: boolean;
@@ -33,6 +35,7 @@ export class ClipRailComments {
   private commentService = inject(CommentService);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private reportService = inject(ReportService);
 
   postId = input.required<string>();
   /** The clip's author — they may delete any comment on it. */
@@ -103,6 +106,10 @@ export class ClipRailComments {
     return this.isOwn(comment) || (!!this.postOwnerId() && this.postOwnerId() === this.authService.currentUser()?.id);
   }
 
+  protected report(comment: CommentModel): void {
+    this.reportService.open({ type: 'Comment', id: comment.id, label: `@${comment.username}'s comment` });
+  }
+
   protected isOwn(comment: CommentModel): boolean {
     return comment.userId === this.authService.currentUser()?.id;
   }
@@ -132,9 +139,9 @@ export class ClipRailComments {
     this.patchThread(comment.id, { open: true, loading: true, items: thread?.items ?? [] });
     this.commentService.list(this.postId(), 1, 50, { parentCommentId: comment.id, sort: 'oldest' }).subscribe({
       next: (result) => this.patchThread(comment.id, { loading: false, items: result.items }),
-      error: () => {
+      error: (err: unknown) => {
         this.patchThread(comment.id, { loading: false });
-        this.notificationService.error('Yanıtlar yüklenemedi.');
+        this.notificationService.error(extractApiErrorMessage(err, 'Yanıtlar yüklenemedi.'));
       },
     });
   }
@@ -142,7 +149,7 @@ export class ClipRailComments {
   protected toggleVote(comment: CommentModel): void {
     this.commentService.toggleVote(this.postId(), comment.id).subscribe({
       next: (result) => this.patchComment(comment.id, { voteCount: result.voteCount, isVotedByCurrentUser: result.voted }),
-      error: () => this.notificationService.error('Oy verilemedi.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Oy verilemedi.')),
     });
   }
 
@@ -176,7 +183,7 @@ export class ClipRailComments {
           this.draft.set('');
           this.replyTo.set(null);
         },
-        error: () => this.notificationService.error('Yorum gönderilemedi.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Yorum gönderilemedi.')),
       });
   }
 
@@ -195,7 +202,7 @@ export class ClipRailComments {
         this.comments.update((existing) => existing.filter((c) => c.id !== comment.id));
         this.countChanged.emit(-1);
       },
-      error: () => this.notificationService.error('Yorum silinemedi.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Yorum silinemedi.')),
     });
   }
 
@@ -222,7 +229,7 @@ export class ClipRailComments {
         this.patchComment(comment.id, { body: updated.body, editedAt: updated.editedAt });
         this.editingId.set(null);
       },
-      error: () => this.notificationService.error('Yorum düzenlenemedi.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Yorum düzenlenemedi.')),
     });
   }
 
@@ -255,7 +262,7 @@ export class ClipRailComments {
           this.page.set(result.page);
           this.hasMore.set(result.hasMore);
         },
-        error: () => this.notificationService.error('Yorumlar yüklenemedi.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Yorumlar yüklenemedi.')),
       });
   }
 }

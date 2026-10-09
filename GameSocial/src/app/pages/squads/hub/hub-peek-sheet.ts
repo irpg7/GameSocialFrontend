@@ -1,8 +1,9 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { SquadModel } from '../../../models/squad.model';
 import { SquadSheetFrame } from '../../../shared/squad-create-sheet/squad-sheet-frame';
 import { discoverMeta, formatNumber, levelPercent } from './hub-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
+import { ReportService } from '../../../services/safety/report.service';
 
 /** "Peek" — a non-member-safe preview of a discoverable squad (GET squads/{id}). */
 @Component({
@@ -34,6 +35,7 @@ import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
         <p class="hs-note">{{ policyNote() }} · {{ squad().onlineCount }} online now</p>
       </div>
       <div class="hs-footer">
+        <button type="button" class="hs-report" (click)="report()">⚑ Report squad</button>
         <button type="button" class="hs-cancel" (click)="closed.emit()">Close</button>
         <button type="button" class="hs-primary" [disabled]="busy() || requested() || squad().openSlots <= 0" (click)="join.emit()">
           {{ joinLabel() }}
@@ -49,6 +51,12 @@ export class HubPeekSheet {
   busy = input(false);
   join = output<void>();
   closed = output<void>();
+
+  private reportService = inject(ReportService);
+
+  protected report(): void {
+    this.reportService.open({ type: 'Squad', id: this.squad().id, label: this.squad().name });
+  }
 
   protected readonly meta = computed(() => discoverMeta(this.squad()));
   protected readonly percent = computed(() => levelPercent(this.squad()));

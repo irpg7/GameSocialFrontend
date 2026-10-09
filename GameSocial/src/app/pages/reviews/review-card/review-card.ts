@@ -17,6 +17,8 @@ import { formatClock, formatTimeAgo } from '../../../shared/clip-format';
 import { ImgFallback } from '../../../shared/img-fallback/img-fallback';
 import { PostEditSheet } from '../../../shared/post-edit-sheet/post-edit-sheet';
 import { extractApiErrorMessage } from '../../../shared/api-error.util';
+import { ReportService } from '../../../services/safety/report.service';
+import { BlockService } from '../../../services/safety/block.service';
 
 const COMMENT_PAGE_SIZE = 3;
 /** Scores at or above this read as the accent red, below as muted grey (design: 8.4/9.2 red, 5.6 grey). */
@@ -49,7 +51,7 @@ interface ThreadComment {
   templateUrl: './review-card.html',
   styleUrl: './review-card.scss',
   host: {
-    '[class.is-removed]': 'removed()',
+    '[class.is-removed]': 'removed() || authorBlocked()',
   },
 })
 export class ReviewCard implements OnInit {
@@ -59,6 +61,8 @@ export class ReviewCard implements OnInit {
   private authService = inject(AuthService);
   private meService = inject(MeService);
   private notificationService = inject(NotificationService);
+  private reportService = inject(ReportService);
+  private blockService = inject(BlockService);
 
   readonly postInput = input.required<PostModel>({ alias: 'post' });
   /** Local copy so the author's edit shows without a reload. */
@@ -142,6 +146,17 @@ export class ReviewCard implements OnInit {
   }
 
   /** "✕ Delete" — first click arms it, second click deletes. */
+  /** Blocking the author (from a post card's menu) hides their reviews too. */
+  protected readonly authorBlocked = computed(() => this.blockService.isBlocked(this.post().userId));
+
+  reportPost(): void {
+    this.reportService.open({ type: 'Post', id: this.post().id, label: `@${this.post().username}'s review` });
+  }
+
+  reportComment(comment: CommentModel): void {
+    this.reportService.open({ type: 'Comment', id: comment.id, label: `@${comment.username}'s comment` });
+  }
+
   deletePost(): void {
     if (!this.confirmingDelete()) {
       this.confirmingDelete.set(true);
@@ -218,7 +233,7 @@ export class ReviewCard implements OnInit {
           this.usefulCount.set(result.likeCount);
           this.meService.refresh().subscribe({ error: () => void 0 });
         },
-        error: () => this.notificationService.error('Failed to update usefulness vote. Please try again.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update usefulness vote. Please try again.')),
       });
   }
 
@@ -268,7 +283,7 @@ export class ReviewCard implements OnInit {
     }
     this.commentService.list(this.post().id, 1, 50, { sort: 'oldest', parentCommentId: item.comment.id }).subscribe({
       next: (result) => this.patch(item.comment.id, { replies: result.items, repliesOpen: true }),
-      error: () => this.notificationService.error('Failed to load replies.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load replies.')),
     });
   }
 
@@ -282,7 +297,7 @@ export class ReviewCard implements OnInit {
         );
         this.pinnedReply.update((p) => (p ? apply(p) : p));
       },
-      error: () => this.notificationService.error('Failed to update vote.'),
+      error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to update vote.')),
     });
   }
 
@@ -317,7 +332,7 @@ export class ReviewCard implements OnInit {
             this.loadThread(1);
           }
         },
-        error: () => this.notificationService.error('Failed to post comment.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to post comment.')),
       });
   }
 
@@ -350,7 +365,7 @@ export class ReviewCard implements OnInit {
           this.threadPage.set(result.page);
           this.threadTotal.set(result.totalCount);
         },
-        error: () => this.notificationService.error('Failed to load comments.'),
+        error: (err: unknown) => this.notificationService.error(extractApiErrorMessage(err, 'Failed to load comments.')),
       });
   }
 

@@ -1,9 +1,13 @@
-import { Component, ElementRef, afterRenderEffect, computed, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { FormField, form, maxLength } from '@angular/forms/signals';
 import { SharedPostPreviewModel, SquadMessageModel } from '../../../../models/squad.model';
 import { clock, clockTime } from '../squad-format';
 import { ImgFallback } from '../../../../shared/img-fallback/img-fallback';
 import { PHONE_QUERY, mediaQuery } from '../../../../shared/media-query';
+import { OverlayStack } from '../../../../shared/overlay/overlay-stack.service';
+import { AuthService } from '../../../../services/auth/auth.service';
+import { BlockService } from '../../../../services/safety/block.service';
+import { ReportService } from '../../../../services/safety/report.service';
 
 /** How long a finger has to stay on a message before the actions sheet opens. */
 const LONG_PRESS_MS = 450;
@@ -38,10 +42,18 @@ export interface ReactRequest {
   templateUrl: './squad-chat.html',
   styleUrls: ['./squad-chat.scss', './squad-chat.mobile.scss'],
   host: {
-    '(document:keydown.escape)': 'isAttachOpen.set(false)',
+    '(document:keydown.escape)': 'overlays.hasOpen() || isAttachOpen.set(false)',
   },
 })
 export class SquadChat {
+  /** Page-level Escape stands down while a dialog is open — the dialog closes first. */
+  protected readonly overlays = inject(OverlayStack);
+  private readonly authService = inject(AuthService);
+  private readonly blockService = inject(BlockService);
+  private readonly reportService = inject(ReportService);
+
+  /** Engellediğim kişilerin mesajları katlanır; "Göster" ile tek tek açılır (bu oturumda). */
+  protected readonly revealedIds = signal<ReadonlySet<string>>(new Set());
   channelName = input<string | undefined>(undefined);
   messages = input.required<SquadMessageModel[]>();
   /** userId → level (roster). */
@@ -222,4 +234,21 @@ export class SquadChat {
     }
     return date.toLocaleDateString('tr-TR');
   }
+
+  protected isFolded(message: SquadMessageModel): boolean {
+    return this.blockService.isBlocked(message.userId) && !this.revealedIds().has(message.id);
+  }
+
+  protected reveal(messageId: string): void {
+    this.revealedIds.update((ids) => new Set([...ids, messageId]));
+  }
+
+  protected isMine(message: SquadMessageModel): boolean {
+    return message.userId === this.authService.currentUser()?.id;
+  }
+
+  protected report(message: SquadMessageModel): void {
+    this.reportService.open({ type: 'SquadMessage', id: message.id, label: `@${message.username} · mesaj` });
+  }
+
 }

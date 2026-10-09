@@ -1,0 +1,45 @@
+<section class="card settings-section" aria-labelledby="settings-privacy-title">
+  <h2 class="settings-title" id="settings-privacy-title">Privacy</h2>
+
+  <form class="settings-section" [formRoot]="privacyForm">
+    <div class="form-group">
+      <label for="settings-messages-from">Who can send you direct messages</label>
+      <select id="settings-messages-from" [formField]="privacyForm.allowMessagesFrom">
+        <button><selectedcontent></selectedcontent></button>
+        @for (option of messageOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <span class="field-hint">People you blocked can never message you.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="settings-activity">Who sees your posts, clips and reviews on your profile</label>
+      <select id="settings-activity" [formField]="privacyForm.profileActivityVisibility">
+        <button><selectedcontent></selectedcontent></button>
+        @for (option of activityOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <span class="field-hint">Your name, avatar, bio and trophies stay visible to everyone.</span>
+    </div>
+
+    <label class="privacy-toggle">
+      <input type="checkbox" [formField]="privacyForm.showOnlineStatus" />
+      <span>
+        Show when I'm online
+        <span class="field-hint">When off, you appear offline everywhere and your last-seen time is hidden.</span>
+      </span>
+    </label>
+
+    @if (submitError(privacyForm()); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="settings-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="unchanged() || privacyForm().submitting()">
+        {{ privacyForm().submitting() ? 'Saving...' : 'Save privacy' }}
+      </button>
+    </div>
+  </form>
+</section>

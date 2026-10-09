@@ -1,8 +1,26 @@
 <div class="admin-page">
   <h1>Users</h1>
-  <p class="text-muted mb-lg">Approve developer accounts and grant or revoke backoffice permissions. Changing either signs the user out so their new access applies.</p>
+  <p class="text-muted mb-lg">Approve developer accounts, grant or revoke backoffice permissions and ban accounts. Each of these signs the user out so the change applies.</p>
 
-  @if (isLoading()) {
+  <div class="admin-toolbar">
+    <input
+      type="search"
+      class="admin-search"
+      placeholder="Search username or email"
+      aria-label="Search users"
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)" />
+    <label class="requests-only">
+      <input type="checkbox" [checked]="requestsOnly()" (change)="toggleRequestsOnly()" />
+      Developer requests only
+    </label>
+    <label class="requests-only">
+      <input type="checkbox" [checked]="bannedOnly()" (change)="toggleBannedOnly()" />
+      Banned only
+    </label>
+  </div>
+
+  @if (isLoading() && users().length === 0) {
     <p class="text-muted">Loading users...</p>
   } @else {
     <div class="table-wrapper card">
@@ -15,6 +33,7 @@
             @for (permission of permissionKeys; track permission) {
               <th>{{ permission }}</th>
             }
+            <th>Ban</th>
           </tr>
         </thead>
         <tbody>
@@ -45,16 +64,29 @@
                     (change)="togglePermission(user, permission)">
                 </td>
               }
+              <td class="ban-cell">
+                @if (user.isBanned) {
+                  <span class="ban-status" [attr.title]="user.banReason">{{ user.banEndsAt ? 'Until ' + (user.banEndsAt | date: 'MMM d') : 'Permanent' }}</span>
+                  <button type="button" class="btn btn-sm btn-secondary" [disabled]="isPending(user, 'ban')" (click)="unban(user)">Unban</button>
+                } @else if (!isCurrentUser(user)) {
+                  <button type="button" class="btn btn-sm btn-secondary" (click)="banTarget.set(user)">Ban</button>
+                }
+              </td>
             </tr>
           }
 
           @if (users().length === 0) {
             <tr>
-              <td [attr.colspan]="3 + permissionKeys.length" class="text-muted">No users found.</td>
+              <td [attr.colspan]="4 + permissionKeys.length" class="text-muted">No users found.</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+    <app-pager [page]="page()" [pageSize]="pageSize" [totalCount]="totalCount()" itemLabel="users" [disabled]="isLoading()" (pageChange)="goToPage($event)" />
   }
 </div>
+
+@if (banTarget(); as target) {
+  <app-ban-sheet [userId]="target.id" [username]="target.username" (banned)="onBanned()" (closed)="banTarget.set(null)" />
+}

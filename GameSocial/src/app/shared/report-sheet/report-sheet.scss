@@ -1,0 +1,91 @@
+@use '../../../styles/variables' as *;
+
+.rp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rp-label {
+  font: 700 11px/14px $font-family-primary;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.rp-reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 8px;
+  }
+}
+
+.rp-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: $color-text-tertiary;
+  }
+
+  &.selected {
+    border-color: $color-accent-primary;
+    background: $color-accent-tint;
+  }
+
+  &:focus-within {
+    outline: 2px solid $color-accent-primary;
+    outline-offset: 2px;
+  }
+}
+
+.rp-reason-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-primary;
+}
+
+.rp-reason-hint {
+  font-size: 12px;
+  color: $color-text-tertiary;
+}
+
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-count {
+  align-self: flex-end;
+  font-size: 12px;
+  color: $color-text-tertiary;
+
+  &.over {
+    color: $color-accent-primary;
+  }
+}
+
+.rp-error {
+  margin: 0;
+  font-size: 13px;
+  color: $color-accent-primary;
+}
+
+.rp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

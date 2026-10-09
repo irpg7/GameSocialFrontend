@@ -1,0 +1,27 @@
+<section class="card settings-section" aria-labelledby="settings-blocked-title">
+  <h2 class="settings-title" id="settings-blocked-title">Blocked users</h2>
+  <p class="settings-note">You and the people you block don't see each other's posts, comments or profile, and can't follow, message or invite each other.</p>
+
+  @if (loadError(); as error) {
+    <app-load-error [message]="error" (retry)="load()" />
+  } @else if (users(); as users) {
+    @if (users.length === 0) {
+      <p class="settings-note">You haven't blocked anyone.</p>
+    } @else {
+      <ul class="blocked-list">
+        @for (user of users; track user.userId) {
+          <li class="blocked-row">
+            <span class="blocked-avatar"><img [appImg]="user.avatarUrl" fallback="avatar" alt="" /></span>
+            <span class="blocked-name">
+              <a [routerLink]="['/profile', user.userId]">&#64;{{ user.username }}</a>
+              <span class="field-hint">Blocked {{ user.blockedAt | date: 'MMM d, y' }}</span>
+            </span>
+            <button type="button" class="btn btn-secondary btn-sm" [disabled]="busyId() === user.userId" (click)="unblock(user)">Unblock</button>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="settings-note">Loading...</p>
+  }
+</section>

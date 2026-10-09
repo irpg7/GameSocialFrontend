@@ -1,0 +1,146 @@
+<div class="admin-page">
+  <h1>Moderation</h1>
+  <p class="text-muted mb-lg">Reports grouped by what was reported. Removing content hides it for everyone but moderators and can be undone. Every action is logged.</p>
+
+  <div class="admin-toolbar mod-toolbar">
+    <div class="mod-tabs" role="tablist" aria-label="Queue">
+      <button type="button" role="tab" class="mod-tab" [class.active]="status() === 'Open'" [attr.aria-selected]="status() === 'Open'" (click)="setStatus('Open')">Open</button>
+      <button type="button" role="tab" class="mod-tab" [class.active]="status() === 'Closed'" [attr.aria-selected]="status() === 'Closed'" (click)="setStatus('Closed')">Resolved</button>
+    </div>
+    <div class="mod-types" role="group" aria-label="Type">
+      @for (filter of typeFilters; track filter.value) {
+        <button type="button" class="mod-chip" [class.active]="type() === filter.value" [attr.aria-pressed]="type() === filter.value" (click)="setType(filter.value)">{{ filter.label }}</button>
+      }
+    </div>
+  </div>
+
+  @if (isLoading() && items().length === 0) {
+    <p class="text-muted">Loading the queue...</p>
+  } @else if (items().length === 0) {
+    <div class="card mod-empty">
+      <p class="text-muted">{{ status() === 'Open' ? 'Nothing to review. 🎉' : 'No resolved reports yet.' }}</p>
+    </div>
+  } @else {
+    <div class="mod-list">
+      @for (item of items(); track key(item)) {
+        <article class="card mod-item" [class.mod-removed]="item.preview.isRemoved">
+          <header class="mod-head">
+            <span class="mod-type">{{ typeLabel(item.targetType) }}</span>
+            <span class="mod-count mono">{{ item.reportCount }} report{{ item.reportCount === 1 ? '' : 's' }}</span>
+            @for (r of item.reasons; track r.reason) {
+              <span class="mod-reason">{{ reasonLabel(r.reason) }}@if (r.count > 1) { ×{{ r.count }} }</span>
+            }
+            @if (item.status !== 'Open') {
+              <span class="mod-status">{{ item.status }}</span>
+            }
+            <span class="mod-time text-muted">{{ item.latestReportedAt | date: 'MMM d, HH:mm' }}</span>
+          </header>
+
+          <div class="mod-preview">
+            @if (!item.preview.exists) {
+              <p class="text-muted">This {{ typeLabel(item.targetType).toLowerCase() }} no longer exists.</p>
+            } @else {
+              @if (item.preview.thumbnailUrl) {
+                <img class="mod-thumb" [src]="item.preview.thumbnailUrl" alt="" />
+              }
+              <div class="mod-preview-body">
+                <div class="mod-author">
+                  @if (item.preview.authorUsername) {
+                    <a [routerLink]="['/profile', item.preview.authorId]">&#64;{{ item.preview.authorUsername }}</a>
+                  }
+                  @if (item.preview.authorIsBanned) {
+                    <span class="mod-banned">Banned{{ item.preview.authorBanEndsAt ? ' until ' + (item.preview.authorBanEndsAt | date: 'MMM d') : '' }}</span>
+                  }
+                  @if (item.preview.squadName && item.targetType !== 'Squad') {
+                    <span class="text-muted">in {{ item.preview.squadName }}</span>
+                  }
+                </div>
+                @if (item.preview.title) {
+                  <div class="mod-title">{{ item.preview.title }}</div>
+                }
+                @if (item.preview.text) {
+                  <p class="mod-text">{{ item.preview.text }}</p>
+                }
+                @if (item.preview.isRemoved) {
+                  <p class="mod-removed-note">Removed — {{ item.preview.removedReason }}</p>
+                }
+                @if (link(item); as route) {
+                  <a class="mod-open" [routerLink]="route" target="_blank">Open in app ↗</a>
+                }
+              </div>
+            }
+          </div>
+
+          @if (item.latestNote) {
+            <blockquote class="mod-note">“{{ item.latestNote }}”</blockquote>
+          }
+
+          @if (acting()?.key === key(item)) {
+            <div class="mod-reason-box">
+              <input
+                type="text"
+                maxlength="500"
+                [value]="reason()"
+                (input)="reason.set($any($event.target).value)"
+                (keydown.enter)="confirmAction(item)"
+                [placeholder]="acting()?.action === 'remove' ? 'Reason (required) — e.g. Spam link' : 'Note (optional)'"
+                aria-label="Reason" />
+              <button type="button" class="btn btn-primary btn-sm" [disabled]="busyKey() === key(item)" (click)="confirmAction(item)">
+                {{ acting()?.action === 'remove' ? 'Remove' : acting()?.action === 'restore' ? 'Restore' : 'Dismiss' }}
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="cancelAction()">Cancel</button>
+            </div>
+          } @else {
+            <div class="mod-actions">
+              @if (item.status === 'Open') {
+                <button type="button" class="btn btn-secondary btn-sm" (click)="startAction(item, 'dismiss')">Dismiss</button>
+              }
+              @if (canRemove(item)) {
+                <button type="button" class="btn btn-secondary btn-sm mod-danger" (click)="startAction(item, 'remove')">Remove content</button>
+              }
+              @if (canRestore(item)) {
+                <button type="button" class="btn btn-secondary btn-sm" (click)="startAction(item, 'restore')">Restore</button>
+              }
+              @if (item.preview.authorId) {
+                @if (item.preview.authorIsBanned) {
+                  <button type="button" class="btn btn-secondary btn-sm" [disabled]="busyKey() === key(item)" (click)="unban(item)">Unban &#64;{{ item.preview.authorUsername }}</button>
+                } @else {
+                  <button type="button" class="btn btn-secondary btn-sm mod-danger" (click)="openBan(item)">Ban &#64;{{ item.preview.authorUsername }}</button>
+                }
+              }
+              @if (item.history.length > 0) {
+                <button type="button" class="mod-history-toggle" [attr.aria-expanded]="expandedHistory().has(key(item))" (click)="toggleHistory(item)">
+                  History ({{ item.history.length }})
+                </button>
+              }
+            </div>
+          }
+
+          @if (expandedHistory().has(key(item))) {
+            <ol class="mod-history">
+              @for (entry of item.history; track entry.id) {
+                <li>
+                  <span class="mono text-muted">{{ entry.createdAt | date: 'MMM d, HH:mm' }}</span>
+                  <b>{{ actionLabel(entry.action) }}</b>
+                  by {{ entry.moderatorUsername ? '@' + entry.moderatorUsername : 'system' }}
+                  @if (entry.reason) { — {{ entry.reason }} }
+                  @if (entry.details) { <span class="text-muted">({{ entry.details }})</span> }
+                </li>
+              }
+            </ol>
+          }
+        </article>
+      }
+    </div>
+    <app-pager [page]="page()" [pageSize]="pageSize" [totalCount]="totalCount()" itemLabel="items" [disabled]="isLoading()" (pageChange)="goToPage($event)" />
+  }
+</div>
+
+@if (banTarget(); as target) {
+  <app-ban-sheet
+    [userId]="target.preview.authorId!"
+    [username]="target.preview.authorUsername ?? ''"
+    [from]="{ type: target.targetType, id: target.targetId }"
+    (banned)="onBanned()"
+    (closed)="banTarget.set(null)" />
+}

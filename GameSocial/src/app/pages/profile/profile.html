@@ -1,14 +1,28 @@
 @if (isLoading()) {
   <p class="text-muted">Loading profile...</p>
+} @else if (loadError(); as error) {
+  <app-load-error [message]="error" (retry)="retry()" />
 } @else if (notFound()) {
   <div class="card profile-empty">
     <p class="text-muted">User not found.</p>
     <a routerLink="/feed" class="btn btn-secondary mt-md">Back to feed</a>
   </div>
+} @else if (profile()?.isUnavailable) {
+  <div class="card profile-empty">
+    @if (profile()?.isBlockedByCurrentUser) {
+      <p class="text-muted">You blocked <strong>&#64;{{ profile()?.username }}</strong>. You won't see each other's posts, comments or profile.</p>
+      <button type="button" class="btn btn-secondary mt-md" [disabled]="isBlocking()" (click)="unblock()">Unblock</button>
+    } @else {
+      <p class="text-muted">This account isn't available.</p>
+      <a routerLink="/feed" class="btn btn-secondary mt-md">Back to feed</a>
+    }
+  </div>
 } @else if (profile(); as profile) {
   <div class="profile-page">
     <div class="profile-banner card">
-      <span class="profile-avatar">{{ profile.username.charAt(0).toUpperCase() }}</span>
+      <span class="profile-avatar">
+        <img [appImg]="profile.avatarUrl" fallback="avatar" [alt]="profile.username + ' avatar'" />
+      </span>
 
       <div class="profile-info">
         <div class="profile-name-row">
@@ -19,8 +33,20 @@
           @if (profile.isPremium) {
             <span class="badge badge-premium">Premium</span>
           }
+          @if (profile.isBanned) {
+            <!-- Moderators only: the server fills ban fields for Moderation.Manage. -->
+            <span class="badge badge-banned" [attr.title]="profile.banReason">
+              Banned{{ profile.banEndsAt ? ' until ' + (profile.banEndsAt | date: 'MMM d, HH:mm') : ' permanently' }}
+            </span>
+          }
         </div>
+        @if (profile.studioName) {
+          <span class="profile-studio">{{ profile.studioName }}</span>
+        }
         <span class="text-muted">Joined {{ profile.createdAt | date: 'MMMM yyyy' }}</span>
+        @if (profile.bio) {
+          <p class="profile-bio">{{ profile.bio }}</p>
+        }
 
         <div class="profile-xp">
           <span class="xp-level">LV {{ profile.level }}</span>
@@ -31,6 +57,9 @@
         </div>
       </div>
 
+      @if (profile.isCurrentUser) {
+        <a class="btn btn-secondary" routerLink="/settings">Edit profile</a>
+      }
       @if (!profile.isCurrentUser) {
         <button
           type="button"
@@ -41,6 +70,20 @@
           (click)="toggleFollow()">
           {{ profile.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
         </button>
+        @if (profile.canMessage) {
+          <button type="button" class="btn btn-secondary" [disabled]="isOpeningChat()" (click)="message()">Message</button>
+        }
+        <div class="profile-more">
+          <button type="button" class="btn btn-secondary profile-more-btn" aria-label="More actions" aria-haspopup="menu" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu($event)">···</button>
+          @if (menuOpen()) {
+            <div class="profile-more-pop" role="menu" (click)="$event.stopPropagation()">
+              <button type="button" role="menuitem" class="profile-more-item" (click)="reportUser()">⚑ Report &#64;{{ profile.username }}</button>
+              <button type="button" role="menuitem" class="profile-more-item danger" [disabled]="isBlocking()" (click)="block()">
+                {{ confirmingBlock() ? 'Click again to block' : '⊘ Block @' + profile.username }}
+              </button>
+            </div>
+          }
+        </div>
       }
     </div>
 
@@ -62,6 +105,10 @@
         <span class="stat-label">Trophies · top {{ profile.trophyTopPercent }}%</span>
       </div>
     </div>
+
+    @if (profile.activityHidden) {
+      <p class="profile-activity-note">&#64;{{ profile.username }} shares posts, clips and reviews with followers only.</p>
+    }
 
     <!-- Trophies' "Showcase — pinned to your profile" lands here. -->
     <section class="profile-showcase card" aria-label="Trophy showcase">

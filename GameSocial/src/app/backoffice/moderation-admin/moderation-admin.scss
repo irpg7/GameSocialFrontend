@@ -1,0 +1,211 @@
+@use '../admin-shared' as *;
+@use '../../../styles/variables' as *;
+
+.mod-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.mod-tabs,
+.mod-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mod-tab,
+.mod-chip {
+  padding: 6px 12px;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-full;
+  background: none;
+  color: $color-text-secondary;
+  font: 600 12px/16px $font-family-primary;
+  cursor: pointer;
+
+  &.active {
+    border-color: $color-accent-primary;
+    background: $color-accent-tint;
+    color: $color-text-primary;
+  }
+}
+
+.mod-tab {
+  font-size: 13px;
+}
+
+.mod-empty {
+  text-align: center;
+}
+
+.mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.mod-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &.mod-removed {
+    border-style: dashed;
+  }
+}
+
+.mod-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.mod-type {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $color-text-primary;
+}
+
+.mod-count {
+  color: $color-accent-light;
+  font-weight: 700;
+}
+
+.mod-reason,
+.mod-status {
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  background: $color-bg-tertiary;
+  color: $color-text-secondary;
+}
+
+.mod-time {
+  margin-left: auto;
+}
+
+.mod-preview {
+  display: flex;
+  gap: $spacing-md;
+  padding: 10px 12px;
+  border-radius: $border-radius-md;
+  background: $color-bg-inset;
+}
+
+.mod-thumb {
+  width: 96px;
+  height: 64px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.mod-preview-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mod-author {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+
+  a {
+    color: $color-text-primary;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+.mod-banned {
+  font-size: 11px;
+  font-weight: 700;
+  color: $color-accent-light;
+}
+
+.mod-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.mod-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $color-text-body;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mod-removed-note {
+  margin: 0;
+  font-size: 12px;
+  color: $color-accent-light;
+}
+
+.mod-open {
+  font-size: 12px;
+  color: $color-text-secondary;
+}
+
+.mod-note {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 2px solid $color-border-strong;
+  font-size: 13px;
+  color: $color-text-secondary;
+}
+
+.mod-actions,
+.mod-reason-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mod-reason-box input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.mod-danger {
+  color: $color-accent-light;
+}
+
+.mod-history-toggle {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: $color-text-tertiary;
+  font: 600 12px/16px $font-family-primary;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.mod-history {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: $color-text-secondary;
+
+  .mono {
+    margin-right: 6px;
+  }
+}

@@ -4,6 +4,7 @@ export const PERMISSIONS = {
   SettingsManage: 'Settings.Manage',
   TranslationsManage: 'Translations.Manage',
   UsersManage: 'Users.Manage',
+  ModerationManage: 'Moderation.Manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -14,6 +15,7 @@ export const PERMISSION_KEYS: PermissionKey[] = [
   PERMISSIONS.SettingsManage,
   PERMISSIONS.TranslationsManage,
   PERMISSIONS.UsersManage,
+  PERMISSIONS.ModerationManage,
 ];
 
 export interface BackofficeSection {
@@ -28,4 +30,5 @@ export const BACKOFFICE_SECTIONS: BackofficeSection[] = [
   { permission: PERMISSIONS.TranslationsManage, path: 'languages', label: 'Languages & Translations' },
   { permission: PERMISSIONS.SettingsManage, path: 'settings', label: 'Settings' },
   { permission: PERMISSIONS.UsersManage, path: 'users', label: 'Users' },
+  { permission: PERMISSIONS.ModerationManage, path: 'moderation', label: 'Moderation' },
 ];

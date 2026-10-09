@@ -1,0 +1,39 @@
+<app-sheet-modal title="Report" [subtitle]="target().label" (closed)="close()">
+  <form class="rp-stack" [formRoot]="reportForm">
+    <fieldset class="rp-reasons">
+      <legend class="rp-label">What's wrong?</legend>
+      @for (option of reasons; track option.key) {
+        <label class="rp-reason" [class.selected]="reason() === option.key">
+          <input type="radio" class="visually-hidden" [value]="option.key" [formField]="reportForm.reason" />
+          <span class="rp-reason-label">{{ option.label }}</span>
+          @if (option.hint) {
+            <span class="rp-reason-hint">{{ option.hint }}</span>
+          }
+        </label>
+      }
+      @if (fieldError(reportForm.reason()); as message) {
+        <span class="rp-error">{{ message }}</span>
+      }
+    </fieldset>
+
+    <label class="rp-field">
+      <span class="rp-label">Note for moderators (optional)</span>
+      <textarea rows="3" [formField]="reportForm.note" placeholder="Anything that helps us understand the problem"></textarea>
+      <span class="rp-count" [class.over]="noteLength() > noteMax">{{ noteLength() }} / {{ noteMax }}</span>
+      @if (fieldError(reportForm.note()); as message) {
+        <span class="rp-error">{{ message }}</span>
+      }
+    </label>
+
+    @if (submitError(reportForm()); as message) {
+      <p class="rp-error" role="alert">{{ message }}</p>
+    }
+
+    <div class="rp-actions">
+      <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="reportForm().submitting()">
+        {{ reportForm().submitting() ? 'Sending…' : 'Send report' }}
+      </button>
+    </div>
+  </form>
+</app-sheet-modal>

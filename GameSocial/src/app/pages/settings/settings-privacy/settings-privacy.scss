@@ -1,0 +1,14 @@
+@use '../../../../styles/variables' as *;
+
+.privacy-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  font-size: 0.9rem;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  input {
+    margin-top: 3px;
+  }
+}
