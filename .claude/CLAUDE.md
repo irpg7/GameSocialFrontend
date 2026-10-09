@@ -13,9 +13,10 @@ changed and why.
 - The skill holds the general Angular guidance; this file only adds project rules, and where they differ this file wins.
 - Skip the skill's **testing** guides: no unit, harness, router or e2e tests, and no test files. Also skip its
   **Tailwind** guide, because this project styles with SCSS.
-- Never use the backend repo's .NET skills or agents here.
+- Never use the .NET skills or agents (the `dotnet-claude-kit` plugin, enabled only in the backend repo) here.
 - The backend is a separate repo next to this one: `../GameSocialBackend` (.NET 10, FastEndpoints, EF Core, SignalR).
-  When you touch it, follow its `.claude/CLAUDE.md` and use its .NET skills (in its `.claude/skills`).
+  When you touch it, follow its `.claude/CLAUDE.md`. Its **Skills** section says which `dotnet-claude-kit` skills to
+  use and which to avoid.
 
 ## Local dev
 - `ng serve` (in `GameSocial/`) proxies `/api` (including SignalR hubs) and `/media` to `http://localhost:5234`
