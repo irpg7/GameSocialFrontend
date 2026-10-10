@@ -59,10 +59,15 @@
   }
 }
 
+// Sits on the <td> itself, so it must stay a table cell: display: flex took the cell out of the row — the
+// buttons hugged the top and the row's bottom border ran above them. Buttons sit inline instead.
 .admin-table-actions {
-  display: flex;
-  gap: $spacing-xs;
   white-space: nowrap;
+  text-align: right;
+
+  > * + * {
+    margin-left: $spacing-xs;
+  }
 }
 
 .poster-thumb {
