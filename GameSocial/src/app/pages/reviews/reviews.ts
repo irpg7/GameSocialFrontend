@@ -15,6 +15,7 @@ import { ReviewCard } from './review-card/review-card';
 import { ImgFallback } from '../../shared/img-fallback/img-fallback';
 import { LoadError } from '../../shared/load-error/load-error';
 import { extractApiErrorMessage } from '../../shared/api-error.util';
+import { AuthService } from '../../services/auth/auth.service';
 
 const PAGE_SIZE = 10;
 const LONG_PLAYTIME_HOURS = 20;
@@ -60,6 +61,9 @@ export class Reviews implements OnInit {
   private notificationService = inject(NotificationService);
   private xpAwards = inject(XpAwardsService);
   private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  /** Trusted reviewers can include you; you get no Follow button on yourself. */
+  protected readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   protected readonly posts = signal<PostModel[]>([]);
   protected readonly page = signal(1);

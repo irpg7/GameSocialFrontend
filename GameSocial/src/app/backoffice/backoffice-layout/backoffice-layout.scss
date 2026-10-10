@@ -75,6 +75,7 @@
 .backoffice-content {
   flex-grow: 1;
   overflow-y: auto;
+  scrollbar-gutter: stable; // no sideways jump when a short page (Settings) and a long one (Users) alternate
   padding: $spacing-xl $spacing-2xl;
 }
 

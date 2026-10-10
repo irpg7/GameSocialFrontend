@@ -71,6 +71,8 @@ export class PostCard {
   mySquads = input<SquadModel[]>([]);
   /** The feed's hero: "CLIP OF THE DAY" stage + featured comment thread. */
   featured = input(false);
+  /** Start with the comment thread open — the post's own page (/posts/:id), where comment notifications land. */
+  commentsOpen = input(false);
 
   private readonly stage = viewChild(ClipStage);
   private readonly commentsRef = viewChild(PostComments);
@@ -86,7 +88,7 @@ export class PostCard {
   protected readonly isVotingPoll = signal(false);
   protected readonly menuOpen = signal(false);
 
-  protected readonly isCommentsOpen = signal(false);
+  protected readonly isCommentsOpen = linkedSignal(() => this.commentsOpen());
 
   protected readonly isOwnPost = computed(() => this.post().userId === this.authService.currentUser()?.id);
   protected readonly timeAgo = computed(() => formatTimeAgo(this.post().createdAt) + (this.post().editedAt ? ' · edited' : ''));

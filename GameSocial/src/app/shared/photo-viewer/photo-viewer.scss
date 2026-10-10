@@ -175,12 +175,18 @@
 .viewer-tags {
   position: absolute;
   left: 16px;
+  right: 16px;
   bottom: 16px;
   display: flex;
+  flex-wrap: wrap; // on a phone the game and size tags stack instead of breaking mid-label
   gap: 7px;
 }
 
 .viewer-tag {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding: 5px 10px;
   border-radius: 9px;
   background-color: rgba(10, 10, 12, 0.75);

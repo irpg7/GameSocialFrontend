@@ -42,6 +42,9 @@
   flex-grow: 1;
   padding: $spacing-xl $spacing-2xl;
   overflow-y: auto;
+  // Keep the scrollbar's space even when a page is too short to scroll: otherwise a classic (Windows) scrollbar
+  // coming and going — e.g. feed filtered to a game with no posts vs one with posts — shifted every column 7px.
+  scrollbar-gutter: stable;
 
   @media (max-width: 640px) {
     padding: $spacing-md;

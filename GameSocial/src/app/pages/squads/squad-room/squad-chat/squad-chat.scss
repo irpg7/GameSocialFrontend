@@ -264,6 +264,11 @@
     background-color: $color-bg-tertiary;
     color: $color-text-primary;
   }
+
+  // 📌 on an already pinned message
+  &.on {
+    background-color: $color-accent-tint;
+  }
 }
 
 // ─── SQUAD CLIP kartı (L228–234; mobil: RoomChat.dc.html) ───────────────────

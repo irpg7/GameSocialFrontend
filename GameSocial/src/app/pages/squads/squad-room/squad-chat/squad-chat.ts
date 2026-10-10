@@ -74,6 +74,8 @@ export class SquadChat {
   typingUsers = input<string[]>([]);
   /** Squad-wide pinned message count (SquadModel.pinnedMessageCount): shows the 📌 bar. */
   pinnedCount = input(0);
+  /** Captain: may unpin anyone's message (server rule); others only their own. Any member may pin. */
+  canManage = input(false);
 
   send = output<string>();
   loadEarlier = output<void>();
@@ -87,6 +89,8 @@ export class SquadChat {
   typing = output<void>();
   /** Phone: long press / context menu on a message — the room opens the actions sheet. */
   messageActions = output<SquadMessageModel>();
+  /** Desktop hover tools: pin / unpin (phones do it from the actions sheet). */
+  togglePin = output<SquadMessageModel>();
 
   protected readonly quickReactions = ['▲', '🔥', '😂', '👍'];
   protected readonly draft = signal('');

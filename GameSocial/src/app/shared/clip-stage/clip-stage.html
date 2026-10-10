@@ -12,7 +12,8 @@
     (progress)="onProgress()"
     (play)="onPlayState(true)"
     (pause)="onPlayState(false)"
-    (ended)="onEnded()"></video>
+    (ended)="onEnded()"
+    (error)="onVideoError()"></video>
 
   <ng-template #scrubBar let-withPreview="withPreview" let-withMarkers="withMarkers">
     <div

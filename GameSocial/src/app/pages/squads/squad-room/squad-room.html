@@ -89,6 +89,8 @@
               [pinnedCount]="squad.pinnedMessageCount"
               (openPins)="isPinsOpen.set(true)"
               (messageActions)="openMessageActions($event)"
+              [canManage]="room.isCaptain()"
+              (togglePin)="chat.togglePin($event)"
               (attachClip)="openComposer('clip')"
               (attachScreens)="openComposer('screenshots')" />
           }

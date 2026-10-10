@@ -133,14 +133,16 @@
                 <span class="reviewer-name">{{ reviewer.username }}</span>
                 <span class="reviewer-meta">{{ reviewer.reviewCount }} {{ reviewer.reviewCount === 1 ? 'review' : 'reviews' }} · {{ reviewer.usefulPercent }}% useful</span>
               </span>
-              <button
-                type="button"
-                class="follow-toggle"
-                [class.following]="reviewer.isFollowedByCurrentUser"
-                [attr.aria-pressed]="reviewer.isFollowedByCurrentUser"
-                (click)="toggleFollowReviewer(reviewer)">
-                {{ reviewer.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
-              </button>
+              @if (reviewer.userId !== currentUserId()) {
+                <button
+                  type="button"
+                  class="follow-toggle"
+                  [class.following]="reviewer.isFollowedByCurrentUser"
+                  [attr.aria-pressed]="reviewer.isFollowedByCurrentUser"
+                  (click)="toggleFollowReviewer(reviewer)">
+                  {{ reviewer.isFollowedByCurrentUser ? 'Following' : 'Follow' }}
+                </button>
+              }
             </li>
           }
         </ul>

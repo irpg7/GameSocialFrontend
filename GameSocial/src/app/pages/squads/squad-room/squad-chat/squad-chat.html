@@ -142,6 +142,17 @@
                 @for (emoji of quickReactions; track emoji) {
                   <button type="button" class="message-tool" [attr.aria-label]="emoji + ' tepkisi'" (click)="react.emit({ message, emoji })">{{ emoji }}</button>
                 }
+                <!-- Desktop has no long press: pin / unpin sits with the reactions (the sheet's rule: anyone pins,
+                     the author and the captain unpin). -->
+                @if (!message.isPinned || isMine(message) || canManage()) {
+                  <button
+                    type="button"
+                    class="message-tool"
+                    [class.on]="message.isPinned"
+                    [attr.aria-label]="message.isPinned ? 'Sabitlemeyi kaldır' : 'Mesajı sabitle'"
+                    [attr.title]="message.isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle'"
+                    (click)="togglePin.emit(message)">📌</button>
+                }
                 @if (!isMine(message)) {
                   <button type="button" class="message-tool" aria-label="Mesajı bildir" title="Bildir" (click)="report(message)">⚑</button>
                 }

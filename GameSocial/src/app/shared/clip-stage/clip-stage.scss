@@ -120,6 +120,8 @@ a:focus-visible,
   position: absolute;
   left: 22px;
   top: 22px;
+  // Stops short of the top-right action buttons; a long squad / game name truncates instead of running off the card.
+  max-width: calc(100% - 200px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -127,6 +129,9 @@ a:focus-visible,
 }
 
 .stage-badge {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 6px 10px;
   border-radius: 9px;
   font-family: $font-family-mono;
@@ -139,6 +144,7 @@ a:focus-visible,
 }
 
 .stage-badge-rank {
+  flex: none;
   background-color: $color-accent-primary;
   color: #fff;
   font-weight: 800;

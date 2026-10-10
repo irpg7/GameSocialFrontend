@@ -165,7 +165,13 @@ export class ClipStage {
   protected readonly likeCount = linkedSignal(() => this.post().likeCount);
   protected readonly viewCount = linkedSignal(() => this.post().viewCount ?? 0);
 
-  protected readonly media = computed(() => clipVideo(this.post().media));
+  /**
+   * The clip's video. Writable so a stale URL can be swapped for the current one: right after an upload the
+   * post points at the original file, which the transcoder deletes once the renditions exist (see onVideoError).
+   */
+  protected readonly media = linkedSignal(() => clipVideo(this.post().media));
+  /** The src a reload was already tried for — one refetch per URL, never a loop. */
+  private recoveredFrom: string | null = null;
   protected readonly renditions = computed(() => this.media()?.renditions ?? []);
   protected readonly quality = linkedSignal<string | null>(() => this.renditions()[0]?.label ?? null);
   protected readonly src = computed(() => {
@@ -464,6 +470,32 @@ export class ClipStage {
     if (video.buffered.length > 0) {
       this.bufferedEnd.set(video.buffered.end(video.buffered.length - 1));
     }
+  }
+
+  /**
+   * The video failed to load. Usually the URL went stale: the author's own card still has the original upload,
+   * deleted when transcoding finished. Refetch the post once and continue from the same second on the new URL.
+   */
+  protected onVideoError(): void {
+    const failed = this.src();
+    if (!failed || this.recoveredFrom === failed) {
+      return;
+    }
+    this.recoveredFrom = failed;
+    const video = this.videoRef().nativeElement;
+    const resumeAt = video.currentTime || this.currentTime();
+    const resume = this.playing();
+    this.postService.getPost(this.post().id).subscribe({
+      next: (fresh) => {
+        const media = clipVideo(fresh.media);
+        if (media && media.url !== this.media()?.url) {
+          this.pendingSeek = resumeAt > 0 ? resumeAt : null;
+          this.pendingPlay = resume;
+          this.media.set(media);
+        }
+      },
+      error: () => void 0,
+    });
   }
 
   protected onPlayState(playing: boolean): void {

@@ -20,7 +20,8 @@ import { PostCard } from '../feed/post-card/post-card';
     <div class="permalink">
       <a class="permalink-back" routerLink="/feed">← Back to feed</a>
       @if (post(); as p) {
-        <app-post-card [post]="p" />
+        <!-- Comments open: the post's own page, and where "commented on your post" notifications lead. -->
+        <app-post-card [post]="p" [commentsOpen]="true" />
       } @else if (notFound()) {
         <div class="card permalink-gone">
           <h1>This post isn't available</h1>
