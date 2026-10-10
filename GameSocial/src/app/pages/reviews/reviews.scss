@@ -39,6 +39,11 @@
   border-radius: 20px;
   background: $color-bg-secondary;
   border: 1px solid $color-border;
+
+  @media (max-width: 480px) {
+    gap: 14px;
+    padding: 14px;
+  }
 }
 
 .summary-cover {
@@ -48,6 +53,12 @@
   border-radius: 14px;
   background: $color-border-strong;
   object-fit: cover;
+
+  @media (max-width: 480px) {
+    width: 64px;
+    height: 86px;
+    border-radius: 12px;
+  }
 }
 
 .summary-main {
@@ -99,7 +110,8 @@
 
 .summary-bars {
   flex: 1;
-  min-width: 220px;
+  // min(): on a phone the main column is narrower than 220px, and a fixed floor pushed the bars out of the card.
+  min-width: min(220px, 100%);
   display: flex;
   flex-direction: column;
   gap: 4px;

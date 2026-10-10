@@ -1,0 +1,34 @@
+@use '../../../../styles/variables' as *;
+
+// Split from review-card.scss (style budget): phones. The 70px score gutter left the text column ~215px wide,
+// so the open thread squeezed its sort chips, count and composer to a word per line.
+
+// Labels never break mid-label on any width; the rows they sit in wrap instead.
+.rc-pill,
+.rc-sort,
+.rc-c-action,
+.rc-pinned-tag,
+.rc-thread-count {
+  white-space: nowrap;
+}
+
+.rc-thread-head,
+.rc-c-actions {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .rc {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .rc-gutter {
+    width: 52px;
+  }
+
+  .rc-thread {
+    padding: 10px;
+  }
+}

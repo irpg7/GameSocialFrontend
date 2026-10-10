@@ -17,6 +17,7 @@
   opacity: 0.6;
 }
 
+// A wrapper inside the <td>: flex on the cell itself takes it out of table layout and its borders drift.
 .developer-cell {
   display: flex;
   align-items: center;

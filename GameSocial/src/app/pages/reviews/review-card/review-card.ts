@@ -49,7 +49,7 @@ interface ThreadComment {
   selector: 'app-review-card',
   imports: [ImgFallback, PostEditSheet, FormField, NgTemplateOutlet, RouterLink, StarRating, RichText],
   templateUrl: './review-card.html',
-  styleUrl: './review-card.scss',
+  styleUrls: ['./review-card.scss', './review-card.mobile.scss'],
   host: {
     '[class.is-removed]': 'removed() || authorBlocked()',
   },

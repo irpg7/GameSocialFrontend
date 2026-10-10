@@ -44,7 +44,7 @@
         <app-game-picker class="field-box field-select" inputId="composer-game" ariaLabel="Game" noneLabel="Pick a game" [formField]="fields().gameId" />
 
         @if (preselectedSquadId()) {
-          <span class="field-box squad-locked">{{ lockedSquadName() ?? 'This squad' }}</span>
+          <span class="field-box squad-locked" [attr.title]="lockedSquadName()">{{ lockedSquadName() ?? 'This squad' }}</span>
         } @else {
           <select
             class="field-box field-select"

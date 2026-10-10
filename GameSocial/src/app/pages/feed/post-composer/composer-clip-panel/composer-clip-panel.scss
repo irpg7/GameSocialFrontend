@@ -113,8 +113,11 @@ select.field-box.is-placeholder {
 }
 
 .squad-locked {
-  display: inline-flex;
-  align-items: center;
+  // One line, truncated: a long squad name ran past the sheet and made it scroll sideways.
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: $color-accent-light;
   font-weight: 700;
   cursor: default;

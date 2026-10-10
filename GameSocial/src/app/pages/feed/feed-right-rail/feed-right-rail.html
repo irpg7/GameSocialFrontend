@@ -26,7 +26,7 @@
           All {{ squads().length }}
         </button>
         @for (squad of squads(); track squad.id) {
-          <button type="button" class="squad-chip" [class.active]="selectedSquadId() === squad.id" [attr.aria-pressed]="selectedSquadId() === squad.id" (click)="selectSquad(squad.id)">
+          <button type="button" class="squad-chip" [class.active]="selectedSquadId() === squad.id" [attr.aria-pressed]="selectedSquadId() === squad.id" [attr.title]="squad.name" (click)="selectSquad(squad.id)">
             {{ squad.name }}
           </button>
         }

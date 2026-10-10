@@ -59,11 +59,14 @@
 .clips-filters {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
 .clips-chip {
+  flex: none;
+  white-space: nowrap;
   padding: 8px 13px;
   border-radius: 12px;
   border: 1px solid $color-border;
@@ -89,6 +92,7 @@
 }
 
 .clips-count {
+  // The longer counts ("N clips from people you follow") wrap to their own line instead of squeezing the chips.
   margin-left: auto;
   font-size: 12px;
   line-height: 16px;
@@ -154,6 +158,7 @@
 }
 
 .rail-tab {
+  white-space: nowrap;
   padding: 7px 12px;
   border-radius: 11px;
   border: 1px solid $color-border;

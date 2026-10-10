@@ -19,6 +19,7 @@ input:focus-visible {
 
 // ─── Sort row ────────────────────────────────────────────────────────────
 .rail-sort {
+  flex-wrap: wrap;
   flex: none;
   display: flex;
   align-items: center;
@@ -26,6 +27,7 @@ input:focus-visible {
 }
 
 .rail-sort-chip {
+  white-space: nowrap;
   padding: 5px 9px;
   border-radius: 9px;
   border: 1px solid $color-border;

@@ -26,6 +26,7 @@
 }
 
 .dev-badge {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -58,11 +59,13 @@
 
 .dv-chips {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
 .dv-chip {
+  white-space: nowrap;
   padding: 5px 10px;
   border-radius: 9px;
   background: $color-bg-tertiary;
@@ -182,6 +185,9 @@
 .dv-line {
   display: flex;
   gap: 10px;
+  // The line text is an anonymous flex item (min-width: auto), so break-word alone can't shrink it: a long
+  // unbroken word pushed it 500px past the card.
+  overflow-wrap: anywhere;
   font: 500 14px/21px $font-family-primary;
   color: $color-text-body;
 }

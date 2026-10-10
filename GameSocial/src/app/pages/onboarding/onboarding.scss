@@ -43,6 +43,13 @@
   }
 }
 
+// A long unbroken game name wraps inside the chip instead of widening the page.
+.game-chip {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
 .game-chip-icon {
   width: 20px;
   height: 20px;

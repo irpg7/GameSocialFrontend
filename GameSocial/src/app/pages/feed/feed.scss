@@ -1,16 +1,16 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/chips';
 
-// The design's onFeed layout: 212 / 660 / 288 with a 26px gutter. Only the
-// center column scrolls — both rails stay put. The page fills the shell's
-// content box (viewport minus the 64px header and the shell's 2×$spacing-xl
-// vertical inset).
+// The design's onFeed layout: 212 / 660 / 288 with a 26px gutter. The page scrolls in the shell's content box
+// (its scrollbar sits at the window's right edge, not beside the posts); both rails are sticky, so they stay put
+// exactly as before, each scrolling on its own when taller than the screen.
+$feed-rail-height: calc(100dvh - 64px - 2 * #{$spacing-xl});
+
 .feed-page {
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   gap: 26px;
-  height: calc(100vh - 64px - 2 * #{$spacing-xl});
-  min-height: 0;
 
   @media (max-width: 1240px) {
     .feed-col-rail {
@@ -19,16 +19,25 @@
   }
 
   @media (max-width: 900px) {
-    height: auto;
-
     .feed-col-sidebar {
       display: none;
     }
   }
 }
 
-.feed-col {
-  min-height: 0;
+.feed-col-sidebar,
+.feed-col-rail {
+  position: sticky;
+  top: 0;
+  // A fixed height, as before: the sidebar pushes its streak card to the bottom with height: 100%.
+  height: $feed-rail-height;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .feed-col-sidebar {
@@ -39,12 +48,6 @@
 .feed-col-rail {
   width: 288px;
   flex: none;
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .feed-col-center {
@@ -54,8 +57,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  overflow-y: auto;
-  padding-right: 6px;
 
   > * {
     flex: none;
@@ -63,7 +64,6 @@
 
   @media (max-width: 900px) {
     width: 100%;
-    overflow: visible;
   }
 }
 

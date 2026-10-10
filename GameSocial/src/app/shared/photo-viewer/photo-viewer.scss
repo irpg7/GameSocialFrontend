@@ -49,6 +49,8 @@
 }
 
 .viewer-lv {
+  flex: none;
+  white-space: nowrap;
   padding: 4px 6px;
   border-radius: 6px;
   background: $color-accent-primary;
@@ -57,6 +59,10 @@
 }
 
 .viewer-author {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 14px;
   line-height: 18px;
   font-weight: 700;
@@ -64,6 +70,7 @@
 }
 
 .viewer-index {
+  flex: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
   line-height: 16px;
@@ -72,6 +79,7 @@
 }
 
 .viewer-head-actions {
+  flex: none;
   margin-left: auto;
   display: flex;
   align-items: center;
@@ -79,6 +87,7 @@
 }
 
 .viewer-action {
+  white-space: nowrap;
   height: 32px;
   padding: 0 12px;
   border: 1px solid $color-border-strong;
@@ -228,6 +237,17 @@
 }
 
 @media (max-width: 640px) {
+  // Phones: the header row (author, LV, Save all, Full size, ✕) is wider than the screen — the name truncates
+  // instead of every label breaking over two lines, and the LV badge drops on the narrowest screens.
+  .viewer-head {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .viewer-action {
+    padding: 0 10px;
+  }
+
   .viewer-body {
     gap: 8px;
     padding: 0 12px;
@@ -236,6 +256,12 @@
   .viewer-thumb {
     width: 60px;
     height: 38px;
+  }
+}
+
+@media (max-width: 400px) {
+  .viewer-lv {
+    display: none;
   }
 }
 

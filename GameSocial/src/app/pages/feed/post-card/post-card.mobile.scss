@@ -1,0 +1,48 @@
+@use '../../../../styles/variables' as *;
+
+// Split from post-card.scss (style budget): narrow-phone fixes. Below ~560px the desktop rows (review gutter + actions,
+// devlog header, glyph bar) are wider than the card, so they shrink and wrap instead of being clipped by the card.
+
+@media (max-width: 560px) {
+  .bar {
+    flex-wrap: wrap;
+    gap: 8px 2px;
+    padding-inline: 12px;
+  }
+
+  .bar-btn {
+    padding-inline: 10px;
+  }
+
+  .bar-devlog {
+    padding-inline: 12px;
+  }
+
+  // DevLog header: the follow button drops under the author instead of squeezing the name to one word per line.
+  .dv-head {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .dv-who {
+    flex: 1 1 140px;
+  }
+
+  // Review: a slimmer score gutter, and the action pills wrap ("Add your rating" goes to its own line).
+  .rv-layout {
+    gap: 12px;
+  }
+
+  .rv-gutter {
+    width: 64px;
+  }
+
+  .rv-cover {
+    width: 56px;
+    height: 74px;
+  }
+
+  .rv-actions {
+    flex-wrap: wrap;
+  }
+}

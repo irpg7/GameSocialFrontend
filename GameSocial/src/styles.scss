@@ -18,6 +18,9 @@ html, body {
   -moz-osx-font-smoothing: grayscale;  
   scrollbar-color: $color-text-secondary $color-bg-primary;
   scrollbar-width: thin;
+  // User text (review bodies, headlines, captions, chat) can hold one long unbroken word or URL; without this it
+  // widened its card past the screen and the page scrolled sideways. Only breaks a word that can't fit a line.
+  overflow-wrap: break-word;
 }
 
 /* The photo lightbox covers the page — the feed must not scroll away behind it. */
@@ -114,10 +117,12 @@ a {
    surrounding markup. A component only needs its own CSS when it genuinely
    differs from a plain field (a chip-styled tag input, a borderless search
    box) — never to reproduce this base look. Checkboxes/radios opt out since
-   they're a different control shape entirely. */
-input:not([type='checkbox']):not([type='radio']),
-textarea,
-select {
+   they're a different control shape entirely.
+   :where() keeps this at zero specificity, so a component's own class always
+   wins (input:not(...):not(...) was 0,2,1 and silently beat single-class
+   component rules — e.g. game-picker's `all: unset` field kept the full-width
+   box and pushed its caret outside the field). */
+:where(input:not([type='checkbox']):not([type='radio']), textarea, select) {
   width: 100%;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius-md;
@@ -342,15 +347,17 @@ select {
 
 /* Screen-reader-only label. Was previously defined per-component
    (post-composer.scss); the squad screens need it in several places, so it
-   lives here as one utility. */
+   lives here as one utility. !important: the global input rule above is more
+   specific (input:not(...)), and its width: 100% + padding made a hidden file
+   input 100vw wide — the page scrolled sideways on /settings. */
 .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }

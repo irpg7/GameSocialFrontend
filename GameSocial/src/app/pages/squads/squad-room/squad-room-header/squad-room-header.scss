@@ -52,6 +52,11 @@
     height: 100%;
     object-fit: cover;
   }
+
+  // 320px telefonda ikon isme yer bırakmıyordu ("Testi…", "1 online" iki satır) — en dar ekranda gizli.
+  @media (max-width: 360px) {
+    display: none;
+  }
 }
 
 .rh-identity {
@@ -126,6 +131,11 @@
 
 .rh-sep {
   color: $color-border-dashed;
+}
+
+.rh-channel > span:not(.rh-channel-name) {
+  flex: none;
+  white-space: nowrap;
 }
 
 .rh-channel-name {

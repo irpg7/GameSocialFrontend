@@ -88,3 +88,25 @@ select.sheet-field {
     background: $color-accent-secondary;
   }
 }
+
+// Phones: the three buttons don't fit one row ("Save draft" / "Publish DevLog" broke over two lines) —
+// the primary goes full width on top, Cancel and Save draft share the row under it (as review-sheet).
+@media (max-width: 560px) {
+  .sheet-footer {
+    flex-wrap: wrap;
+  }
+
+  .footer-btn {
+    flex: 1 1 0;
+    white-space: nowrap;
+  }
+
+  .footer-draft {
+    margin-left: 0;
+  }
+
+  .footer-primary {
+    flex-basis: 100%;
+    order: -1;
+  }
+}

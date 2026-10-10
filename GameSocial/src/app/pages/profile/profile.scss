@@ -19,6 +19,12 @@
   display: flex;
   align-items: center;
   gap: $spacing-lg;
+
+  // Phones: the action buttons wrap under the name instead of squeezing it to one word per line.
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: $spacing-md;
+  }
 }
 
 .profile-avatar {
@@ -56,15 +62,22 @@
   gap: 4px;
   flex: 1;
   min-width: 0;
+
+  @media (max-width: 640px) {
+    flex-basis: 160px;
+  }
 }
 
 .profile-name-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: $spacing-sm;
+  min-width: 0;
 
   h2 {
     margin-bottom: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -128,13 +141,22 @@
 .profile-stats {
   display: flex;
   justify-content: space-around;
+  gap: $spacing-sm;
   text-align: center;
+
+  // Smallest phones: four stats in a row leave "Followers" wider than its column — two by two instead.
+  @media (max-width: 400px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: $spacing-md;
+  }
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .stat-value {

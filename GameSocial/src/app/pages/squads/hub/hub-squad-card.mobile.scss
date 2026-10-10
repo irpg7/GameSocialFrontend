@@ -135,3 +135,15 @@
     display: block;
   }
 }
+
+// Smallest phones: the chevron is decoration (the whole card is the link) — dropping it gives the name and
+// meta the room they need instead of wrapping word by word next to Invite.
+@media (max-width: 400px) {
+  .squad-open {
+    min-width: 0;
+  }
+
+  .squad-open-chevron {
+    display: none;
+  }
+}

@@ -52,6 +52,13 @@
     min-height: 44px;
     border-radius: 12px;
     font-size: 14px;
+    white-space: nowrap;
+
+    // 320px: "＋ Create a squad" broke over two lines in its half of the row.
+    @media (max-width: 360px) {
+      padding-inline: 10px;
+      font-size: 13px;
+    }
   }
 
   // Davet: başlık ekran okuyucuya kalır; ikon + metin + Accept / Later tek satırda.

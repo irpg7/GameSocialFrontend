@@ -1,4 +1,4 @@
-<div class="admin-page">
+<div class="admin-page admin-page-wide">
   <h1>Users</h1>
   <p class="text-muted mb-lg">Approve developer accounts, grant or revoke backoffice permissions and ban accounts. Each of these signs the user out so the change applies.</p>
 
@@ -41,17 +41,19 @@
             <tr [class.current-user-row]="isCurrentUser(user)">
               <td>{{ user.username }}</td>
               <td class="text-muted">{{ user.email }}</td>
-              <td class="developer-cell">
-                <input
-                  type="checkbox"
-                  [checked]="user.isDeveloper"
-                  [disabled]="isCurrentUser(user) || isPending(user, 'developer')"
-                  [attr.aria-label]="'Developer account for ' + user.username"
-                  (change)="toggleDeveloper(user)">
-                @if (user.developerRequested) {
-                  <span class="dev-request">Requested</span>
-                  <button type="button" class="btn btn-sm btn-secondary" [disabled]="isPending(user, 'developer')" (click)="declineDeveloper(user)">Decline</button>
-                }
+              <td>
+                <div class="developer-cell">
+                  <input
+                    type="checkbox"
+                    [checked]="user.isDeveloper"
+                    [disabled]="isCurrentUser(user) || isPending(user, 'developer')"
+                    [attr.aria-label]="'Developer account for ' + user.username"
+                    (change)="toggleDeveloper(user)">
+                  @if (user.developerRequested) {
+                    <span class="dev-request">Requested</span>
+                    <button type="button" class="btn btn-sm btn-secondary" [disabled]="isPending(user, 'developer')" (click)="declineDeveloper(user)">Decline</button>
+                  }
+                </div>
               </td>
               @for (permission of permissionKeys; track permission) {
                 <td>

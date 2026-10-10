@@ -18,6 +18,11 @@
   }
 }
 
+// Screens with a wide table (Users: one column per permission) use the free width on a desktop.
+.admin-page-wide {
+  max-width: 1400px;
+}
+
 .table-wrapper {
   padding: 0;
   overflow-x: auto;
@@ -37,6 +42,7 @@
   }
 
   th {
+    white-space: nowrap; // the wrapper scrolls sideways; headers stay one line
     color: $color-text-secondary;
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -95,4 +101,8 @@
 
 .admin-search {
   width: min(280px, 100%);
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 }

@@ -1,0 +1,57 @@
+@use '../../../styles/variables' as *;
+
+// Split from review-sheet.scss (style budget): phones. The desktop rows don't fit a ~340px sheet — the game
+// card squeezed "Pick a game" and "choose game" to a word per line, and the footer broke "Save draft" /
+// "Publish review" over two lines.
+
+@media (max-width: 560px) {
+  // Cover + name/hours on the first row, the stars and score on their own row underneath.
+  .rs-game {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .rs-game-info {
+    flex: 1 1 0;
+  }
+
+  .rs-game-meta {
+    flex-wrap: wrap;
+    white-space: nowrap;
+  }
+
+  .rs-score {
+    flex: 1 0 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .rs-info {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .rs-info-right {
+    margin-left: 0;
+    text-align: left;
+  }
+
+  // Publish full width on top, Cancel and Save draft side by side under it.
+  .rs-footer {
+    flex-wrap: wrap;
+  }
+
+  .rs-btn {
+    flex: 1 1 0;
+    white-space: nowrap;
+  }
+
+  .rs-btn-draft {
+    margin-left: 0;
+  }
+
+  .rs-btn-publish {
+    flex-basis: 100%;
+    order: -1;
+  }
+}

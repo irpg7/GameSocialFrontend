@@ -39,7 +39,7 @@ import { BlockService } from '../../../services/safety/block.service';
   selector: 'app-post-card',
   imports: [ImgFallback, PostEditSheet, NgTemplateOutlet, RouterLink, StarRating, ClipStage, PhotoGrid, PhotoViewer, RichText, PostComments],
   templateUrl: './post-card.html',
-  styleUrls: ['./post-card.scss', './post-card.devlog.scss'],
+  styleUrls: ['./post-card.scss', './post-card.devlog.scss', './post-card.mobile.scss'],
   host: {
     '(document:click)': 'menuOpen.set(false); confirmingDelete.set(false); confirmingBlock.set(false)',
     '[class.is-removed]': 'removed() || authorBlocked()',

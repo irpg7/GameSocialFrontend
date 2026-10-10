@@ -9,6 +9,15 @@
   gap: $spacing-sm;
   z-index: 1000;
   max-width: 360px;
+
+  // Phones: inset from both edges (a 360px toast at right: 32px started off-screen on a 320px phone) and
+  // above the bottom tab bar instead of covering it.
+  @media (max-width: 768px) {
+    left: $spacing-sm;
+    right: $spacing-sm;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    max-width: none;
+  }
 }
 
 .toast {
@@ -26,6 +35,8 @@
 }
 
 .toast-message {
+  min-width: 0;
+  overflow-wrap: anywhere; // copied links are one long word
   font-size: 0.9rem;
   color: $color-text-primary;
   line-height: 1.4;

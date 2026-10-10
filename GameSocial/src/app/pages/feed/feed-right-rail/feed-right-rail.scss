@@ -86,6 +86,11 @@ ul {
 }
 
 .squad-chip {
+  // A long squad name stays one line and truncates (the full name is the chip's title).
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   padding: 5px 9px;
   border: none;
   border-radius: 8px;

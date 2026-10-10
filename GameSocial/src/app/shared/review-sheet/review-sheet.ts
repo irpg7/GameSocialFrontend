@@ -60,7 +60,7 @@ const MAX_HOURS = 10_000;
   selector: 'app-review-sheet',
   imports: [ImgFallback, FormField, GamePicker, SheetModal, StarRating, RichTextToolbar],
   templateUrl: './review-sheet.html',
-  styleUrl: './review-sheet.scss',
+  styleUrls: ['./review-sheet.scss', './review-sheet.mobile.scss'],
 })
 export class ReviewSheet implements OnInit {
   private postService = inject(PostService);

@@ -26,8 +26,8 @@ const FILTER_LABELS: Record<ClipFilter, string> = { hot: 'Hot today', following:
 
 /**
  * The Clips page from Gamer Feed.dc.html's `onClipsPage` state: heading and
- * "＋ Upload a clip" (opens the `sheetClip` sheet), "Hot today / Following /
- * New" chips with a count, then the hero player beside an "Up next" /
+ * "＋ Upload a clip" (opens the `sheetClip` sheet), "New / Following /
+ * Hot today" chips with a count, then the hero player beside an "Up next" /
  * "Yorumlar" rail with an autoplay switch.
  *
  *  - Hot today = `GET posts?postType=Clip&sort=hot&window=day`; its total is
@@ -58,7 +58,8 @@ export class Clips implements OnInit {
   protected readonly isLoadingMore = signal(false);
   protected readonly loadError = signal<string | null>(null);
 
-  protected readonly filter = signal<ClipFilter>('hot');
+  // New first: "Hot today" is empty on a quiet day, New always has the latest clips.
+  protected readonly filter = signal<ClipFilter>('new');
   protected readonly rail = signal<ClipRail>('next');
   protected readonly autoplay = this.clipAutoplay.autoplay;
   protected readonly selectedClipId = signal<string | null>(null);
@@ -75,7 +76,7 @@ export class Clips implements OnInit {
   /** Local comment-count deltas from the rail composer, keyed by post id. */
   protected readonly commentDeltas = signal<Record<string, number>>({});
 
-  protected readonly filters: { key: ClipFilter; label: string }[] = (['hot', 'following', 'new'] as ClipFilter[]).map((key) => ({
+  protected readonly filters: { key: ClipFilter; label: string }[] = (['new', 'following', 'hot'] as ClipFilter[]).map((key) => ({
     key,
     label: FILTER_LABELS[key],
   }));

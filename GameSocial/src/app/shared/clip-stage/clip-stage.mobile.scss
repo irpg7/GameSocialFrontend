@@ -18,6 +18,13 @@
   }
 }
 
+// Smallest phones (320px): even the trimmed row is a few px wider than the stage, pushing ⛶ to the edge.
+@media (max-width: 360px) {
+  .sc-btn {
+    width: 30px;
+  }
+}
+
 // Phones (≤ 600px), feed "clip of the day" and the Clips page hero: the stage is much taller than
 // a 16:9 clip at this width, so `cover` cut away most of the picture and the title/author overlay
 // covered the rest. Letterbox the clip instead and shrink the overlay into the bars.
@@ -59,6 +66,16 @@
       top: 12px;
       right: 12px;
       gap: 6px;
+    }
+
+    // The badges stop before the three action buttons (3 × 32px + gaps + inset) and wrap under each
+    // other; on a 320px phone the game badge otherwise slid under ⋯ / mute.
+    .stage-badges {
+      left: 14px;
+      top: 14px;
+      max-width: calc(100% - 142px);
+      flex-wrap: wrap;
+      row-gap: 6px;
     }
   }
 }
