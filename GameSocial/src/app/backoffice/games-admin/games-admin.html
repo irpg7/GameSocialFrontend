@@ -1,50 +1,14 @@
 <div class="admin-page">
-  <h1>Games</h1>
-  <p class="text-muted mb-lg">Manage the games catalogue used across posts.</p>
-
-  <div class="card mb-lg">
-    <h2>New game</h2>
-    <div class="form-group">
-      <label for="new-game-name">Name</label>
-      <input id="new-game-name" type="text" [formField]="newForm.name" placeholder="Game name">
+  <header class="admin-head">
+    <div>
+      <h1>Games</h1>
+      <p class="admin-sub">Manage the games catalogue used across posts.</p>
     </div>
-    <div class="form-group">
-      <label for="new-game-studio">Studio <span class="text-muted">(optional)</span></label>
-      <input id="new-game-studio" type="text" [formField]="newForm.studio" placeholder="e.g. Kuytu Studio">
-    </div>
-    <div class="form-group">
-      <label for="new-game-release">Release date <span class="text-muted">(optional — caps "hours played" on reviews)</span></label>
-      <input id="new-game-release" type="date" [formField]="newForm.releaseDate">
-    </div>
-    <div class="form-group">
-      <label for="new-game-developer">Developer username <span class="text-muted">(optional — their replies pin as ◆ YAPIMCI)</span></label>
-      <input id="new-game-developer" type="text" [formField]="newForm.developer" placeholder="username">
-    </div>
-    <div class="form-group">
-      <label>Genres</label>
-      <div class="genre-checkbox-grid">
-        @for (genre of genres; track genre.value) {
-          <label class="genre-checkbox">
-            <input type="checkbox" [checked]="isNewGenreSelected(genre.value)" (change)="toggleNewGenre(genre.value)">
-            {{ genre.label }}
-          </label>
-        }
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="new-game-poster">Poster <span class="text-muted">(optional, jpg/png/webp, max 5MB)</span></label>
-      <input id="new-game-poster" type="file" accept="image/jpeg,image/png,image/webp" (change)="onNewPosterSelected($event)">
-    </div>
-    @if (createError(); as message) {
-      <p class="form-error">{{ message }}</p>
-    }
-    <button type="button" class="btn btn-primary" [disabled]="newForm().submitting()" (click)="createGame()">
-      {{ newForm().submitting() ? 'Creating...' : 'Add game' }}
-    </button>
-  </div>
+    <button type="button" class="btn btn-primary" (click)="sheet.set('new')">＋ New game</button>
+  </header>
 
   <div class="admin-toolbar">
-    <h2>Catalogue</h2>
+    <span class="admin-count">{{ totalCount() }} {{ totalCount() === 1 ? 'game' : 'games' }}</span>
     <input
       type="search"
       class="admin-search"
@@ -55,90 +19,66 @@
   </div>
 
   @if (isLoading() && games().length === 0) {
-    <p class="text-muted">Loading games...</p>
+    <p class="admin-empty">Loading games…</p>
   } @else {
     <div class="table-wrapper card">
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Poster</th>
-            <th>Name</th>
-            <th>Genre</th>
+            <th>Game</th>
+            <th>Genres</th>
             <th>Studio / Developer</th>
-            <th>Slug</th>
-            <th></th>
+            <th>Released</th>
+            <th><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           @for (game of games(); track game.id) {
-            @if (editingId() === game.id) {
-              <tr>
-                <td>
-                  <img class="poster-thumb" [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
-                  <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onEditPosterSelected($event)">
-                </td>
-                <td>
-                  <input type="text" aria-label="Name" [formField]="editForm.name">
-                  @if (editError(); as message) {
-                    <p class="form-error">{{ message }}</p>
-                  }
-                </td>
-                <td>
-                  <input type="text" aria-label="Studio" [formField]="editForm.studio" placeholder="Studio">
-                  <input type="text" aria-label="Developer username" [formField]="editForm.developer" placeholder="Developer username">
-                  <input type="date" aria-label="Release date" [formField]="editForm.releaseDate">
-                </td>
-                <td colspan="2">
-                  <div class="genre-checkbox-grid">
-                    @for (genre of genres; track genre.value) {
-                      <label class="genre-checkbox">
-                        <input type="checkbox" [checked]="isEditGenreSelected(genre.value)" (change)="toggleEditGenre(genre.value)">
-                        {{ genre.label }}
-                      </label>
+            <tr>
+              <td>
+                <div class="game-cell">
+                  <img class="poster-thumb" [appImg]="game.coverImageUrl" fallback="game" alt="" />
+                  <div class="game-cell-text">
+                    <span class="game-cell-name">{{ game.name }}</span>
+                    <span class="admin-cell-sub mono">{{ game.slug }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                @if (game.genres.length) {
+                  <div class="admin-tags">
+                    @for (genre of game.genres; track genre) {
+                      <span class="admin-tag">{{ genre }}</span>
                     }
                   </div>
-                </td>
-                <td class="admin-table-actions">
-                  <button type="button" class="btn btn-primary btn-sm" [disabled]="editForm().submitting()" (click)="saveEdit()">
-                    {{ editForm().submitting() ? 'Saving...' : 'Save' }}
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
-                </td>
-              </tr>
-            } @else {
-              <tr>
-                <td>
-                  <img class="poster-thumb" [appImg]="game.coverImageUrl" fallback="game" [alt]="game.name" />
-                </td>
-                <td>{{ game.name }}</td>
-                <td class="text-muted">{{ game.genres.join(', ') }}</td>
-                <td class="text-muted">
-                  {{ game.studio || '—' }}
-                  @if (game.developerUsername) {
-                    · &#64;{{ game.developerUsername }}
-                  }
-                  @if (game.releaseDate) {
-                    · {{ game.releaseDate }}
-                  }
-                </td>
-                <td class="text-muted">{{ game.slug }}</td>
-                <td class="admin-table-actions">
-                  <button type="button" class="btn btn-secondary btn-sm" (click)="startEdit(game)">Edit</button>
-                  <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    [disabled]="deletingId() === game.id"
-                    (click)="deleteGame(game)">
-                    {{ deletingId() === game.id ? 'Deleting...' : 'Delete' }}
-                  </button>
-                </td>
-              </tr>
-            }
+                } @else {
+                  <span class="admin-cell-sub">—</span>
+                }
+              </td>
+              <td>
+                <span class="admin-cell-main">{{ game.studio || '—' }}</span>
+                @if (game.developerUsername) {
+                  <span class="admin-cell-sub">&#64;{{ game.developerUsername }}</span>
+                }
+              </td>
+              <td class="date-cell mono">{{ game.releaseDate || '—' }}</td>
+              <td class="admin-table-actions">
+                <button type="button" class="btn btn-secondary btn-sm" [attr.aria-label]="'Edit ' + game.name" (click)="sheet.set(game)">Edit</button>
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  [attr.aria-label]="'Delete ' + game.name"
+                  [disabled]="deletingId() === game.id"
+                  (click)="deleteGame(game)">
+                  {{ deletingId() === game.id ? 'Deleting…' : 'Delete' }}
+                </button>
+              </td>
+            </tr>
           }
 
           @if (games().length === 0) {
             <tr>
-              <td colspan="6" class="text-muted">{{ searchQuery().trim() ? 'No games match.' : 'No games yet.' }}</td>
+              <td colspan="5" class="admin-empty-cell">{{ searchQuery().trim() ? 'No games match.' : 'No games yet.' }}</td>
             </tr>
           }
         </tbody>
@@ -147,3 +87,7 @@
     <app-pager [page]="page()" [pageSize]="pageSize" [totalCount]="totalCount()" itemLabel="games" [disabled]="isLoading()" (pageChange)="goToPage($event)" />
   }
 </div>
+
+@if (sheet()) {
+  <app-game-form-sheet [game]="editedGame()" (saved)="onSaved($event)" (closed)="sheet.set(null)" />
+}

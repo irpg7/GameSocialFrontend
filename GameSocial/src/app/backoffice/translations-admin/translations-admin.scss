@@ -1,44 +1,70 @@
 @use '../../../styles/variables' as *;
 @use '../admin-shared' as *;
 
-.inline-form-row {
-  display: flex;
-  gap: $spacing-md;
-  align-items: flex-end;
-  flex-wrap: wrap;
-
-  .form-group {
-    margin-bottom: 0;
-    min-width: 180px;
-  }
+.lang-code-field {
+  flex: 0 1 140px;
 }
 
-.toggle-group {
+// Language picker: the app's chip-tab look (exactly one selected).
+.lang-tabs {
   display: flex;
-  gap: $spacing-xs;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: $spacing-lg;
+}
+
+.lang-tab {
+  display: inline-flex;
   align-items: center;
-}
-
-.toggle-btn {
-  background: $color-bg-tertiary;
+  gap: 8px;
+  padding: 8px 13px;
   border: 1px solid $color-border;
   border-radius: $border-radius-md;
+  background-color: $color-bg-secondary;
   color: $color-text-secondary;
-  padding: $spacing-xs $spacing-md;
-  font-size: 0.9rem;
+  font: 600 13px/14px $font-family-primary;
   cursor: pointer;
-  transition: all $transition-speed-fast;
-  font-family: $font-family-primary;
-
-  &.active {
-    background-color: rgba($color-accent-primary, 0.15);
-    border-color: $color-accent-primary;
-    color: $color-accent-primary;
-  }
+  transition: border-color $transition-speed-fast, color $transition-speed-fast, background-color $transition-speed-fast;
 
   &:hover:not(.active) {
-    border-color: $color-text-secondary;
+    border-color: $color-border-dashed;
     color: $color-text-primary;
   }
+
+  &.active {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+    font-weight: 700;
+
+    .lang-code,
+    .lang-default {
+      color: rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.lang-code {
+  font-size: 11px;
+  color: $color-text-tertiary;
+}
+
+.lang-default {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: $color-text-tertiary;
+}
+
+.key-cell {
+  width: 34%;
+  font-size: 12px;
+  color: $color-text-secondary;
+  word-break: break-all;
 }

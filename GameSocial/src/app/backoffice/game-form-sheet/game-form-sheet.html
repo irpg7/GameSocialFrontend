@@ -1,0 +1,60 @@
+<app-sheet-modal
+  [title]="isEdit() ? 'Edit game' : 'New game'"
+  [subtitle]="isEdit() ? game()!.name : 'Add a game to the catalogue used across posts.'"
+  (closed)="closed.emit()">
+  <form class="gf" [formRoot]="gameForm">
+    <div class="gf-field gf-wide">
+      <label for="game-name">Name</label>
+      <input id="game-name" type="text" [formField]="gameForm.name" placeholder="Game name" />
+    </div>
+
+    <div class="gf-field">
+      <label for="game-studio">Studio <span class="gf-optional">optional</span></label>
+      <input id="game-studio" type="text" [formField]="gameForm.studio" placeholder="e.g. Kuytu Studio" />
+    </div>
+
+    <div class="gf-field">
+      <label for="game-release">Release date <span class="gf-optional">optional</span></label>
+      <input id="game-release" type="date" [formField]="gameForm.releaseDate" />
+      <span class="gf-hint">Caps "hours played" on reviews.</span>
+    </div>
+
+    <div class="gf-field gf-wide">
+      <label for="game-developer">Developer username <span class="gf-optional">optional</span></label>
+      <input id="game-developer" type="text" [formField]="gameForm.developer" placeholder="username" />
+      <span class="gf-hint">Their replies pin as ◆ YAPIMCI.</span>
+    </div>
+
+    <fieldset class="gf-field gf-wide">
+      <legend>Genres</legend>
+      <div class="gf-genres">
+        @for (genre of genres; track genre.value) {
+          <label class="gf-genre" [class.on]="isGenreSelected(genre.value)">
+            <input type="checkbox" [checked]="isGenreSelected(genre.value)" (change)="toggleGenre(genre.value)" />
+            {{ genre.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="gf-field gf-wide">
+      <label for="game-poster">Poster <span class="gf-optional">optional</span></label>
+      <app-poster-picker inputId="game-poster" [currentUrl]="game()?.coverImageUrl ?? null" [(file)]="posterFile" />
+    </div>
+
+    @if (error(); as message) {
+      <p class="gf-error gf-wide" role="alert">{{ message }}</p>
+    }
+
+    <div class="gf-actions gf-wide">
+      <button type="button" class="btn btn-secondary" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="gameForm().submitting()">
+        @if (gameForm().submitting()) {
+          {{ isEdit() ? 'Saving…' : 'Adding…' }}
+        } @else {
+          {{ isEdit() ? 'Save changes' : 'Add game' }}
+        }
+      </button>
+    </div>
+  </form>
+</app-sheet-modal>

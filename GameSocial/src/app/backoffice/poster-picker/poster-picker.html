@@ -1,0 +1,35 @@
+<div
+  class="pp"
+  [class.dragging]="isDragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="isDragging.set(false)"
+  (drop)="onDrop($event)">
+  <div class="pp-preview">
+    @if (previewUrl(); as url) {
+      <img [src]="url" alt="New poster preview" />
+    } @else {
+      <img [appImg]="currentUrl()" fallback="game" alt="Current poster" />
+    }
+  </div>
+
+  <div class="pp-body">
+    @if (file(); as picked) {
+      <span class="pp-title pp-file" [attr.title]="picked.name">{{ picked.name }}</span>
+      <span class="pp-hint">{{ sizeLabel(picked.size) }} · replaces the poster when you save</span>
+    } @else {
+      <span class="pp-title">{{ isDragging() ? 'Drop to use this image' : 'Drag an image here' }}</span>
+      <span class="pp-hint">JPG, PNG or WebP · up to 5 MB · 16:9 looks best</span>
+    }
+    <div class="pp-actions">
+      <input #fileInput [id]="inputId()" class="visually-hidden" type="file" tabindex="-1" [accept]="accept" (change)="onPicked($event)" />
+      <button type="button" class="btn btn-secondary btn-sm" (click)="fileInput.click()">
+        {{ file() || currentUrl() ? 'Replace image' : 'Choose image' }}
+      </button>
+      @if (file()) {
+        <button type="button" class="btn btn-sm pp-undo" (click)="file.set(null)">
+          {{ currentUrl() ? 'Keep current' : 'Remove' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { BACKOFFICE_SECTIONS } from '../../constants/permissions';
+import { ToastList } from '../../layout/toast-list/toast-list';
 
 @Component({
   selector: 'app-backoffice-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastList],
   templateUrl: './backoffice-layout.html',
   styleUrl: './backoffice-layout.scss',
 })

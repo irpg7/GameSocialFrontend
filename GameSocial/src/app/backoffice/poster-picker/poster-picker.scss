@@ -1,0 +1,86 @@
+@use '../../../styles/variables' as *;
+
+// A dashed drop zone (the app's "＋ add" rows use the same dashed border): preview left, copy + buttons right.
+
+.pp {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1.5px dashed $color-border-dashed;
+  border-radius: $border-radius-lg;
+  background-color: $color-bg-inset;
+  transition: border-color $transition-speed-fast, background-color $transition-speed-fast;
+
+  &.dragging {
+    border-color: $color-accent-primary;
+    background-color: $color-accent-tint;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.pp-preview {
+  flex: none;
+  width: 160px;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: $color-bg-tertiary;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+.pp-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pp-title {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.pp-file {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-hint {
+  font-size: 12px;
+  line-height: 16px;
+  color: $color-text-tertiary;
+}
+
+.pp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.pp-undo {
+  background: none;
+  color: $color-text-secondary;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}

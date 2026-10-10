@@ -111,6 +111,20 @@ a {
   }
 }
 
+// Destructive action (delete, remove): an outline in the accent red so it never reads as the page's primary
+// button; fills red on hover. Was local to settings-danger.
+.btn-danger {
+  background-color: transparent;
+  color: $color-accent-light;
+  border: 1px solid rgba($color-accent-primary, 0.55);
+
+  &:hover:not(:disabled) {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+    color: #fff;
+  }
+}
+
 /* Forms — one standard text input/textarea/select look, applied globally
    (not opt-in via a wrapper class) so every field in the app matches by
    default, including a bare <input> dropped into a table cell with no
@@ -141,6 +155,70 @@ a {
     outline: none;
     border-color: $color-accent-primary;
     box-shadow: 0 0 0 3px $color-accent-glow;
+  }
+}
+
+/* Checkboxes and radios — the app's own control instead of the browser's white box: an 18px dark tile with
+   a strong border; checked fills accent red with a white tick (radio: a white dot). :where() keeps it at zero
+   specificity so a component can still restyle one (e.g. a chip that hides its box). */
+:where(input[type='checkbox'], input[type='radio']) {
+  appearance: none;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+  border: 1.5px solid $color-border-dashed;
+  border-radius: 6px;
+  background-color: $color-bg-primary;
+  cursor: pointer;
+  transition: background-color $transition-speed-fast, border-color $transition-speed-fast, box-shadow $transition-speed-fast;
+
+  &::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    transform: scale(0);
+    transition: transform 120ms ease-out;
+    background-color: #fff;
+    // tick
+    clip-path: polygon(14% 44%, 0 59%, 40% 100%, 100% 22%, 86% 8%, 39% 69%);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $color-text-tertiary;
+  }
+
+  &:checked {
+    background-color: $color-accent-primary;
+    border-color: $color-accent-primary;
+
+    &::before {
+      transform: scale(1);
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px $color-accent-glow;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+:where(input[type='radio']) {
+  border-radius: 50%;
+
+  &::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    clip-path: none;
   }
 }
 

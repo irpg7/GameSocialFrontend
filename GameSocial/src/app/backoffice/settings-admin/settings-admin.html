@@ -1,9 +1,13 @@
 <div class="admin-page">
-  <h1>Settings</h1>
-  <p class="text-muted mb-lg">Application-wide configuration values.</p>
+  <header class="admin-head">
+    <div>
+      <h1>Settings</h1>
+      <p class="admin-sub">Application-wide configuration values.</p>
+    </div>
+  </header>
 
   @if (isLoading()) {
-    <p class="text-muted">Loading settings...</p>
+    <p class="admin-empty">Loading settings…</p>
   } @else {
     <div class="table-wrapper card">
       <table class="admin-table">
@@ -12,14 +16,14 @@
             <th>Key</th>
             <th>Value</th>
             <th>Description</th>
-            <th></th>
+            <th><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           @for (rowField of rowsForm; track $index) {
             @let row = rowField().value();
             <tr>
-              <td>{{ row.key }}</td>
+              <td class="mono setting-key">{{ row.key }}</td>
               <td>
                 <input type="text" [attr.aria-label]="row.key" [formField]="rowField.value">
               </td>
@@ -27,7 +31,7 @@
               <td class="admin-table-actions">
                 <button
                   type="button"
-                  class="btn btn-primary btn-sm"
+                  class="btn btn-primary btn-sm row-save"
                   [disabled]="row.isSaving || row.value === row.savedValue"
                   (click)="save(row.key)">
                   {{ row.isSaving ? 'Saving...' : 'Save' }}
@@ -38,7 +42,7 @@
 
           @if (rows().length === 0) {
             <tr>
-              <td colspan="4" class="text-muted">No settings found.</td>
+              <td colspan="4" class="admin-empty-cell">No settings found.</td>
             </tr>
           }
         </tbody>

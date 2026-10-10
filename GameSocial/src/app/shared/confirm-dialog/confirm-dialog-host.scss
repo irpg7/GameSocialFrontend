@@ -1,0 +1,101 @@
+@use '../../../styles/variables' as *;
+
+// Same scrim and panel language as sheet-modal, at alert size: 400px, centred copy, two equal buttons.
+
+.cd-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; // above sheets (100) and toasts (1000): it can be asked from inside a sheet
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+  background-color: rgba(6, 6, 8, 0.72);
+  animation: cd-fade 120ms ease-out;
+}
+
+.cd-panel {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background-color: $color-bg-sheet;
+  border: 1px solid $color-border-strong;
+  border-radius: $border-radius-sheet;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: cd-pop 140ms ease-out;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.cd-icon {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+  display: grid;
+  place-content: center;
+  border-radius: 14px;
+  background-color: $color-accent-tint;
+  border: 1px solid $color-accent-border;
+  color: $color-accent-light;
+  font: 800 20px/1 $font-family-primary;
+}
+
+.cd-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+}
+
+.cd-message {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $color-text-secondary;
+  overflow-wrap: anywhere;
+}
+
+.cd-actions {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cd-danger {
+  background-color: $color-accent-primary;
+  color: #fff;
+
+  &:hover {
+    background-color: $color-accent-secondary;
+  }
+}
+
+@keyframes cd-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cd-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-backdrop,
+  .cd-panel {
+    animation: none;
+  }
+}

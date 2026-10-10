@@ -1,15 +1,19 @@
 <div class="admin-page">
-  <h1>Languages & Translations</h1>
-  <p class="text-muted mb-lg">Manage supported languages and their localized text.</p>
+  <header class="admin-head">
+    <div>
+      <h1>Languages & Translations</h1>
+      <p class="admin-sub">Manage supported languages and their localized text.</p>
+    </div>
+  </header>
 
-  <div class="card mb-lg">
-    <h2>Add a language</h2>
-    <div class="inline-form-row">
-      <div class="form-group">
+  <section class="admin-panel">
+    <h2 class="admin-panel-title">Add a language</h2>
+    <div class="admin-inline-form">
+      <div class="admin-field lang-code-field">
         <label for="new-lang-code">Code</label>
         <input id="new-lang-code" type="text" [formField]="languageForm.code" placeholder="e.g. tr, en">
       </div>
-      <div class="form-group">
+      <div class="admin-field">
         <label for="new-lang-name">Name</label>
         <input id="new-lang-name" type="text" [formField]="languageForm.name" placeholder="e.g. Türkçe">
       </div>
@@ -20,35 +24,40 @@
     @if (languageError(); as message) {
       <p class="form-error">{{ message }}</p>
     }
-  </div>
+  </section>
 
   @if (isLoadingLanguages()) {
-    <p class="text-muted">Loading languages...</p>
+    <p class="admin-empty">Loading languages…</p>
   } @else {
-    <div class="toggle-group mb-lg">
+    <div class="lang-tabs" role="tablist" aria-label="Language">
       @for (language of languages(); track language.code) {
-        <button type="button" class="toggle-btn" [class.active]="selectedLanguageCode() === language.code" (click)="selectLanguage(language.code)">
-          {{ language.name }} ({{ language.code }})
+        <button
+          type="button"
+          role="tab"
+          class="lang-tab"
+          [class.active]="selectedLanguageCode() === language.code"
+          [attr.aria-selected]="selectedLanguageCode() === language.code"
+          (click)="selectLanguage(language.code)">
+          {{ language.name }} <span class="lang-code mono">{{ language.code }}</span>
           @if (language.isDefault) {
-            <span class="text-muted"> · default</span>
+            <span class="lang-default">default</span>
           }
         </button>
       }
-
-      @if (languages().length === 0) {
-        <p class="text-muted">No languages yet — add one above.</p>
-      }
     </div>
+    @if (languages().length === 0) {
+      <p class="admin-empty">No languages yet — add one above.</p>
+    }
 
     @if (selectedLanguageCode()) {
-      <div class="card mb-lg">
-        <h2>Add a translation key</h2>
-        <div class="inline-form-row">
-          <div class="form-group">
+      <section class="admin-panel">
+        <h2 class="admin-panel-title">Add a translation key</h2>
+        <div class="admin-inline-form">
+          <div class="admin-field">
             <label for="new-key">Key</label>
             <input id="new-key" type="text" [formField]="keyForm.key" placeholder="e.g. Validation.BodyRequired">
           </div>
-          <div class="form-group">
+          <div class="admin-field">
             <label for="new-value">Value</label>
             <input id="new-value" type="text" [formField]="keyForm.value">
           </div>
@@ -59,10 +68,10 @@
         @if (newKeyError(); as message) {
           <p class="form-error">{{ message }}</p>
         }
-      </div>
+      </section>
 
       @if (isLoadingTranslations()) {
-        <p class="text-muted">Loading translations...</p>
+        <p class="admin-empty">Loading translations…</p>
       } @else {
         <div class="table-wrapper card">
           <table class="admin-table">
@@ -70,21 +79,21 @@
               <tr>
                 <th>Key</th>
                 <th>Value</th>
-                <th></th>
+                <th><span class="visually-hidden">Actions</span></th>
               </tr>
             </thead>
             <tbody>
               @for (rowField of rowsForm; track $index) {
                 @let row = rowField().value();
                 <tr>
-                  <td>{{ row.key }}</td>
+                  <td class="key-cell mono">{{ row.key }}</td>
                   <td>
                     <input type="text" [attr.aria-label]="row.key" [formField]="rowField.value">
                   </td>
                   <td class="admin-table-actions">
                     <button
                       type="button"
-                      class="btn btn-primary btn-sm"
+                      class="btn btn-primary btn-sm row-save"
                       [disabled]="row.isSaving || row.value === row.savedValue"
                       (click)="saveTranslation(row.key)">
                       {{ row.isSaving ? 'Saving...' : 'Save' }}
@@ -95,7 +104,7 @@
 
               @if (rows().length === 0) {
                 <tr>
-                  <td colspan="3" class="text-muted">No translation keys yet for this language.</td>
+                  <td colspan="3" class="admin-empty-cell">No translation keys yet for this language.</td>
                 </tr>
               }
             </tbody>

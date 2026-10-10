@@ -1,21 +1,11 @@
-// Shared partial for the four backoffice admin screens. Angular's per-component
+// Shared partial for the backoffice admin screens. Angular's per-component
 // style encapsulation means this gets compiled into each consumer's stylesheet
 // (via `@use '../admin-shared' as *;`) rather than shared at runtime — kept as
-// a single source of truth so the four screens stay visually consistent.
+// a single source of truth so the screens stay visually consistent.
 @use '../../styles/variables' as *;
 
 .admin-page {
-  max-width: 960px;
-
-  h1 {
-    font-size: 1.8rem;
-    margin-bottom: $spacing-xs;
-  }
-
-  h2 {
-    font-size: 1.1rem;
-    margin-bottom: $spacing-md;
-  }
+  max-width: 1080px;
 }
 
 // Screens with a wide table (Users: one column per permission) use the free width on a desktop.
@@ -23,7 +13,77 @@
   max-width: 1400px;
 }
 
+// Page header: title + one muted line, the page's main action pushed right (as the app's .page-head).
+.admin-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-lg;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.6px;
+  }
+}
+
+.admin-sub {
+  margin: 4px 0 0;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+// A titled block on the page ground (forms above a table): micro-label header like the app's panels.
+.admin-panel {
+  margin-bottom: $spacing-lg;
+  padding: 18px;
+  background-color: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
+}
+
+.admin-panel-title {
+  margin: 0 0 14px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $color-text-secondary;
+}
+
+// Label-over-input fields in one row, the button aligned with the inputs.
+.admin-inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-field {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    color: $color-text-secondary;
+  }
+}
+
 .table-wrapper {
+  // relative: the visually-hidden "Actions" header is absolutely positioned; without a positioned ancestor it
+  // escaped this scroller and widened the whole page on phones.
+  position: relative;
   padding: 0;
   overflow-x: auto;
 }
@@ -35,19 +95,31 @@
   th,
   td {
     text-align: left;
-    padding: $spacing-sm $spacing-md;
+    padding: 12px 16px;
     border-bottom: 1px solid $color-border;
-    font-size: 0.9rem;
+    font-size: 13px;
+    line-height: 18px;
     vertical-align: middle;
   }
 
   th {
     white-space: nowrap; // the wrapper scrolls sideways; headers stay one line
-    color: $color-text-secondary;
-    font-size: 0.75rem;
+    padding-top: 11px;
+    padding-bottom: 11px;
+    background-color: $color-bg-inset;
+    color: $color-text-tertiary;
+    font-size: 11px;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    font-weight: 700;
+  }
+
+  tbody tr {
+    transition: background-color $transition-speed-fast;
+
+    &:hover {
+      background-color: $color-bg-row;
+    }
   }
 
   tr:last-child td {
@@ -62,6 +134,7 @@
 // Sits on the <td> itself, so it must stay a table cell: display: flex took the cell out of the row — the
 // buttons hugged the top and the row's bottom border ran above them. Buttons sit inline instead.
 .admin-table-actions {
+  width: 1%;
   white-space: nowrap;
   text-align: right;
 
@@ -70,38 +143,82 @@
   }
 }
 
+// Two lines in a cell: the value, then a muted meta line under it.
+.admin-cell-main {
+  display: block;
+  color: $color-text-primary;
+}
+
+.admin-cell-sub {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: $color-text-tertiary;
+}
+
+.admin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.admin-tag {
+  padding: 3px 8px;
+  border-radius: 7px;
+  background-color: $color-bg-tertiary;
+  color: $color-text-secondary;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-empty,
+.admin-empty-cell {
+  color: $color-text-tertiary;
+  font-size: 14px;
+}
+
+.admin-table td.admin-empty-cell {
+  padding: 28px 16px;
+  text-align: center;
+}
+
 .poster-thumb {
-  width: 56px;
-  height: 32px;
-  border-radius: $border-radius-sm;
+  flex: none;
+  width: 64px;
+  height: 36px;
+  border-radius: 8px;
   object-fit: cover;
   display: block;
   background-color: $color-bg-tertiary;
 }
 
 .form-error {
-  margin-top: $spacing-sm;
-  font-size: 0.85rem;
-  color: $color-accent-primary;
+  margin: $spacing-sm 0 0;
+  font-size: 13px;
+  color: $color-accent-light;
 }
 
-.btn-sm {
-  padding: $spacing-xs $spacing-md;
-  font-size: 0.82rem;
-}
-
-// Heading + server-side search above a paged table.
+// Search above a paged table, with a count on the left.
 .admin-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: $spacing-md;
   flex-wrap: wrap;
-  margin-bottom: $spacing-md;
+  margin-bottom: 12px;
 
   h2 {
     margin-bottom: 0;
   }
+}
+
+.admin-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: $color-text-tertiary;
 }
 
 .admin-search {
@@ -110,4 +227,13 @@
   @media (max-width: 640px) {
     width: 100%;
   }
+}
+
+// Row "Save" in an editable table: a quiet outline until the value changes, red once there is something to
+// save (the old disabled red pill looked broken).
+.row-save:disabled {
+  opacity: 1;
+  background-color: transparent;
+  border: 1px solid $color-border;
+  color: $color-text-tertiary;
 }

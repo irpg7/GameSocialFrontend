@@ -1,0 +1,119 @@
+@use '../../../styles/variables' as *;
+
+// Two columns (studio | release date), everything else full width; one column on phones.
+.gf {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 14px;
+  padding-bottom: 4px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gf-wide {
+  grid-column: 1 / -1;
+}
+
+.gf-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  // the field's own label only — not the genre chips, which are labels too
+  > label,
+  > legend {
+    padding: 0;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    color: $color-text-secondary;
+  }
+
+  > legend {
+    margin-bottom: 6px;
+  }
+}
+
+.gf-optional {
+  margin-left: 4px;
+  font-weight: 500;
+  color: $color-text-tertiary;
+}
+
+.gf-hint {
+  font-size: 11px;
+  line-height: 15px;
+  color: $color-text-tertiary;
+}
+
+// Genres: chips that carry the app's checkbox; a picked one takes the accent tint.
+.gf-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gf-genre {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 7px 9px;
+  border: 1px solid $color-border-strong;
+  border-radius: 11px;
+  background-color: $color-bg-secondary;
+  color: $color-text-secondary;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color $transition-speed-fast, background-color $transition-speed-fast, color $transition-speed-fast;
+
+  input {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+  }
+
+  &:hover {
+    border-color: $color-border-dashed;
+    color: $color-text-primary;
+  }
+
+  &.on {
+    border-color: rgba($color-accent-primary, 0.5);
+    background-color: $color-accent-tint;
+    color: $color-text-primary;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid $color-accent-light;
+    outline-offset: 2px;
+  }
+}
+
+.gf-error {
+  margin: 0;
+  font-size: 13px;
+  color: $color-accent-light;
+}
+
+.gf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+
+  @media (max-width: 560px) {
+    .btn {
+      flex: 1;
+    }
+  }
+}

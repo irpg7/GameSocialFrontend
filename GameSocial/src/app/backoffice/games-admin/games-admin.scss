@@ -1,21 +1,28 @@
 @use '../../../styles/variables' as *;
 @use '../admin-shared' as *;
 
-.genre-checkbox-grid {
+// Poster + name + slug in one cell.
+.game-cell {
   display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm $spacing-md;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
 }
 
-.genre-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-xs;
-  font-size: 0.85rem;
-  color: $color-text-primary;
-  cursor: pointer;
+.game-cell-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  input[type='checkbox'] {
-    width: auto;
-  }
+.game-cell-name {
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.date-cell {
+  white-space: nowrap;
+  font-size: 12px;
+  color: $color-text-tertiary;
 }

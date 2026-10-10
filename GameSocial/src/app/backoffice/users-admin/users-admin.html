@@ -1,6 +1,10 @@
 <div class="admin-page admin-page-wide">
-  <h1>Users</h1>
-  <p class="text-muted mb-lg">Approve developer accounts, grant or revoke backoffice permissions and ban accounts. Each of these signs the user out so the change applies.</p>
+  <header class="admin-head">
+    <div>
+      <h1>Users</h1>
+      <p class="admin-sub">Approve developer accounts, grant or revoke backoffice permissions and ban accounts. Each of these signs the user out so the change applies.</p>
+    </div>
+  </header>
 
   <div class="admin-toolbar">
     <input
@@ -21,7 +25,7 @@
   </div>
 
   @if (isLoading() && users().length === 0) {
-    <p class="text-muted">Loading users...</p>
+    <p class="admin-empty">Loading users…</p>
   } @else {
     <div class="table-wrapper card">
       <table class="admin-table">
@@ -79,7 +83,7 @@
 
           @if (users().length === 0) {
             <tr>
-              <td [attr.colspan]="4 + permissionKeys.length" class="text-muted">No users found.</td>
+              <td [attr.colspan]="4 + permissionKeys.length" class="admin-empty-cell">No users found.</td>
             </tr>
           }
         </tbody>

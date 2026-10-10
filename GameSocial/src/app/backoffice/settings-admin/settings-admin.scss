@@ -1,2 +1,7 @@
 @use '../../../styles/variables' as *;
 @use '../admin-shared' as *;
+
+.setting-key {
+  font-size: 12px;
+  color: $color-text-secondary;
+}

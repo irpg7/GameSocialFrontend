@@ -29,18 +29,6 @@
   flex-shrink: 0;
 }
 
-// Outline in the accent red — the destructive action shouldn't look like the page's primary button.
-.btn-danger {
-  background-color: transparent;
-  color: $color-accent-light;
-  border: 1px solid $color-accent-primary;
-
-  &:hover {
-    background-color: $color-accent-primary;
-    color: #fff;
-  }
-}
-
 @media (max-width: 600px) {
   .danger-row {
     flex-direction: column;

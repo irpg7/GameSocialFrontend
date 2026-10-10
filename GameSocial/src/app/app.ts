@@ -1,8 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ConfirmDialogHost } from './shared/confirm-dialog/confirm-dialog-host';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ConfirmDialogHost],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
